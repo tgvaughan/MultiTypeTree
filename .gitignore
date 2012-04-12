@@ -1,0 +1,7 @@
+# netbeans cruft
+build.xml
+manifest.mf
+nbproject
+
+# svn rubbish
+.svn
