@@ -256,6 +256,41 @@ public class TreeColour extends Plugin {
 	 */
 	private boolean timesValid(Node node) {
 
+		if (!node.isRoot()) {
+			// Check consistency of times on branch between node
+			// and its parent:
+			for (int i=0; i<getChangeCount(node); i++) {
+				double thisTime = getChangeTime(node, i);
+
+				double prevTime;
+				if (i>0)
+					prevTime = getChangeTime(node,i-1);
+				else
+					prevTime = node.getHeight();
+
+				if (thisTime<prevTime)
+					return false;
+
+				double nextTime;
+				if (i<getChangeCount(node)-1)
+					nextTime = getChangeTime(node,i+1);
+				else
+					nextTime = node.getParent().getHeight();
+
+				if (nextTime<thisTime)
+					return false;
+			}
+		}
+
+		if (!node.isLeaf()) {
+			// Check consistency of branches between node and
+			// each of its children:
+			for (Node child : node.getChildren()) {
+				if (!timesValid(child))
+					return false;
+			}
+		}
+			
 		return true;
 	}
 
