@@ -45,15 +45,15 @@ public class TreeColour extends Plugin {
 	Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
 			"leafColours", "Sampled colours at tree leaves.");
 
-	Input<IntegerParameter> colourChangesInput = new Input<IntegerParameter>(
-			"colourChanges", "Changes in colour along branches",
+	Input<IntegerParameter> changeColoursInput = new Input<IntegerParameter>(
+			"changeColours", "Changes in colour along branches",
 			new IntegerParameter());
 
-	Input<RealParameter> colourChangeTimesInput = new Input<RealParameter>(
-			"colourChangeTimes", "Times of colour changes.");
+	Input<RealParameter> changeTimesInput = new Input<RealParameter>(
+			"changeTimes", "Times of colour changes.");
 
-	Input<IntegerParameter> nColourChangesInput = new Input<IntegerParameter>(
-			"nColourChanges", "Number of colour changes on each branch.");
+	Input<IntegerParameter> changeCountsInput = new Input<IntegerParameter>(
+			"changeCounts", "Number of colour changes on each branch.");
 
 	/*
 	 * Shadowing fields:
@@ -61,8 +61,8 @@ public class TreeColour extends Plugin {
 
 	Integer nColours, maxBranchColours;
 	Tree tree;
-	IntegerParameter leafColours, colourChanges, nColourChanges;
-	RealParameter colourChangeTimes;
+	IntegerParameter leafColours, changeColours, changeCounts;
+	RealParameter changeTimes;
 
 	public TreeColour() {};
 
@@ -82,18 +82,48 @@ public class TreeColour extends Plugin {
 			throw new Exception("Incorrect number of leaf colours specified.");
 
 		// Obtain references to Parameters used to store colouring:
-		colourChanges = colourChangesInput.get();
-		colourChangeTimes = colourChangeTimesInput.get();
-		nColourChanges = nColourChangesInput.get();
+		changeColours = changeColoursInput.get();
+		changeTimes = changeTimesInput.get();
+		changeCounts = changeCountsInput.get();
 
 		// Initialise colouring:
 		int nBranches = tree.getNodeCount()-1;
-		colourChanges.setDimension(nBranches*maxBranchColours);
-		colourChangeTimes.setDimension(nBranches*maxBranchColours);
-		nColourChanges.setDimension(nBranches);
+		changeColours.setDimension(nBranches*maxBranchColours);
+		changeTimes.setDimension(nBranches*maxBranchColours);
+		changeCounts.setDimension(nBranches);
 
 	}
 
+	/**
+	 * Obtain colour associated with leaf node of tree.
+	 * 
+	 * @param node
+	 * @return Colour index.
+	 */
+	public int getLeafColour(Node node) {
+		return leafColours.getValue(node.getNr());
+	}
+
+	/**
+	 * Set number of colours on branch between node and its parent.
+	 * 
+	 * @param node
+	 * @param count Number of colours on branch. (>=1)
+	 */
+	public void setChangeCount(Node node, int count) {
+		int offset = getBranchOffset(node);
+		changeCounts.setValue(offset, count);
+	}
+
+	/**
+	 * Obtain number of colours on branch between node and its parent.
+	 * 
+	 * @param node
+	 * @return Number of colours on branch.
+	 */
+	public int getChangeCount(Node node) {
+		return changeCounts.getValue(getBranchOffset(node));
+	}
 
 	/**
 	 * Sets colour changes along branch between node and its parent.
@@ -101,15 +131,16 @@ public class TreeColour extends Plugin {
 	 * @param node
 	 * @param colours Vararg list of colour indices.
 	 */
-	public void setBranchChanges(Node node, int ... colours) {
+	public void setChangeColours(Node node, int ... colours) {
 
 		if (colours.length>maxBranchColours)
-			throw new RuntimeException("Maximum number of colour changes"
-					+ "along branch exceeded");
+			throw new RuntimeException(
+					"Maximum number of colour changes along branch exceeded");
 
 		int offset = node.getNr()*maxBranchColours;
 		for (int i=0; i<colours.length; i++)
-			colourChanges.setValue(offset+i, colours[i]);
+			changeColours.setValue(offset+i, colours[i]);
+
 	}
 
 	/**
@@ -118,55 +149,114 @@ public class TreeColour extends Plugin {
 	 * @param node
 	 * @param times Vararg list of colour change times.
 	 */
-	public void setBranchChangeTimes(Node node, double ... times) {
+	public void setChangeTimes(Node node, double ... times) {
 
 		if (times.length>maxBranchColours)
-			throw new RuntimeException("Maximum number of colour changes"
-					+ "along branch exceeded");
+			throw new RuntimeException(
+					"Maximum number of colour changes along branch exceeded");
 
 		int offset = getBranchOffset(node);
 		for (int i=0; i<times.length; i++)
-			colourChangeTimes.setValue(offset+i, times[i]);
+			changeTimes.setValue(offset+i, times[i]);
+	}
+
+	public int getChangeColour(Node node, int idx) {
+		if (idx>getChangeCount(node))
+			throw new RuntimeException(
+					"Index to getChangeColour exceeded total number of colour"
+					+ "changes on branch.");
+
+		return changeColours.getValue(getBranchOffset(node)+idx);
+	}
+
+	public double getChangeTime(Node node, int idx) {
+		if (idx>getChangeCount(node))
+			throw new RuntimeException(
+					"Index to getChangeTime exceeded total number of colour"
+					+ "changes on branch.");
+
+		return changeTimes.getValue(idx);
 	}
 
 	/**
 	 * Internal method for calculating offset to branch-specific colour data.
 	 * 
 	 * @param node
-	 * @return Offset into colourChanges and colourChangeTimes
+	 * @return Offset into changeColours and changeTimes
 	 */
 	private int getBranchOffset(Node node) {
 		return node.getNr()*maxBranchColours;
 	}
-
-	/*
-	public int getColour(Node node, double time) throws Exception {
-		int nodeNr = node.getNr();
-		double nodeTime = node.getHeight();
-		double nodeParentTime = node.getParent().getHeight();
-		if (time < nodeTime || time > nodeParentTime)
-			throw new Exception("Specified time is not on branch.");
-	}
-	*/
 
 	/**
 	 * Checks validity of current colour assignment.
 	 * 
 	 * @return True if valid, false otherwise.
 	 */
-	public boolean coloursValid() {
-
-		return true;
+	public boolean valid() {
+		return coloursValid(tree.getRoot());
 	}
 
-	private boolean colourChangesValid() {
+	/**
+	 * Returns the final colour after all the changes have occurred
+	 * along the branch between node and its parent.
+	 * 
+	 * @param node
+	 * @return Final colour.
+	 */
+	private int getFinalColour(Node node) {
+		if (getChangeCount(node) == 0) {
+			if (node.isLeaf()) {
+				return getLeafColour(node);
+			} else
+				return getFinalColour(node.getLeft());
+		} else
+			return getChangeColour(node, getChangeCount(node)-1);
+	}
 
-		for (Node node : tree.getNodesAsArray()) {
+	/**
+	 * Recursively check validity of colours assigned to branches of subtree
+	 * under node.
+	 * 
+	 * @param node Root node of subtree to validate.
+	 * @return True if valid, false otherwise.
+	 */
+	private boolean coloursValid(Node node) {
+
+		// Leaves are always valid.
+		if (node.isLeaf())
+			return true;
+
+		int consensusColour = -1;
+		for (Node child : node.getChildren()) {
 			
+			// Check that final child branch colour matches consensus:
+			int thisColour = getFinalColour(child);
+			if (consensusColour<0)
+				consensusColour = thisColour;
+			else {
+				if (thisColour != consensusColour)
+					return false;
+			}
+
+			// Check that subtree of child is also valid:
+			if (!child.isLeaf() && !coloursValid(child))
+				return false;
 		}
 
 		return true;
 	}
 
-}
+	/**
+	 * Recursively check validity of times at which colours are assigned
+	 * to branches of subtree under node.
+	 * 
+	 * @param node
+	 * @return  True if valid, false otherwise.
+	 */
+	private boolean timesValid(Node node) {
 
+		return true;
+	}
+
+}
