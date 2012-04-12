@@ -194,7 +194,7 @@ public class TreeColour extends Plugin {
 	 * @return True if valid, false otherwise.
 	 */
 	public boolean valid() {
-		return coloursValid(tree.getRoot());
+		return coloursValid(tree.getRoot()) && timesValid(tree.getRoot());
 	}
 
 	/**
