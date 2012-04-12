@@ -28,10 +28,14 @@ import beast.evolution.tree.*;
 @Description("Plugin for specifying migration events along a tree.")
 public class TreeColour extends Plugin {
 
+	/*
+	 * Plugin inputs:
+	 */
+
 	Input<Integer> nColoursInput = new Input<Integer>(
 			"nColours", "Number of demes to consider.");
 
-	Input<Integer> maxChangesPerBranchInput = new Input<Integer>(
+	Input<Integer> maxBranchColoursInput = new Input<Integer>(
 			"maxChangesPerBranch",
 			"Max number of colour changes allowed along a single branch.");
 
@@ -48,25 +52,120 @@ public class TreeColour extends Plugin {
 	Input<RealParameter> colourChangeTimesInput = new Input<RealParameter>(
 			"colourChangeTimes", "Times of colour changes.");
 
-	Integer nColours, maxChangesPerBranch;
+	Input<IntegerParameter> nColourChangesInput = new Input<IntegerParameter>(
+			"nColourChanges", "Number of colour changes on each branch.");
+
+	/*
+	 * Shadowing fields:
+	 */
+
+	Integer nColours, maxBranchColours;
 	Tree tree;
-	IntegerParameter leafColours, colourChanges;
+	IntegerParameter leafColours, colourChanges, nColourChanges;
 	RealParameter colourChangeTimes;
 
 	public TreeColour() {};
 
 	@Override
-	public void initAndValidate() {
+	public void initAndValidate() throws Exception {
 
+		// Grab primary colouring parameters from inputs:
 		nColours = nColoursInput.get();
-		maxChangesPerBranch = maxChangesPerBranchInput.get();
+		maxBranchColours = maxBranchColoursInput.get();
 
+		// Obtain tree to colour:
 		tree = treeInput.get();
-		leafColours = leafColoursInput.get();
 
+		// Obtain leaf colours and validate count:
+		leafColours = leafColoursInput.get();
+		if (tree.getLeafNodeCount() != leafColours.getDimension())
+			throw new Exception("Incorrect number of leaf colours specified.");
+
+		// Obtain references to Parameters used to store colouring:
 		colourChanges = colourChangesInput.get();
 		colourChangeTimes = colourChangeTimesInput.get();
+		nColourChanges = nColourChangesInput.get();
 
+		// Initialise colouring:
+		int nBranches = tree.getNodeCount()-1;
+		colourChanges.setDimension(nBranches*maxBranchColours);
+		colourChangeTimes.setDimension(nBranches*maxBranchColours);
+		nColourChanges.setDimension(nBranches);
+
+	}
+
+
+	/**
+	 * Sets colour changes along branch between node and its parent.
+	 * 
+	 * @param node
+	 * @param colours Vararg list of colour indices.
+	 */
+	public void setBranchChanges(Node node, int ... colours) {
+
+		if (colours.length>maxBranchColours)
+			throw new RuntimeException("Maximum number of colour changes"
+					+ "along branch exceeded");
+
+		int offset = node.getNr()*maxBranchColours;
+		for (int i=0; i<colours.length; i++)
+			colourChanges.setValue(offset+i, colours[i]);
+	}
+
+	/**
+	 * Sets times of colour changes long branch between node and its parent.
+	 * 
+	 * @param node
+	 * @param times Vararg list of colour change times.
+	 */
+	public void setBranchChangeTimes(Node node, double ... times) {
+
+		if (times.length>maxBranchColours)
+			throw new RuntimeException("Maximum number of colour changes"
+					+ "along branch exceeded");
+
+		int offset = getBranchOffset(node);
+		for (int i=0; i<times.length; i++)
+			colourChangeTimes.setValue(offset+i, times[i]);
+	}
+
+	/**
+	 * Internal method for calculating offset to branch-specific colour data.
+	 * 
+	 * @param node
+	 * @return Offset into colourChanges and colourChangeTimes
+	 */
+	private int getBranchOffset(Node node) {
+		return node.getNr()*maxBranchColours;
+	}
+
+	/*
+	public int getColour(Node node, double time) throws Exception {
+		int nodeNr = node.getNr();
+		double nodeTime = node.getHeight();
+		double nodeParentTime = node.getParent().getHeight();
+		if (time < nodeTime || time > nodeParentTime)
+			throw new Exception("Specified time is not on branch.");
+	}
+	*/
+
+	/**
+	 * Checks validity of current colour assignment.
+	 * 
+	 * @return True if valid, false otherwise.
+	 */
+	public boolean coloursValid() {
+
+		return true;
+	}
+
+	private boolean colourChangesValid() {
+
+		for (Node node : tree.getNodesAsArray()) {
+			
+		}
+
+		return true;
 	}
 
 }
