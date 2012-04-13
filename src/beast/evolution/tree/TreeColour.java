@@ -14,11 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package treecolour;
+package beast.evolution.tree;
 
 import beast.core.*;
 import beast.core.parameter.*;
-import beast.evolution.tree.*;
 
 /**
  * BEAST 2 plugin for specifying migration events along a tree.
@@ -314,8 +313,7 @@ public class TreeColour extends Plugin {
 	}
 
 	/**
-	 * Takes as input a tree and a colouring scheme over that tree then
-	 * generates a new tree in which the colours along the branches are
+	 * Generates a new tree in which the colours along the branches are
 	 * indicated by the traits of single-child nodes.
 	 * 
 	 * This method is useful for interfacing trees coloured externally
@@ -326,7 +324,7 @@ public class TreeColour extends Plugin {
 	 * @param treeColour
 	 * @return Flattened tree.
 	 */
-		public Tree getFlattenedTree() {
+	public Tree getFlattenedTree() {
 		Tree flatTree = tree.copy();
 
 		for (Node node : tree.getNodesAsArray()) {
