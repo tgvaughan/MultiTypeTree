@@ -32,8 +32,11 @@ public class TreeColour extends Plugin {
 	 * Plugin inputs:
 	 */
 
+	Input<String> colourLabelInput = new Input<String>(
+			"colourLabel", "Label for colours (e.g. deme)");
+
 	Input<Integer> nColoursInput = new Input<Integer>(
-			"nColours", "Number of demes to consider.");
+			"nColours", "Number of colours to consider.");
 
 	Input<Integer> maxBranchColoursInput = new Input<Integer>(
 			"maxChangesPerBranch",
@@ -59,6 +62,7 @@ public class TreeColour extends Plugin {
 	 * Shadowing fields:
 	 */
 
+	String colourLabel;
 	Integer nColours, maxBranchColours;
 	Tree tree;
 	IntegerParameter leafColours, changeColours, changeCounts;
@@ -70,6 +74,7 @@ public class TreeColour extends Plugin {
 	public void initAndValidate() throws Exception {
 
 		// Grab primary colouring parameters from inputs:
+		colourLabel = colourLabelInput.get();
 		nColours = nColoursInput.get();
 		maxBranchColours = maxBranchColoursInput.get();
 
@@ -204,14 +209,28 @@ public class TreeColour extends Plugin {
 	 * @param node
 	 * @return Final colour.
 	 */
-	private int getFinalColour(Node node) {
+	int getFinalBranchColour(Node node) {
 		if (getChangeCount(node) == 0) {
 			if (node.isLeaf()) {
 				return getLeafColour(node);
 			} else
-				return getFinalColour(node.getLeft());
+				return getFinalBranchColour(node.getLeft());
 		} else
 			return getChangeColour(node, getChangeCount(node)-1);
+	}
+
+	/**
+	 * Returns the initial colour before any changes have occurred
+	 * along the branch between node and its parent.
+	 * 
+	 * @param node
+	 * @return Initial colour.
+	 */
+	int getInitialBranchColour(Node node) {
+		if (node.isLeaf())
+			return getLeafColour(node);
+		else
+			return getFinalBranchColour(node.getLeft());
 	}
 
 	/**
@@ -231,7 +250,7 @@ public class TreeColour extends Plugin {
 		for (Node child : node.getChildren()) {
 			
 			// Check that final child branch colour matches consensus:
-			int thisColour = getFinalColour(child);
+			int thisColour = getFinalBranchColour(child);
 			if (consensusColour<0)
 				consensusColour = thisColour;
 			else {
@@ -292,6 +311,56 @@ public class TreeColour extends Plugin {
 		}
 			
 		return true;
+	}
+
+	/**
+	 * Takes as input a tree and a colouring scheme over that tree then
+	 * generates a new tree in which the colours along the branches are
+	 * indicated by the traits of single-child nodes.
+	 * 
+	 * This method is useful for interfacing trees coloured externally
+	 * using the a TreeColour instance with methods designed to act on
+	 * trees coloured using single-child nodes and their metadata fields.
+	 * 
+	 * @param tree
+	 * @param treeColour
+	 * @return Flattened tree.
+	 */
+		public Tree getFlattenedTree() {
+		Tree flatTree = tree.copy();
+
+		for (Node node : tree.getNodesAsArray()) {
+
+			int nodeNum = node.getNr();
+
+			if (node.isRoot()) {
+				flatTree.getNode(nodeNum).setMetaData(colourLabel,
+						getInitialBranchColour(node));
+				continue;
+			}
+
+			Node branchNode = flatTree.getNode(nodeNum);
+			branchNode.setMetaData(colourLabel,
+					getInitialBranchColour(node));
+
+			for (int i=0; i<getChangeCount(node); i++) {
+				Node colourChangeNode = new Node();
+				branchNode.setParent(colourChangeNode);
+				colourChangeNode.addChild(branchNode);
+
+				colourChangeNode.setHeight(getChangeTime(node, i));
+				colourChangeNode.setMetaData(colourLabel,
+						getChangeColour(node, i));
+
+				branchNode = colourChangeNode;
+			}
+
+			int parentNum = node.getParent().getNr();
+			branchNode.setParent(flatTree.getNode(parentNum));
+
+		}
+
+		return flatTree;
 	}
 
 }
