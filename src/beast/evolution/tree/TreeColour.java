@@ -31,41 +31,41 @@ public class TreeColour extends Plugin {
 	 * Plugin inputs:
 	 */
 
-	Input<String> colourLabelInput = new Input<String>(
+	public Input<String> colourLabelInput = new Input<String>(
 			"colourLabel", "Label for colours (e.g. deme)");
 
-	Input<Integer> nColoursInput = new Input<Integer>(
+	public Input<Integer> nColoursInput = new Input<Integer>(
 			"nColours", "Number of colours to consider.");
 
-	Input<Integer> maxBranchColoursInput = new Input<Integer>(
+	public Input<Integer> maxBranchColoursInput = new Input<Integer>(
 			"maxChangesPerBranch",
 			"Max number of colour changes allowed along a single branch.");
 
-	Input<Tree> treeInput = new Input<Tree>(
+	public Input<Tree> treeInput = new Input<Tree>(
 			"tree", "Tree on which to place colours.");
 
-	Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
+	public Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
 			"leafColours", "Sampled colours at tree leaves.");
 
-	Input<IntegerParameter> changeColoursInput = new Input<IntegerParameter>(
+	public Input<IntegerParameter> changeColoursInput = new Input<IntegerParameter>(
 			"changeColours", "Changes in colour along branches",
 			new IntegerParameter());
 
-	Input<RealParameter> changeTimesInput = new Input<RealParameter>(
+	public Input<RealParameter> changeTimesInput = new Input<RealParameter>(
 			"changeTimes", "Times of colour changes.");
 
-	Input<IntegerParameter> changeCountsInput = new Input<IntegerParameter>(
+	public Input<IntegerParameter> changeCountsInput = new Input<IntegerParameter>(
 			"changeCounts", "Number of colour changes on each branch.");
 
 	/*
 	 * Shadowing fields:
 	 */
 
-	String colourLabel;
-	Integer nColours, maxBranchColours;
-	Tree tree;
-	IntegerParameter leafColours, changeColours, changeCounts;
-	RealParameter changeTimes;
+	protected String colourLabel;
+	protected Integer nColours, maxBranchColours;
+	protected Tree tree;
+	protected IntegerParameter leafColours, changeColours, changeCounts;
+	protected RealParameter changeTimes;
 
 	public TreeColour() {};
 
@@ -90,7 +90,7 @@ public class TreeColour extends Plugin {
 		changeTimes = changeTimesInput.get();
 		changeCounts = changeCountsInput.get();
 
-		// Initialise colouring:
+		// Allocate arrays for recording colour change information:
 		int nBranches = tree.getNodeCount()-1;
 		changeColours.setDimension(nBranches*maxBranchColours);
 		changeTimes.setDimension(nBranches*maxBranchColours);
