@@ -46,11 +46,16 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 			"Migration rate matrix with diagonals representing deme"
 			+ "population sizes.", Validate.REQUIRED);
 
+	public Input<Boolean> flatTreeInput = new Input<Boolean>(
+			"flatTree", "Whether or not to embed colouring in tree.",
+			false);
+
 	/*
 	 * Shadowing fields:
 	 */
 
 	protected RealParameter rateMatrix;
+	protected boolean flatTree;
 
 	/*
 	 * Other private fields and classes:
@@ -94,6 +99,7 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		colourLabel = colourLabelInput.get();
 		maxBranchColours = maxBranchColoursInput.get();
 		rateMatrix = rateMatrixInput.get();
+		flatTree = flatTreeInput.get();
 
 		// Create new tree:
 		tree = new Tree();
@@ -105,7 +111,7 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		changeColours = changeColoursInput.get();
 		changeTimes = changeTimesInput.get();
 		changeCounts = changeCountsInput.get();
-		
+
 		// Allocate arrays for recording colour change information:
 		int nBranches = 2*leafColours.getDimension() - 2;
 		changeColours.setDimension(nBranches*maxBranchColours);
@@ -114,6 +120,15 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 
 		// Construct tree and record root.
 		tree.setRoot(simulateTree());
+
+		// Assign tree (or its flattened equivalent) to input plugin:
+		if (!flatTree)
+			treeInput.setValue(tree, this);
+		else
+			treeInput.setValue(getFlattenedTree(), this);
+	}
+
+	private void allocateColourChangeArrays() {
 
 	}
 

@@ -1,0 +1,21 @@
+<beast version='2.0'
+	namespace='beast.evolution.tree.coalescent:beast.core.parameter'>
+
+
+       <treeColour spec='StructuredCoalescentTreeColour'
+	       nColours="3" maxBranchColours="20" colourLabel="deme">
+
+	       <rateMatrix spec='RealParameter' dimension="9"
+		       value='2.0 0.5 0.5 0.5 0.5 0.5 0.5 0.5 1.0'/>
+
+	       <leafColours spec='IntegerParameter' dimension="10"
+		       value="0 0 1 2 2 1 1 0 0 2" />
+
+	       <changeColours spec='IntegerParameter' id='changeColours' />
+	       <changeTimes spec='RealParameter' id='changeTimes' />
+	       <changeCounts spec='IntegerParameter' id='changeCounts' />
+
+	</treeColour>
+
+</beast>
+

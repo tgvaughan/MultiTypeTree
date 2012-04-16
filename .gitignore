@@ -6,3 +6,4 @@ nbproject
 # svn rubbish
 .svn
 /dist/
+/build/

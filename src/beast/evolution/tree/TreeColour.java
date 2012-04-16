@@ -220,6 +220,14 @@ public class TreeColour extends Plugin {
 
 	}
 
+	/**
+	 * Obtain colour of the change specified by idx on the branch between
+	 * node and its parent.
+	 * 
+	 * @param node
+	 * @param idx
+	 * @return Integer value of colour.
+	 */
 	public int getChangeColour(Node node, int idx) {
 		if (idx>getChangeCount(node))
 			throw new RuntimeException(
@@ -229,6 +237,14 @@ public class TreeColour extends Plugin {
 		return changeColours.getValue(getBranchOffset(node)+idx);
 	}
 
+	/**
+	 * Obtain time of the change specified by idx on the branch between
+	 * node and its parent.
+	 * 
+	 * @param node
+	 * @param idx
+	 * @return Time of change.
+	 */
 	public double getChangeTime(Node node, int idx) {
 		if (idx>getChangeCount(node))
 			throw new RuntimeException(
