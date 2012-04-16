@@ -60,8 +60,8 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		double time;
 		int fromColour, toColour; 
 
-		boolean isMigration() {
-			return false;
+		boolean isCoalescence() {
+			return true;
 		}
 	}
 
@@ -79,15 +79,15 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 			this.time = time;
 		}
 		@Override
-		boolean isMigration() {
-			return true;
+		boolean isCoalescence() {
+			return false;
 		}
 	}
 	
 	public StructuredCoalescentTreeColour() {}
 
 	@Override
-	public void initAndValidate() {
+	public void initAndValidate() throws Exception {
 
 		// Obtain required parameters from inputs:
 		nColours = nColoursInput.get();
@@ -106,22 +106,14 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		changeTimes = changeTimesInput.get();
 		changeCounts = changeCountsInput.get();
 		
-		// Initialise active node and node colour lists:
-		List<List<Node>> activeNodes = new ArrayList<List<Node>>();
-		for (int i=0; i<nColours; i++)
-			activeNodes.add(new ArrayList<Node>());
-
-		for (int l=0; l<leafColours.getDimension(); l++) {
-			Node node = new Node();
-			node.setHeight(0.0);
-			activeNodes.get(leafColours.getValue(l)).add(node);
-		}
-
 		// Allocate arrays for recording colour change information:
 		int nBranches = 2*leafColours.getDimension() - 2;
 		changeColours.setDimension(nBranches*maxBranchColours);
 		changeTimes.setDimension(nBranches*maxBranchColours);
 		changeCounts.setDimension(nBranches);
+
+		// Construct tree and record root.
+		tree.setRoot(simulateTree());
 
 	}
 
@@ -132,7 +124,22 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 	 * @param activeNodes
 	 * @return Root node of generated tree.
 	 */
-	private Node simulateTree(List<List<Node>> activeNodes) throws Exception {
+	private Node simulateTree() throws Exception {
+
+		// Initialise node creation counter:
+		int nextNodeNr = 0;
+
+		// Initialise active node list:
+		List<List<Node>> activeNodes = new ArrayList<List<Node>>();
+		for (int i=0; i<nColours; i++)
+			activeNodes.add(new ArrayList<Node>());
+
+		for (int l=0; l<leafColours.getDimension(); l++) {
+			Node node = new Node();
+			node.setHeight(0.0);
+			node.setNr(nextNodeNr++);
+			activeNodes.get(leafColours.getValue(l)).add(node);
+		}
 
 		// Allocate propensity lists:
 		List<List<Double>> migrationProp = new ArrayList<List<Double>>();
@@ -157,6 +164,7 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 					totalProp, t); 
 
 			// Step 3: Place event on tree.
+			updateTree(activeNodes, event, nextNodeNr);
 
 			// Step 4: Keep track of time increment.
 			t = event.time;
@@ -265,6 +273,79 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 
 	}
 
+	/**
+	 * Update tree with result of latest event.
+	 * 
+	 * @param activeNodes
+	 * @param event
+	 * @param lastNodeNr Integer identifier of last node added to tree.
+	 */
+	private void updateTree (List<List<Node>> activeNodes, SCEvent event,
+			int nextNodeNr) {
 
+		if (event.isCoalescence()) {
+
+			// Randomly select node pair with chosen colour:
+			Node daughter = selectRandomNode(activeNodes.get(event.fromColour));
+			Node son = selectRandomSibling(
+					activeNodes.get(event.fromColour), daughter);
+
+			// Create new parent node with appropriate ID and time:
+			Node parent = new Node();
+			parent.setHeight(event.time);
+			parent.setNr(nextNodeNr++);
+
+			// Connect new parent to children:
+			parent.setLeft(daughter);
+			parent.setRight(son);
+			son.setParent(parent);
+			daughter.setParent(parent);
+
+			// Update activeNodes:
+			activeNodes.get(event.fromColour).remove(son);
+			int idx = activeNodes.get(event.fromColour).indexOf(daughter);
+			activeNodes.get(event.fromColour).set(idx, parent);
+
+		} else {
+
+			// Randomly select node with chosen colour:
+			Node migrator = selectRandomNode(activeNodes.get(event.fromColour));
+
+			// Record colour change in change lists:
+			addChange(migrator, event.toColour, event.time);
+
+			// Update activeNodes:
+			activeNodes.get(event.fromColour).remove(migrator);
+			activeNodes.get(event.toColour).add(migrator);
+
+		}
+
+	}
+
+	/**
+	 * Use beast RNG to select random node from list.
+	 * 
+	 * @param nodeList
+	 * @return A randomly selected node.
+	 */
+	private Node selectRandomNode(List<Node> nodeList) {
+		return nodeList.get(Randomizer.nextInt(nodeList.size()));
+	}
+
+	/**
+	 * Return random node from list, excluding given node.
+	 * 
+	 * @param nodeList
+	 * @param node
+	 * @return Randomly selected node.
+	 */
+	private Node selectRandomSibling(List<Node> nodeList, Node node) {
+		Node brother;
+		while ((brother=selectRandomNode(nodeList)) == node);
+		return brother;
+
+		// Aweful method.  This is the problem with using abstract objects
+		// rather than indices to refer to the list members.
+	}
 	
 }

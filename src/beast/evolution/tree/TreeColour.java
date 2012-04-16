@@ -130,6 +130,23 @@ public class TreeColour extends Plugin {
 	}
 
 	/**
+	 * Set new colour for change which has already been recorded.
+	 * 
+	 * @param node
+	 * @param idx
+	 * @param colour 
+	 */
+	public void setChangeColour(Node node, int idx, int colour) {
+
+		if (idx>getChangeCount(node))
+			throw new RuntimeException(
+					"Attempted to alter non-existent change colour.");
+
+		int offset = node.getNr()*maxBranchColours;
+		changeColours.setValue(offset+idx, colour);
+	}
+
+	/**
 	 * Sets colour changes along branch between node and its parent.
 	 * 
 	 * @param node
@@ -138,8 +155,8 @@ public class TreeColour extends Plugin {
 	public void setChangeColours(Node node, int ... colours) {
 
 		if (colours.length>maxBranchColours)
-			throw new RuntimeException(
-					"Maximum number of colour changes along branch exceeded");
+			throw new IllegalArgumentException(
+					"Maximum number of colour changes along branch exceeded.");
 
 		int offset = node.getNr()*maxBranchColours;
 		for (int i=0; i<colours.length; i++)
@@ -148,7 +165,24 @@ public class TreeColour extends Plugin {
 	}
 
 	/**
-	 * Sets times of colour changes long branch between node and its parent.
+	 * Set new time for change which has already been recorded.
+	 * 
+	 * @param node
+	 * @param idx
+	 * @param time 
+	 */
+	public void setChangeTime(Node node, int idx, double time) {
+
+		if (idx>getChangeCount(node))
+			throw new IllegalArgumentException(
+					"Attempted to alter non-existent change time.");
+
+		int offset = node.getNr()*maxBranchColours;
+		changeTimes.setValue(offset+idx, time);
+	}
+
+	/**
+	 * Sets times of colour changes along branch between node and its parent.
 	 * 
 	 * @param node
 	 * @param times Vararg list of colour change times.
@@ -156,12 +190,34 @@ public class TreeColour extends Plugin {
 	public void setChangeTimes(Node node, double ... times) {
 
 		if (times.length>maxBranchColours)
-			throw new RuntimeException(
-					"Maximum number of colour changes along branch exceeded");
+			throw new IllegalArgumentException(
+					"Maximum number of colour changes along branch exceeded.");
 
 		int offset = getBranchOffset(node);
 		for (int i=0; i<times.length; i++)
 			changeTimes.setValue(offset+i, times[i]);
+	}
+
+	/**
+	 * Add a colour change to a branch between node and its parent.
+	 * @param node
+	 * @param newColour
+	 * @param time 
+	 */
+	public void addChange(Node node, int newColour, double time) {
+		int count = getChangeCount(node);
+
+		if (count>=maxBranchColours)
+			throw new RuntimeException(
+					"Maximum number of colour changes along branch exceeded.");
+
+		// Add spot for new colour change:
+		setChangeCount(node, count+1);
+
+		// Set change colour and time:
+		setChangeColour(node, count, newColour);
+		setChangeTime(node, count, time);
+
 	}
 
 	public int getChangeColour(Node node, int idx) {
