@@ -19,6 +19,8 @@ package beast.evolution.tree.coalescent;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
+import beast.core.State;
+import beast.core.StateNode;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.Node;
@@ -102,9 +104,6 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		rateMatrix = rateMatrixInput.get();
 		flatTree = flatTreeInput.get();
 
-		// Create new tree:
-		tree = new Tree();
-
 		// Obtain leaf colours:
 		leafColours = leafColoursInput.get();
 
@@ -112,6 +111,16 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		changeColours = new IntegerParameter("0");
 		changeTimes = new RealParameter("0.0");
 		changeCounts = new IntegerParameter("0");
+
+		// Attach state nodes to temporary State, as Parameters must
+		// belong to a State before they can be modified by calls to
+		// setValue(). (Why?)
+		State state = new State();
+		state.initByName(
+				"stateNode", changeColours,
+				"stateNode", changeTimes,
+				"stateNode", changeCounts);
+		state.initialise();
 
 		// Ensure inputs retain references to colouring parameters:
 		changeColoursInput.setValue(changeColours, this);
@@ -124,8 +133,8 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		changeTimes.setDimension(nBranches*maxBranchColours);
 		changeCounts.setDimension(nBranches);
 
-		// Construct tree and record root.
-		tree.setRoot(simulateTree());
+		// Construct tree:
+		tree = new Tree(simulateTree());
 
 		// Assign tree (or its flattened equivalent) to input plugin:
 		if (!flatTree)
@@ -184,7 +193,7 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 					totalProp, t); 
 
 			// Step 3: Place event on tree.
-			updateTree(activeNodes, event, nextNodeNr);
+			nextNodeNr = updateTree(activeNodes, event, nextNodeNr);
 
 			// Step 4: Keep track of time increment.
 			t = event.time;
@@ -298,9 +307,10 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 	 * 
 	 * @param activeNodes
 	 * @param event
-	 * @param lastNodeNr Integer identifier of last node added to tree.
+	 * @param nextNodeNr Integer identifier of last node added to tree.
+	 * @return Updated nextNodeNr.
 	 */
-	private void updateTree (List<List<Node>> activeNodes, SCEvent event,
+	private int updateTree (List<List<Node>> activeNodes, SCEvent event,
 			int nextNodeNr) {
 
 		if (event.isCoalescence()) {
@@ -313,7 +323,9 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 			// Create new parent node with appropriate ID and time:
 			Node parent = new Node();
 			parent.setHeight(event.time);
-			parent.setNr(nextNodeNr++);
+			parent.setNr(nextNodeNr);
+			parent.setID(String.valueOf(nextNodeNr));
+			nextNodeNr++;
 
 			// Connect new parent to children:
 			parent.setLeft(daughter);
@@ -340,6 +352,8 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 
 		}
 
+		return nextNodeNr;
+
 	}
 
 	/**
@@ -364,8 +378,10 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		while ((brother=selectRandomNode(nodeList)) == node);
 		return brother;
 
-		// Aweful method.  This is the problem with using abstract objects
+		// This is the problem with using abstract objects
 		// rather than indices to refer to the list members.
+
+		// TODO: rewrite this awful method!
 	}
 	
 }

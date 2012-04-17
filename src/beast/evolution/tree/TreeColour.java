@@ -393,7 +393,14 @@ public class TreeColour extends Plugin {
 	 * @return Flattened tree.
 	 */
 	public Tree getFlattenedTree() {
+
+		// Create new tree to modify.  Note that copy() doesn't
+		// initialise the node array lists, so initArrays() must
+		// be called manually.
 		Tree flatTree = tree.copy();
+		flatTree.initArrays();
+
+		int nextNodeNr = flatTree.getNodeCount();
 
 		for (Node node : tree.getNodesAsArray()) {
 
@@ -410,14 +417,23 @@ public class TreeColour extends Plugin {
 					getInitialBranchColour(node));
 
 			for (int i=0; i<getChangeCount(node); i++) {
+
+				// Create and label new node:
 				Node colourChangeNode = new Node();
+				colourChangeNode.setNr(nextNodeNr);
+				colourChangeNode.setID(String.valueOf(nextNodeNr));
+				nextNodeNr++;
+
+				// Connect to child and parent:
 				branchNode.setParent(colourChangeNode);
 				colourChangeNode.addChild(branchNode);
 
+				// Ensure height and colour trait are set:
 				colourChangeNode.setHeight(getChangeTime(node, i));
 				colourChangeNode.setMetaData(colourLabel,
 						getChangeColour(node, i));
 
+				// Update branchNode:
 				branchNode = colourChangeNode;
 			}
 
