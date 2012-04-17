@@ -19,6 +19,7 @@ package beast.evolution.tree.coalescent;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
+import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
@@ -107,10 +108,15 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		// Obtain leaf colours:
 		leafColours = leafColoursInput.get();
 
-		// Obtain references to Parameters used to store colouring:
-		changeColours = changeColoursInput.get();
-		changeTimes = changeTimesInput.get();
-		changeCounts = changeCountsInput.get();
+		// Allocate parameters used to store colouring:
+		changeColours = new IntegerParameter("0");
+		changeTimes = new RealParameter("0.0");
+		changeCounts = new IntegerParameter("0");
+
+		// Ensure inputs retain references to colouring parameters:
+		changeColoursInput.setValue(changeColours, this);
+		changeTimesInput.setValue(changeTimes, this);
+		changeCountsInput.setValue(changeCounts, this);
 
 		// Allocate arrays for recording colour change information:
 		int nBranches = 2*leafColours.getDimension() - 2;
@@ -126,10 +132,6 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 			treeInput.setValue(tree, this);
 		else
 			treeInput.setValue(getFlattenedTree(), this);
-	}
-
-	private void allocateColourChangeArrays() {
-
 	}
 
 	/**
@@ -152,8 +154,11 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		for (int l=0; l<leafColours.getDimension(); l++) {
 			Node node = new Node();
 			node.setHeight(0.0);
-			node.setNr(nextNodeNr++);
+			node.setNr(nextNodeNr);
+			node.setID(String.valueOf(nextNodeNr));
 			activeNodes.get(leafColours.getValue(l)).add(node);
+
+			nextNodeNr++;
 		}
 
 		// Allocate propensity lists:

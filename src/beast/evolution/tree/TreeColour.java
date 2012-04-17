@@ -38,7 +38,7 @@ public class TreeColour extends Plugin {
 			"nColours", "Number of colours to consider.");
 
 	public Input<Integer> maxBranchColoursInput = new Input<Integer>(
-			"maxChangesPerBranch",
+			"maxBranchColours",
 			"Max number of colour changes allowed along a single branch.");
 
 	public Input<Tree> treeInput = new Input<Tree>(
@@ -48,8 +48,7 @@ public class TreeColour extends Plugin {
 			"leafColours", "Sampled colours at tree leaves.");
 
 	public Input<IntegerParameter> changeColoursInput = new Input<IntegerParameter>(
-			"changeColours", "Changes in colour along branches",
-			new IntegerParameter());
+			"changeColours", "Changes in colour along branches");
 
 	public Input<RealParameter> changeTimesInput = new Input<RealParameter>(
 			"changeTimes", "Times of colour changes.");
@@ -115,8 +114,7 @@ public class TreeColour extends Plugin {
 	 * @param count Number of colours on branch. (>=1)
 	 */
 	public void setChangeCount(Node node, int count) {
-		int offset = getBranchOffset(node);
-		changeCounts.setValue(offset, count);
+		changeCounts.setValue(node.getNr(), count);
 	}
 
 	/**
@@ -126,7 +124,7 @@ public class TreeColour extends Plugin {
 	 * @return Number of colours on branch.
 	 */
 	public int getChangeCount(Node node) {
-		return changeCounts.getValue(getBranchOffset(node));
+		return changeCounts.getValue(node.getNr());
 	}
 
 	/**
@@ -392,8 +390,6 @@ public class TreeColour extends Plugin {
 	 * using the a TreeColour instance with methods designed to act on
 	 * trees coloured using single-child nodes and their metadata fields.
 	 * 
-	 * @param tree
-	 * @param treeColour
 	 * @return Flattened tree.
 	 */
 	public Tree getFlattenedTree() {
