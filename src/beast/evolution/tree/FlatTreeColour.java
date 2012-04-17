@@ -39,6 +39,7 @@ public class FlatTreeColour extends Tree {
 	public void initAndValidate() {
 		treeColour = treeColourInput.get();
 		setRoot(treeColour.getFlattenedTree().getRoot());
+		initArrays();
 	}
 	
 }
