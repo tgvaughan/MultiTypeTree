@@ -5,7 +5,9 @@
 			nColours='3' maxBranchColours='20'
 			colourLabel='deme' flatTree='true'>
 		<rateMatrix spec='RealParameter' dimension='9' minordimension='3'
-				value='2.0 0.5 0.5 0.5 0.5 0.5 0.5 0.5 1.0'/>
+				value='0.0 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.0'/>
+		<popSizes spec='RealParameter' dimension='3'
+				value='5.0 5.0 5.0'/>
 		<leafColours spec='IntegerParameter' dimension='10'
 				value='0 0 1 2 2 1 1 0 0 2' />
 	</treeColour>
@@ -14,17 +16,20 @@
 		<treeColour idref='treeColour'/>
 	</tree>
 
-    <colorTable spec='ColorTable' id='traitColourTable'>
-        <color spec='ColorPlugin' color="red"/>
-        <color spec='ColorPlugin' color="green"/>
-        <color spec='ColorPlugin' color="blue"/>
-    </colorTable>
+	<colorTable spec='ColorTable' id='traitColourTable'>
+		<color spec='ColorPlugin' color='red'/>
+		<color spec='ColorPlugin' color='green'/>
+		<color spec='ColorPlugin' color='blue'/>
+	</colorTable>
 
 	<treeDrawing spec='RootedTreeDrawing' id='treeDrawing'
-			orientation='right' showLeafLabels='false'
-			lineThickness='1.25' rotateTree='ladderizeRight'
+			orientation='down' showLeafLabels='true'
+			lineThickness='0.25' rotateTree='ladderizeRight'
 			colorTrait='deme'>
 		<traitColorTable idref='traitColourTable' />
+		<!--
+		<internalNodeTimesDecorator spec='NodeTimesDecorator' fontSize='footnotesize'/>
+		-->
 		<tree idref='tree'/>
 	</treeDrawing>
 

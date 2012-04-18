@@ -46,8 +46,13 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 
 	public Input<RealParameter> rateMatrixInput = new Input<RealParameter>(
 			"rateMatrix",
-			"Migration rate matrix with diagonals representing deme"
-			+ "population sizes.", Validate.REQUIRED);
+			"Migration rate matrix (diagonals are ignored)",
+			Validate.REQUIRED);
+
+	public Input<RealParameter> popSizesInput = new Input<RealParameter>(
+			"popSizes",
+			"Deme population sizes.",
+			Validate.REQUIRED);
 
 	public Input<Boolean> flatTreeInput = new Input<Boolean>(
 			"flatTree", "Whether or not to embed colouring in tree.",
@@ -58,6 +63,7 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 	 */
 
 	protected RealParameter rateMatrix;
+	protected RealParameter popSizes;
 	protected boolean flatTree;
 
 	/*
@@ -102,6 +108,7 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		colourLabel = colourLabelInput.get();
 		maxBranchColours = maxBranchColoursInput.get();
 		rateMatrix = rateMatrixInput.get();
+		popSizes = popSizesInput.get();
 		flatTree = flatTreeInput.get();
 
 		// Obtain leaf colours:
@@ -135,6 +142,10 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 
 		// Construct tree:
 		tree = new Tree(simulateTree());
+
+		// Ensure colouring is internally consistent:
+		if (!valid())
+			throw new Exception("Inconsistent colour assignment.");
 
 		// Assign tree (or its flattened equivalent) to input plugin:
 		if (!flatTree)
@@ -226,7 +237,7 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 
 		for (int i=0; i<migrationProp.size(); i++) {
 
-			double N = rateMatrix.getMatrixValue(i, i);
+			double N = popSizes.getArrayValue(i);
 			int k = activeNodes.get(i).size();
 
 			coalesceProp.set(i, k*(k-1)/(4.0*N));
@@ -237,7 +248,9 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 				if (j==i)
 					continue;
 
-				migrationProp.get(i).set(j, k*rateMatrix.getMatrixValue(i, j));
+				double m = rateMatrix.getMatrixValue(i, j);
+
+				migrationProp.get(i).set(j, k*m);
 				totalProp += migrationProp.get(i).get(j);
 			}
 		}

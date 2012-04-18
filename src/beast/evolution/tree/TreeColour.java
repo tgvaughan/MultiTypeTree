@@ -249,7 +249,7 @@ public class TreeColour extends Plugin {
 					"Index to getChangeTime exceeded total number of colour"
 					+ "changes on branch.");
 
-		return changeTimes.getValue(idx);
+		return changeTimes.getValue(getBranchOffset(node)+idx);
 	}
 
 	/**
@@ -412,10 +412,13 @@ public class TreeColour extends Plugin {
 				continue;
 			}
 
-			Node branchNode = flatTree.getNode(nodeNum);
-			branchNode.setMetaData(colourLabel,
+			Node startNode = flatTree.getNode(nodeNum);
+			startNode.setMetaData(colourLabel,
 					getInitialBranchColour(node));
 
+			Node endNode = startNode.getParent();
+
+			Node branchNode = startNode;
 			for (int i=0; i<getChangeCount(node); i++) {
 
 				// Create and label new node:
@@ -437,9 +440,12 @@ public class TreeColour extends Plugin {
 				branchNode = colourChangeNode;
 			}
 
-			int parentNum = node.getParent().getNr();
-			branchNode.setParent(flatTree.getNode(parentNum));
-
+			// Ensure final branchNode is connected to the original parent:
+			branchNode.setParent(endNode);
+			if (endNode.getLeft() == startNode)
+				endNode.setLeft(branchNode);
+			else
+				endNode.setRight(branchNode);
 		}
 
 		return flatTree;
