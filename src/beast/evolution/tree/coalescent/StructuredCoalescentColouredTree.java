@@ -387,14 +387,13 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 	 * @return Randomly selected node.
 	 */
 	private Node selectRandomSibling(List<Node> nodeList, Node node) {
-		Node brother;
-		while ((brother=selectRandomNode(nodeList)) == node);
-		return brother;
 
-		// This is the problem with using abstract objects
-		// rather than indices to refer to the list members.
+		int n = Randomizer.nextInt(nodeList.size()-1);
+		int idxToAvoid = nodeList.indexOf(node);
+		if (n>=idxToAvoid)
+			n++;
 
-		// TODO: rewrite this awful method!
+		return nodeList.get(n);
 	}
 	
 }
