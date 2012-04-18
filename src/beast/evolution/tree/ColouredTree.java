@@ -25,7 +25,7 @@ import beast.core.parameter.*;
  * @author Tim Vaughan
  */
 @Description("Plugin for specifying migration events along a tree.")
-public class TreeColour extends Plugin {
+public class ColouredTree extends Plugin {
 
 	/*
 	 * Plugin inputs:
@@ -66,7 +66,7 @@ public class TreeColour extends Plugin {
 	protected IntegerParameter leafColours, changeColours, changeCounts;
 	protected RealParameter changeTimes;
 
-	public TreeColour() {};
+	public ColouredTree() {};
 
 	@Override
 	public void initAndValidate() throws Exception {
@@ -387,7 +387,7 @@ public class TreeColour extends Plugin {
 	 * indicated by the traits of single-child nodes.
 	 * 
 	 * This method is useful for interfacing trees coloured externally
-	 * using the a TreeColour instance with methods designed to act on
+	 * using the a ColouredTree instance with methods designed to act on
 	 * trees coloured using single-child nodes and their metadata fields.
 	 * 
 	 * @return Flattened tree.

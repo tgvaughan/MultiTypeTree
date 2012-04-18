@@ -1,7 +1,7 @@
 <beast version='2.0'
 	namespace='beast.evolution.tree:beast.evolution.tree.coalescent:beast.core.parameter:beast.app.draw.tree'>
 
-	<treeColour spec='StructuredCoalescentTreeColour' id='treeColour'
+	<colouredTree spec='StructuredCoalescentColouredTree' id='colouredTree'
 			nColours='3' maxBranchColours='20'
 			colourLabel='deme' flatTree='true'>
 		<rateMatrix spec='RealParameter' dimension='9' minordimension='3'
@@ -10,10 +10,10 @@
 				value='5.0 5.0 5.0'/>
 		<leafColours spec='IntegerParameter' dimension='10'
 				value='0 0 1 2 2 1 1 0 0 2' />
-	</treeColour>
+	</colouredTree>
 
-	<tree spec='FlatTreeColour' id='tree'>
-		<treeColour idref='treeColour'/>
+	<tree spec='FlatColouredTree' id='tree'>
+		<treeColour idref='colouredTree'/>
 	</tree>
 
 	<colorTable spec='ColorTable' id='traitColourTable'>
@@ -23,8 +23,8 @@
 	</colorTable>
 
 	<treeDrawing spec='RootedTreeDrawing' id='treeDrawing'
-			orientation='down' showLeafLabels='true'
-			lineThickness='0.25' rotateTree='ladderizeRight'
+			orientation='down' showLeafLabels='false'
+			lineThickness='1.0' rotateTree='ladderizeRight'
 			colorTrait='deme'>
 		<traitColorTable idref='traitColourTable' />
 		<!--

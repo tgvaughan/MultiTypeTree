@@ -25,7 +25,7 @@ import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
-import beast.evolution.tree.TreeColour;
+import beast.evolution.tree.ColouredTree;
 import beast.util.Randomizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ import java.util.List;
  */
 @Description("A coloured tree generated randomly from leaf colours and"
 		+ "a migration matrix with fixed population sizes.")
-public class StructuredCoalescentTreeColour extends TreeColour {
+public class StructuredCoalescentColouredTree extends ColouredTree {
 
 	/*
 	 * Plugin inputs:
@@ -98,7 +98,7 @@ public class StructuredCoalescentTreeColour extends TreeColour {
 		}
 	}
 	
-	public StructuredCoalescentTreeColour() {}
+	public StructuredCoalescentColouredTree() {}
 
 	@Override
 	public void initAndValidate() throws Exception {

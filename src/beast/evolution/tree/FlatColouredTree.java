@@ -19,21 +19,21 @@ package beast.evolution.tree;
 import beast.core.*;
 
 /**
- * A plugin useful for interpreting TreeColour objects as standard BEAST
+ * A plugin useful for interpreting ColouredTree objects as standard BEAST
  * tree objects, on which single-child nodes are used to represent each
  * colour change.
  *
  * @author Tim Vaughan
  */
 @Description("A standard BEAST tree representation of a TreeColour object.")
-public class FlatTreeColour extends Tree {
+public class FlatColouredTree extends Tree {
 
-	public Input<TreeColour> treeColourInput = new Input<TreeColour>(
+	public Input<ColouredTree> treeColourInput = new Input<ColouredTree>(
 			"treeColour", "Coloured tree to flatten.");
 
-	protected TreeColour treeColour;
+	protected ColouredTree treeColour;
 
-	public FlatTreeColour() {};
+	public FlatColouredTree() {};
 
 	@Override
 	public void initAndValidate() {
