@@ -54,17 +54,12 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			"Deme population sizes.",
 			Validate.REQUIRED);
 
-	public Input<Boolean> flatTreeInput = new Input<Boolean>(
-			"flatTree", "Whether or not to embed colouring in tree.",
-			false);
-
 	/*
 	 * Shadowing fields:
 	 */
 
 	protected RealParameter rateMatrix;
 	protected RealParameter popSizes;
-	protected boolean flatTree;
 
 	/*
 	 * Other private fields and classes:
@@ -109,7 +104,6 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		maxBranchColours = maxBranchColoursInput.get();
 		rateMatrix = rateMatrixInput.get();
 		popSizes = popSizesInput.get();
-		flatTree = flatTreeInput.get();
 
 		// Obtain leaf colours:
 		leafColours = leafColoursInput.get();
@@ -147,11 +141,8 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		if (!valid())
 			throw new Exception("Inconsistent colour assignment.");
 
-		// Assign tree (or its flattened equivalent) to input plugin:
-		if (!flatTree)
-			treeInput.setValue(tree, this);
-		else
-			treeInput.setValue(getFlattenedTree(), this);
+		// Assign tree to input plugin:
+		treeInput.setValue(tree, this);
 	}
 
 	/**

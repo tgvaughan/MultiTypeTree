@@ -3,7 +3,7 @@
 
 	<colouredTree spec='StructuredCoalescentColouredTree' id='colouredTree'
 			nColours='3' maxBranchColours='20'
-			colourLabel='deme' flatTree='true'>
+			colourLabel='deme'>
 		<rateMatrix spec='RealParameter' dimension='9' minordimension='3'
 				value='0.0 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.0'/>
 		<popSizes spec='RealParameter' dimension='3'
@@ -23,8 +23,8 @@
 	</colorTable>
 
 	<treeDrawing spec='RootedTreeDrawing' id='treeDrawing'
-			orientation='down' showLeafLabels='false'
-			lineThickness='1.0' rotateTree='ladderizeRight'
+			orientation='right' showLeafLabels='false'
+			lineThickness='2.0' rotateTree='ladderizeRight'
 			colorTrait='deme'>
 		<traitColorTable idref='traitColourTable' />
 		<!--
