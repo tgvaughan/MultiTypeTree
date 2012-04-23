@@ -170,6 +170,10 @@ of a tree. The most important of these methods are:
 		meta-data affixed to the node at the leaf-side end of the
 		branch, with the trait label specified by \inp{colourLabel}.
 
+	\item[\code{valid()}]: Checks the internal consistency of the tree
+		colouring (both times and colour changes) and returns True if
+		a problem is found, False otherwise.
+
 \end{description}
 
 
@@ -189,24 +193,68 @@ metadata. It exists for two reasons:
 		plugin and its associated helper methods.
 \end{enumerate}
 
-\class{StructuredCoalescentColouredTree} actually extends
-\class{Runnable} so that it may be used as the \code{spec} for a
-\code{<run>} element in a BEAST XML file.
+Note that \class{StructuredCoalescentColouredTree} actually extends
+\class{ColouredTree} so that it may be used to fill any input where a
+coloured tree is required.
 
 \subsection{StructuredCoalescentColouredTree inputs}
+
+As \class{StructuredCoalescentColouredTree} is a reimplementation of
+\class{StructuredCoalescentTree}, the inputs are essentially the same:
+
+\begin{description}
+	\item[\inp{rateMatrix}]: \class{RealParameter} matrix containing
+		migration rates between distinct colours/demes.  Values along
+		the diagonal are ignored.
+	\item[\inp{popSizes}]: \class{RealParameter} array containing the
+		fixed sizes of each of the differently coloured populations.
+\end{description}
+
 \subsection{StructuredCoalescentColouredTree methods}
+
+This plugin doesn't have any additional methods which are interesting
+from a user's perspective beyond those which it inherits from
+\class{ColouredTree}.  The simulation is run by the
+\code{initAndValidate()} method and used to populate the
+\class{ColouredTree} inputs.
+
+Note that due to the fact that, strictly speaking (in a Dutch accent),
+only \class{Operators} are allowed to modify \class{StateNode} values,
+\code{initAndValidate()} creates a local instance of \class{State} and
+assigns the \class{ColouredTree} colour \class{Parameters} to it
+before calling the \code{simulateTree()} method which actually
+performs the structured coalescent calculation.  Remco is a little
+worried that this may cause problems down the track when bona fide
+\class{State}s are also floating around, so this is something we may
+have to pay close attention to.
+
+\section{Interfacing with {\textsf beast-graphics} (FlatColouredTree plugin)}
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\textwidth]{structuredCoalescentFig.pdf}
 	\caption{Coloured tree generated using
 		\class{StructuredCoalescentColouredTree} and visualised using
-	\project{beast-graphics}.}
+	\project{beast-graphics} via the \class{FlatColouredTree} plugin.}
+	\label{fig:structuredCoalescent}
 \end{figure}
 
-\section{Interfacing with {\textsf beast-graphics} (FlatColouredTree plugin)}
+In order to visualise instances of \class{ColouredTree} initialised
+using \class{StructuredCoalescentColouredTree} or via some other
+means, we can use Alexei's awesome \project{beast-graphics} package.
+However, this package only works with regular BEAST \class{Tree}s
+with colouring information stored as meta-data on single-child nodes,
+as described previously.
+
+The \class{FlatColouredTree} plugin, which extends \class{Tree}, acts
+as a stand-in for \class{ColouredTree}s to allow the colouring
+information they contain to be passed to \class{Plugin}s which expect
+this older style of coloured tree.
 
 \subsection{FlatColouredTree inputs}
+
+The \class{FlatColouredTree} only has a single input, \inp{treeColour}
+
 \subsection{FlatColouredTree methods}
 
 \end{document}
