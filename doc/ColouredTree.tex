@@ -1,6 +1,7 @@
 \documentclass[a4paper,11pt]{paper}
 
 \usepackage[pdftex]{graphicx}
+\usepackage{color}
 
 \title{ColouredTree: a BEAST 2 framework for describing
 phylogenies within structured populations}
@@ -9,6 +10,8 @@ phylogenies within structured populations}
 
 \newcommand{\class}[1]{\textsf{#1}}
 \newcommand{\project}[1]{\textsf{#1}}
+\newcommand{\inp}[1]{\textsf{\color{blue}#1}}
+\newcommand{\code}[1]{\texttt{#1}}
 
 \begin{document}
 
@@ -59,13 +62,51 @@ trees are implemented is that the main class, \class{ColouredTree},
 extends \class{Plugin}---it does not extend \class{Tree}.  As such,
 \class{ColouredTree}s are not \class{StateNodes}, and cannot be used
 directly in an MCMC calculation.  Instead, \class{ColouredTree} takes
-a \class{Tree} as an input, along with the following three parameters:
+a \class{Tree} as the input \inp{tree}, along with three parameter arrays which
+are used to record the colouring information. The three parameter
+array inputs are:
 \begin{description}
-	\item[\class{changeCounts}]: an \class{IntegerParameter} array which
-		is used to record the number of 
+	\item[\inp{changeCounts}]: an \class{IntegerParameter} array which
+		is used to record the number of colour changes along each
+		branch,
+	\item[\inp{changeColours}]: another \class{IntegerParameter}
+		array used to record the actual colours each change results
+		in, and
+	\item[\inp{changeTimes}]: a \class{RealParameter} array used to
+		record the times (heights) at which the colour change events
+		occur.
 \end{description}
 
-\subsection{ColouredTree inputs}
+The counts in the \inp{changeCounts} array are indexed by the node
+numbers (obtained via \code{node.getNodeNr()}) of the nodes on the
+leaf-side of each branch.  The length of this array is equal to the
+number of branches in \inp{tree}.
+
+The colours in \inp{changeColours} and times in \inp{changeTimes} are
+stored as flattened matrices, with the row identified by the leaf-side
+node number and the column given by a number between 0 and one less
+than the change count for the branch specifying that particular
+change. Note that as the total length of \class{Parameter} arrays
+cannot change once they are initialised, the dimension of
+\inp{changeTimes} and \inp{changeColours} must be fixed.  It is thus
+necessary to set an upper bound on the total number of changes which
+can occur along any branch, and this is specified via the input
+\inp{maxBranchColours}.
+
+Clearly the way in which the colour information is stored in these
+\class{Parameters} fairly cumbersome. This is a necessary evil
+as, unlike \class{ColouredTree}, \class{Parameter}s \emph{do} extend
+\class{StateNode} and may thus form part of the state in an MCMC
+calculation. However, they should not be accessed directly either by
+\class{Operator}s or methods involved in the creation of
+\class{ColouredTree} objects. Instead, \class{ColouredTree} exposes a
+set of helper methods which allow the colouring information to be
+handled in a more intuitive way.
+
+\subsection{Other ColouredTree inputs}
+
+Before moving on to describing these helper methods, however, we will
+briefly describe the other inputs to \class{ColouredTree}. 
 
 \subsection{ColouredTree methods}
 
@@ -76,6 +117,8 @@ a \class{Tree} as an input, along with the following three parameters:
 \end{figure}
 
 \section{Generating Coloured Trees (StructuredCoalescentColouredTree plugin)}
+
+
 
 \subsection{StructuredCoalescentColouredTree inputs}
 \subsection{StructuredCoalescentColouredTree methods}
