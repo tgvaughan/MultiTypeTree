@@ -29,7 +29,7 @@ import beast.core.*;
 public class FlatColouredTree extends Tree {
 
 	public Input<ColouredTree> colouredTreeInput = new Input<ColouredTree>(
-			"treeColour", "Coloured tree to flatten.");
+			"colouredTree", "Coloured tree to flatten.");
 
 	protected ColouredTree colouredTree;
 
