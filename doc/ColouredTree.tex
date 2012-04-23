@@ -3,8 +3,8 @@
 \usepackage[pdftex]{graphicx}
 \usepackage{color}
 
-\title{ColouredTree: a BEAST 2 framework for describing
-phylogenies within structured populations}
+\title{A BEAST 2 framework for describing phylogenies within
+structured populations}
 
 \author{Tim Vaughan}
 
@@ -251,10 +251,20 @@ as a stand-in for \class{ColouredTree}s to allow the colouring
 information they contain to be passed to \class{Plugin}s which expect
 this older style of coloured tree.
 
-\subsection{FlatColouredTree inputs}
+Figure \ref{fig:structuredCoalescent} displays an example of the
+output \project{beast-graphics} can generate from
+\class{StructuredCoalescentColouredTree} with the use of the
+\class{FlatColouredTree} intermediary. The XML file used to generate
+this image is provided under \code{examples/} in the
+\project{ColouredTree} subversion repository.
 
-The \class{FlatColouredTree} only has a single input, \inp{treeColour}
+\subsection{FlatColouredTree inputs and methods}
 
-\subsection{FlatColouredTree methods}
+The \class{FlatColouredTree} only has a single input,
+\inp{colouredTree}, which specifies the \class{ColouredTree} to
+convert to the flattened form. There are no additional methods of
+interest; \code{initAndValidate()} simply uses the
+\code{getFlattenedTree()} method of \class{ColouredTree} to generate
+the object used to fill the fields inherited from \class{Tree}.
 
 \end{document}
