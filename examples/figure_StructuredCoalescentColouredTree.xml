@@ -13,7 +13,7 @@
 	</colouredTree>
 
 	<tree spec='FlatColouredTree' id='tree'>
-		<treeColour idref='colouredTree'/>
+		<colouredTree idref='colouredTree'/>
 	</tree>
 
 	<colorTable spec='ColorTable' id='traitColourTable'>
