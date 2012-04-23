@@ -57,14 +57,22 @@ migration between demes).
 
 \section{Implementation of Coloured Trees (ColouredTree plugin)}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{treeComposition.pdf}
+	\caption{Composition of the \class{ColouredTree} plugin.}
+	\label{fig:ColouredTree}
+\end{figure}
+
 The first and most important point about the way in which coloured
 trees are implemented is that the main class, \class{ColouredTree},
 extends \class{Plugin}---it does not extend \class{Tree}.  As such,
 \class{ColouredTree}s are not \class{StateNodes}, and cannot be used
 directly in an MCMC calculation.  Instead, \class{ColouredTree} takes
-a \class{Tree} as the input \inp{tree}, along with three parameter arrays which
-are used to record the colouring information. The three parameter
-array inputs are:
+a \class{Tree} as the input \inp{tree}, along with three parameter
+arrays which are used to record the colouring information. (This
+structure is illustrated in Fig.~\ref{fig:ColouredTree}.) The three
+parameter array inputs are:
 \begin{description}
 	\item[\inp{changeCounts}]: an \class{IntegerParameter} array which
 		is used to record the number of colour changes along each
@@ -106,15 +114,24 @@ handled in a more intuitive way.
 \subsection{Other ColouredTree inputs}
 
 Before moving on to describing these helper methods, however, we will
-briefly describe the other inputs to \class{ColouredTree}. 
+briefly describe the other inputs to \class{ColouredTree}.
+
+\begin{description}
+
+	\item[\inp{colourLabel}]: a \class{String} for providing a
+		single word description of what different colours mean. (E.g.
+		``deme''.)
+
+	\item[\inp{nColours}]: an \class{Integer} input used to fix the
+		total number of distinct colours.
+
+	\item[\inp{leafColours}]: an \class{IntegerParameter} array
+		containing the fixed colours at each of the leaves of
+		\inp{tree}.
+
+\end{description}
 
 \subsection{ColouredTree methods}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=\textwidth]{treeComposition.pdf}
-	\caption{Composition of the \class{ColouredTree} plugin.}
-\end{figure}
 
 \section{Generating Coloured Trees (StructuredCoalescentColouredTree plugin)}
 
