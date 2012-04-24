@@ -138,7 +138,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		tree = new Tree(simulateTree());
 
 		// Ensure colouring is internally consistent:
-		if (!valid())
+		if (!isValid())
 			throw new Exception("Inconsistent colour assignment.");
 
 		// Assign tree to input plugin:

@@ -267,7 +267,7 @@ public class ColouredTree extends Plugin {
 	 * 
 	 * @return True if valid, false otherwise.
 	 */
-	public boolean valid() {
+	public boolean isValid() {
 		return coloursValid(tree.getRoot()) && timesValid(tree.getRoot());
 	}
 
