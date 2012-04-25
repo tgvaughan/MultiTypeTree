@@ -218,15 +218,15 @@ from a user's perspective beyond those which it inherits from
 \code{initAndValidate()} method and used to populate the
 \class{ColouredTree} inputs.
 
-Note that due to the fact that, strictly speaking (in a Dutch accent),
-only \class{Operators} are allowed to modify \class{StateNode} values,
-\code{initAndValidate()} creates a local instance of \class{State} and
-assigns the \class{ColouredTree} colour \class{Parameters} to it
-before calling the \code{simulateTree()} method which actually
-performs the structured coalescent calculation.  Remco is a little
-worried that this may cause problems down the track when bona fide
-\class{State}s are also floating around, so this is something we may
-have to pay close attention to.
+Note that, strictly speaking (in a Dutch accent), only
+\class{Operators} are allowed to modify \class{StateNode} values.  The
+\code{initAndValidate()} method thus creates a local instance of
+\class{State} and assigns the \class{ColouredTree} colour
+\class{Parameters} to it before calling the \code{simulateTree()}
+method which actually performs the structured coalescent calculation.
+Remco is worried that this may cause problems down the track when bona
+fide \class{State}s are also floating around, so this is something we
+will have to pay close attention to.
 
 \section{Interfacing with {\textsf beast-graphics} (FlatColouredTree plugin)}
 
