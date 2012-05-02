@@ -1,3 +1,6 @@
 *.log
 *.aux
 ColouredTree.pdf
+*.bbl
+*.blg
+*.bib
