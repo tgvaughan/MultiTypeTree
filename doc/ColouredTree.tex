@@ -267,4 +267,42 @@ interest; \code{initAndValidate()} simply uses the
 \code{getFlattenedTree()} method of \class{ColouredTree} to generate
 the object used to fill the fields inherited from \class{Tree}.
 
+\section{Operators for Coloured Trees}
+
+Operators for proposing modifications to \class{ColouredTree}s are
+derived from the abstract base class, \class{ColouredTreeOperator}.
+There are two kinds of operators:
+\begin{enumerate}
+	\item those which are based upon the standard BEAST tree
+		operators and result in changes to the tree topology,
+		and
+	\item entirely new operators which act only on the colouring
+		of the tree.
+\end{enumerate}
+
+We are currently in the process of implementing operators which fall
+into the first category.  This is not entirely trivial as, in order to
+apply them to ColouredTrees, the standard BEAST tree operators must be
+modified to make them `colour safe'---i.e. prevent them from proposing
+changes to the tree topology which destroy the internal consistency of
+the branch colourings.
+
+The operators belonging to the second category which we plan to
+implement are those described in the work of Ewing et al.~\cite{Ewing2004}.
+
+%\bibliographystyle{plain}
+%\bibliography{virus_papers}
+
+\begin{thebibliography}{1}
+
+\bibitem{Ewing2004}
+Greg Ewing, Geoff Nicholls, and Allen Rodrigo.
+\newblock Using temporally spaced sequences to simultaneously estimate
+  migration rates, mutation rate and population sizes in measurably evolving
+  populations.
+\newblock {\em Genetics}, 168(4):2407--2420, Dec 2004.
+
+\end{thebibliography}
+
+
 \end{document}
