@@ -16,33 +16,18 @@
  */
 package beast.evolution.operator;
 
-import beast.core.Description;
-import beast.evolution.tree.ColouredTree;
-
 /**
- * Wilson-Balding branch swapping operator applied to coloured trees,
- * modified so that only those moves which preserve the validity of
- * the colouring are proposed.
  *
  * @author Tim Vaughan
  */
-@Description("Implements the unweighted Wilson-Balding branch"
-		+ "swapping move.  This move is similar to one proposed by WILSON"
-		+ "and BALDING 1998 and involves removing a subtree and"
-		+ "re-attaching it on a new parent branch. " +
-        "See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
-		+ "This version is altered to perform only those moves which preserve"
-		+ "the validity of the tree colouring.")
-public class ColouredWilsonBalding extends ColouredTreeOperator {
+public class ColouredExchange extends ColouredTreeOperator {
 
 	@Override
 	public void initAndValidate() {};
 
 	@Override
 	public double proposal() {
-		ColouredTree cTree = colouredTreeInput.get();
-
-		return Double.NEGATIVE_INFINITY;
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 	
 }
