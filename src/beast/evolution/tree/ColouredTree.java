@@ -98,6 +98,15 @@ public class ColouredTree extends Plugin {
 	}
 
 	/**
+	 * Retrieve uncoloured component of this coloured tree.
+	 * 
+	 * @return Tree object.
+	 */
+	public Tree getUncolouredTree() {
+		return tree;
+	}
+
+	/**
 	 * Obtain colour associated with leaf node of tree.
 	 * 
 	 * @param node

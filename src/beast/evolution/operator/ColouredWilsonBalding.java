@@ -18,6 +18,9 @@ package beast.evolution.operator;
 
 import beast.core.Description;
 import beast.evolution.tree.ColouredTree;
+import beast.evolution.tree.Node;
+import beast.evolution.tree.Tree;
+import beast.util.Randomizer;
 
 /**
  * Wilson-Balding branch swapping operator applied to coloured trees,
@@ -41,6 +44,31 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 	@Override
 	public double proposal() {
 		ColouredTree cTree = colouredTreeInput.get();
+		Tree tree = cTree.getUncolouredTree();
+
+		// Choose node at base of random edge which does not
+		// involve the root:
+
+		Node i; // Node at bottom of edge.
+		do {
+			i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+		} while (i.isRoot() || i.getParent().isRoot());
+
+		// Choose coloured sub-edge having the same colour as the linage
+		// at i and with the time at the top of the edge being greater
+		// than the time at i.
+
+		Node j;		// Node at bottom of edge.
+		int change;	// Change number specifying bottom of sub-edge.
+
+		do {
+			do {
+				j = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+			} while(j.isRoot() || j==iP || j.getParent() == iP || j == i);
+
+			// TODO: Select coloured sub-branch.
+
+		} while (true);
 
 		return Double.NEGATIVE_INFINITY;
 	}
