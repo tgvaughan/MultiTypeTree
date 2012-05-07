@@ -18,6 +18,7 @@ package beast.evolution.tree;
 
 import beast.core.*;
 import beast.core.parameter.*;
+import beast.util.Randomizer;
 
 /**
  * BEAST 2 plugin for specifying migration events along a tree.
@@ -403,11 +404,14 @@ public class ColouredTree extends Plugin {
 	}
 
 	/**
+	 * Select a time from a uniform distribution over the times within
+	 * that portion of the branch which has an age greater than t as well
+	 * as the specified colour.
 	 * 
 	 * @param node
 	 * @param t
 	 * @param colour
-	 * @return 
+	 * @return Randomly selected time.
 	 */
 	public double chooseTimeWithColour(Node node, double t, int colour) {
 
@@ -423,9 +427,49 @@ public class ColouredTree extends Plugin {
 		int lastColour = getInitialBranchColour(node);
 		double lastTime = node.getHeight();
 
-		// TODO: Get normalisation.
+		double norm=0.0;
+		for (int i=0; i<getChangeCount(node); i++) {
+			int thisColour = getChangeColour(node,i);
+			double thisTime = getChangeTime(node,i);
 
-		return t;
+			if (lastColour==colour && thisTime>t)
+				norm += thisTime- Math.max(t,lastTime);
+
+			lastColour = thisColour;
+			lastTime = thisTime;
+		}
+
+		if (lastColour==colour)
+			norm += node.getParent().getHeight()-Math.max(t,lastTime);
+
+		// Select random time within appropriately coloured region:
+		double alpha = norm*Randomizer.nextDouble();
+
+		// Convert to absolute time:
+		lastColour = getInitialBranchColour(node);
+		lastTime = node.getHeight();
+
+		double tChoice = t;
+		for (int i=0; i<getChangeCount(node); i++) {
+			int thisColour = getChangeColour(node,i);
+			double thisTime = getChangeTime(node,i);
+
+			if (lastColour==colour && thisTime>t)
+				alpha -= thisTime-Math.max(t,lastTime);
+
+			if (alpha<0) {
+				tChoice = thisTime + alpha;
+				break;
+			}
+
+			lastColour = thisColour;
+			lastTime = thisTime;
+		}
+
+		if (alpha>0)
+			tChoice = alpha+lastTime;
+
+		return tChoice;
 	}
 
 	/**
