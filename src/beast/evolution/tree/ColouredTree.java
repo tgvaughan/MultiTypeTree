@@ -66,6 +66,12 @@ public class ColouredTree extends Plugin {
 	protected IntegerParameter leafColours, changeColours, changeCounts;
 	protected RealParameter changeTimes;
 
+	/*
+	 * Private fields:
+	 */
+	private Integer[] finalColours;
+	private Boolean[] finalColoursDirty;
+
 	public ColouredTree() {};
 
 	@Override
@@ -95,6 +101,14 @@ public class ColouredTree extends Plugin {
 		changeTimes.setDimension(nBranches*maxBranchColours);
 		changeCounts.setDimension(nBranches);
 
+		// Allocate array for lazily recording final colour of each branch:
+		finalColours = new Integer[tree.getLeafNodeCount()];
+		finalColoursDirty = new Boolean[tree.getLeafNodeCount()];
+
+		// Need to recalculate all final branch colours:
+		for (int i=0; i<tree.getNodeCount(); i++)
+			finalColoursDirty[i] = true;
+		
 	}
 
 	/**
@@ -151,6 +165,10 @@ public class ColouredTree extends Plugin {
 
 		int offset = node.getNr()*maxBranchColours;
 		changeColours.setValue(offset+idx, colour);
+
+		// Mark cached final branch colour as dirty if necessary:
+		if (idx==getChangeCount(node)-1)
+			markFinalBranchColourDirty(node);
 	}
 
 	/**
@@ -168,6 +186,9 @@ public class ColouredTree extends Plugin {
 		int offset = node.getNr()*maxBranchColours;
 		for (int i=0; i<colours.length; i++)
 			changeColours.setValue(offset+i, colours[i]);
+
+		// Mark cached final branch colour as dirty:
+		markFinalBranchColourDirty(node);
 
 	}
 
@@ -225,6 +246,8 @@ public class ColouredTree extends Plugin {
 		setChangeColour(node, count, newColour);
 		setChangeTime(node, count, time);
 
+		// Mark cached final branch colour as dirty:
+		markFinalBranchColourDirty(node);
 	}
 
 	/**
@@ -237,7 +260,7 @@ public class ColouredTree extends Plugin {
 	 */
 	public int getChangeColour(Node node, int idx) {
 		if (idx>getChangeCount(node))
-			throw new RuntimeException(
+			throw new IllegalArgumentException(
 					"Index to getChangeColour exceeded total number of colour"
 					+ "changes on branch.");
 
@@ -254,7 +277,7 @@ public class ColouredTree extends Plugin {
 	 */
 	public double getChangeTime(Node node, int idx) {
 		if (idx>getChangeCount(node))
-			throw new RuntimeException(
+			throw new IllegalArgumentException(
 					"Index to getChangeTime exceeded total number of colour"
 					+ "changes on branch.");
 
@@ -272,43 +295,146 @@ public class ColouredTree extends Plugin {
 	}
 
 	/**
+	 * Retrieve final colour on branch between node and its parent.
+	 * 
+	 * @param node
+	 * @return Final colour.
+	 */
+	public int getFinalBranchColour(Node node) {
+		if (node.isRoot())
+			throw new IllegalArgumentException("Argument to getFinalBranchColour"
+					+ "is not the bottom of a branch.");
+
+		if (finalColoursDirty[node.getNr()]) {
+			if (getChangeCount(node)>0)
+				finalColours[node.getNr()] = getChangeColour(node,
+						getChangeCount(node)-1);
+			else
+				finalColours[node.getNr()] = getInitialBranchColour(node);
+
+			finalColoursDirty[node.getNr()] = false;
+		}
+
+		return finalColours[node.getNr()];
+	}
+
+	/**
+	 * Retrieve initial colour on branch between node and its parent.
+	 * 
+	 * @param node
+	 * @return Initial colour.
+	 */
+	public int getInitialBranchColour(Node node) {
+		if (node.isLeaf())
+			return getLeafColour(node);
+		else
+			return getFinalBranchColour(node.getLeft());
+	}
+
+	/**
+	 * Mark cached final branch colour along 
+	 * 
+	 * @param node 
+	 */
+	private void markFinalBranchColourDirty(Node node) {
+
+		if (node.isRoot())
+			throw new IllegalArgumentException("Argument to"
+					+ "markFinalBranchColourDirty is not the bottom"
+					+ "of a branch.");
+
+		finalColoursDirty[node.getNr()] = true;
+
+		if (getChangeCount(node.getParent())==0)
+			markFinalBranchColourDirty(node.getParent());
+	}
+
+	/**
+	 * Retrieve time of final colour change on branch, or height of
+	 * bottom of branch if branch has no colour changes.
+	 * 
+	 * @param node
+	 * @return Time of final colour change.
+	 */
+	public double getFinalBranchTime(Node node) {
+
+		if (node.isRoot())
+			throw new IllegalArgumentException("Argument to"
+					+ "getFinalBranchTime is not the bottom of a branch.");
+
+		if (getChangeCount(node)>0)
+			return getChangeTime(node, getChangeCount(node)-1);
+		else
+			return node.getHeight();
+	}
+
+	/**
+	 * Determine whether colour exists somewhere on the portion of the branch
+	 * between node and its parent with age greater than t.
+	 * 
+	 * @param node
+	 * @param t
+	 * @param colour
+	 * @return True if colour is on branch.
+	 */
+	public boolean colourIsOnSubBranch(Node node, double t, int colour) {
+
+		if (node.isRoot())
+			throw new IllegalArgumentException("Node argument to"
+					+ "colourIsOnSubBranch is not the bottom of a branch.");
+
+		if (t>node.getParent().getHeight())
+			throw new IllegalArgumentException("Time argument to"
+					+ "colourIsOnSubBranch is not on specified branch.");
+
+		int thisColour = getInitialBranchColour(node);
+
+		for (int i=0; i<getChangeCount(node); i++) {
+			if (getChangeTime(node,i)>=t && thisColour==colour)
+				return true;
+
+			thisColour = getChangeColour(node,i);
+		}
+
+		if (thisColour==colour)
+			return true;
+
+		return false;
+	}
+
+	/**
+	 * 
+	 * @param node
+	 * @param t
+	 * @param colour
+	 * @return 
+	 */
+	public double chooseTimeWithColour(Node node, double t, int colour) {
+
+		if (node.isRoot())
+			throw new IllegalArgumentException("Node argument to"
+					+ "chooseTimeWithColour is not the bottom of a branch.");
+
+		if (t>node.getParent().getHeight() || t<node.getHeight())
+			throw new IllegalArgumentException("Time argument to"
+					+ "chooseTimeWithColour is not on specified branch.");
+
+		// Determine total length of time that sub-branch has chosen colour:
+		int lastColour = getInitialBranchColour(node);
+		double lastTime = node.getHeight();
+
+		// TODO: Get normalisation.
+
+		return t;
+	}
+
+	/**
 	 * Checks validity of current colour assignment.
 	 * 
 	 * @return True if valid, false otherwise.
 	 */
 	public boolean isValid() {
-		return coloursValid(tree.getRoot()) && timesValid(tree.getRoot());
-	}
-
-	/**
-	 * Returns the final colour after all the changes have occurred
-	 * along the branch between node and its parent.
-	 * 
-	 * @param node
-	 * @return Final colour.
-	 */
-	int getFinalBranchColour(Node node) {
-		if (getChangeCount(node) == 0) {
-			if (node.isLeaf()) {
-				return getLeafColour(node);
-			} else
-				return getFinalBranchColour(node.getLeft());
-		} else
-			return getChangeColour(node, getChangeCount(node)-1);
-	}
-
-	/**
-	 * Returns the initial colour before any changes have occurred
-	 * along the branch between node and its parent.
-	 * 
-	 * @param node
-	 * @return Initial colour.
-	 */
-	int getInitialBranchColour(Node node) {
-		if (node.isLeaf())
-			return getLeafColour(node);
-		else
-			return getFinalBranchColour(node.getLeft());
+		return colourIsValid(tree.getRoot()) && timeIsValid(tree.getRoot());
 	}
 
 	/**
@@ -318,7 +444,7 @@ public class ColouredTree extends Plugin {
 	 * @param node Root node of subtree to validate.
 	 * @return True if valid, false otherwise.
 	 */
-	private boolean coloursValid(Node node) {
+	private boolean colourIsValid(Node node) {
 
 		// Leaves are always valid.
 		if (node.isLeaf())
@@ -337,7 +463,7 @@ public class ColouredTree extends Plugin {
 			}
 
 			// Check that subtree of child is also valid:
-			if (!child.isLeaf() && !coloursValid(child))
+			if (!child.isLeaf() && !colourIsValid(child))
 				return false;
 		}
 
@@ -351,7 +477,7 @@ public class ColouredTree extends Plugin {
 	 * @param node
 	 * @return  True if valid, false otherwise.
 	 */
-	private boolean timesValid(Node node) {
+	private boolean timeIsValid(Node node) {
 
 		if (!node.isRoot()) {
 			// Check consistency of times on branch between node
@@ -383,7 +509,7 @@ public class ColouredTree extends Plugin {
 			// Check consistency of branches between node and
 			// each of its children:
 			for (Node child : node.getChildren()) {
-				if (!timesValid(child))
+				if (!timeIsValid(child))
 					return false;
 			}
 		}

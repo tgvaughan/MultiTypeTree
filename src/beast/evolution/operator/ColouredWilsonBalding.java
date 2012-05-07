@@ -54,21 +54,21 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 			i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
 		} while (i.isRoot() || i.getParent().isRoot());
 
+		int icolour = cTree.getFinalBranchColour(i);
+		double minNewTime = cTree.getFinalBranchTime(i);
+		Node iP = i.getParent();
+
 		// Choose coloured sub-edge having the same colour as the linage
 		// at i and with the time at the top of the edge being greater
 		// than the time at i.
 
 		Node j;		// Node at bottom of edge.
-		int change;	// Change number specifying bottom of sub-edge.
-
+		double newTime;
 		do {
-			do {
-				j = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-			} while(j.isRoot() || j==iP || j.getParent() == iP || j == i);
-
-			// TODO: Select coloured sub-branch.
-
-		} while (true);
+			j = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+		} while (j.isRoot()
+				|| j.getParent()==iP
+				|| (newTime = cTree.chooseTimeWithColour(j, minNewTime, icolour))<0);
 
 		return Double.NEGATIVE_INFINITY;
 	}
