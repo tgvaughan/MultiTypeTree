@@ -96,7 +96,11 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		double oldRange = cTree.getColouredSegmentLength(CiP, minNewTime, iColour);
 		double logHR = Math.log(newRange/oldRange);
 
-		// TODO: implement topology change
+		// Implement topology change
+		double newTime = cTree.chooseTimeWithColour(j, minNewTime, iColour, newRange);
+		replace(iP.getParent(), iP, CiP);
+		replace(iP, CiP, j);
+		replace(jP, j, iP);
 		
 		return logHR;
 	}

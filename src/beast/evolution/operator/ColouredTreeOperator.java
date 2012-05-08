@@ -35,8 +35,6 @@ abstract public class ColouredTreeOperator extends Operator {
 			"colouredTree", "Coloured tree on which to operate.",
 			Validate.REQUIRED);
 
-	private ColouredTree cTree;
-
 	/**
 	 * Return sister of given child.
 	 * 
