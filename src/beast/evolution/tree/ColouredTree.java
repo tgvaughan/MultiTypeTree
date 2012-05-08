@@ -370,109 +370,6 @@ public class ColouredTree extends Plugin {
 	}
 
 	/**
-	 * Determine whether colour exists somewhere on the portion of the branch
-	 * between node and its parent with age greater than t.
-	 * 
-	 * @param node
-	 * @param t
-	 * @param colour
-	 * @return True if colour is on branch.
-	 */
-	public boolean colourIsOnSubBranch(Node node, double t, int colour) {
-
-		if (node.isRoot())
-			throw new IllegalArgumentException("Node argument to"
-					+ "colourIsOnSubBranch is not the bottom of a branch.");
-
-		if (t>node.getParent().getHeight())
-			throw new IllegalArgumentException("Time argument to"
-					+ "colourIsOnSubBranch is not on specified branch.");
-
-		int thisColour = getInitialBranchColour(node);
-
-		for (int i=0; i<getChangeCount(node); i++) {
-			if (getChangeTime(node,i)>=t && thisColour==colour)
-				return true;
-
-			thisColour = getChangeColour(node,i);
-		}
-
-		if (thisColour==colour)
-			return true;
-
-		return false;
-	}
-
-	/**
-	 * Select a time from a uniform distribution over the times within
-	 * that portion of the branch which has an age greater than t as well
-	 * as the specified colour.
-	 * 
-	 * @param node
-	 * @param t
-	 * @param colour
-	 * @return Randomly selected time.
-	 */
-	public double chooseTimeWithColour(Node node, double t, int colour) {
-
-		if (node.isRoot())
-			throw new IllegalArgumentException("Node argument to"
-					+ "chooseTimeWithColour is not the bottom of a branch.");
-
-		if (t>node.getParent().getHeight() || t<node.getHeight())
-			throw new IllegalArgumentException("Time argument to"
-					+ "chooseTimeWithColour is not on specified branch.");
-
-		// Determine total length of time that sub-branch has chosen colour:
-		int lastColour = getInitialBranchColour(node);
-		double lastTime = node.getHeight();
-
-		double norm=0.0;
-		for (int i=0; i<getChangeCount(node); i++) {
-			int thisColour = getChangeColour(node,i);
-			double thisTime = getChangeTime(node,i);
-
-			if (lastColour==colour && thisTime>t)
-				norm += thisTime- Math.max(t,lastTime);
-
-			lastColour = thisColour;
-			lastTime = thisTime;
-		}
-
-		if (lastColour==colour)
-			norm += node.getParent().getHeight()-Math.max(t,lastTime);
-
-		// Select random time within appropriately coloured region:
-		double alpha = norm*Randomizer.nextDouble();
-
-		// Convert to absolute time:
-		lastColour = getInitialBranchColour(node);
-		lastTime = node.getHeight();
-
-		double tChoice = t;
-		for (int i=0; i<getChangeCount(node); i++) {
-			int thisColour = getChangeColour(node,i);
-			double thisTime = getChangeTime(node,i);
-
-			if (lastColour==colour && thisTime>t)
-				alpha -= thisTime-Math.max(t,lastTime);
-
-			if (alpha<0) {
-				tChoice = thisTime + alpha;
-				break;
-			}
-
-			lastColour = thisColour;
-			lastTime = thisTime;
-		}
-
-		if (alpha>0)
-			tChoice = alpha+lastTime;
-
-		return tChoice;
-	}
-
-	/**
 	 * Checks validity of current colour assignment.
 	 * 
 	 * @return True if valid, false otherwise.
@@ -628,6 +525,130 @@ public class ColouredTree extends Plugin {
 		}
 
 		return flatTree;
+	}
+
+	/**
+	 * Determine whether colour exists somewhere on the portion of the branch
+	 * between node and its parent with age greater than t.
+	 * 
+	 * @param node
+	 * @param t
+	 * @param colour
+	 * @return True if colour is on branch.
+	 */
+	public boolean colourIsOnSubBranch(Node node, double t, int colour) {
+
+		if (node.isRoot())
+			throw new IllegalArgumentException("Node argument to"
+					+ "colourIsOnSubBranch is not the bottom of a branch.");
+
+		if (t>node.getParent().getHeight())
+			throw new IllegalArgumentException("Time argument to"
+					+ "colourIsOnSubBranch is not on specified branch.");
+
+		int thisColour = getInitialBranchColour(node);
+
+		for (int i=0; i<getChangeCount(node); i++) {
+			if (getChangeTime(node,i)>=t && thisColour==colour)
+				return true;
+
+			thisColour = getChangeColour(node,i);
+		}
+
+		if (thisColour==colour)
+			return true;
+
+		return false;
+	}
+
+	public double getColouredSegmentLength(Node node, double t, int colour) {
+
+		if (node.isRoot())
+			throw new IllegalArgumentException("Node argument to"
+					+ "getColouredSegmentLength is not the bottom of a branch.");
+
+		if (t>node.getParent().getHeight())
+			throw new IllegalArgumentException("Time argument ot"
+					+ "getColouredSegmentLength is not on specified branch.");
+
+		// Determine total length of time that sub-branch has chosen colour:
+		int lastColour = getInitialBranchColour(node);
+		double lastTime = node.getHeight();
+
+		double norm=0.0;
+		for (int i=0; i<getChangeCount(node); i++) {
+			int thisColour = getChangeColour(node,i);
+			double thisTime = getChangeTime(node,i);
+
+			if (lastColour==colour && thisTime>t)
+				norm += thisTime- Math.max(t,lastTime);
+
+			lastColour = thisColour;
+			lastTime = thisTime;
+		}
+
+		if (lastColour==colour)
+			norm += node.getParent().getHeight()-Math.max(t,lastTime);
+
+		// Return negative result if colour is not on sub-branch:
+		if (!(norm>0.0))
+			return -1.0;
+
+		return norm;
+	}
+
+	/**
+	 * Select a time from a uniform distribution over the times within
+	 * that portion of the branch which has an age greater than t as well
+	 * as the specified colour. Requires pre-calculation of total length
+	 * of sub-branch following t having specified colour.
+	 * 
+	 * @param node
+	 * @param t
+	 * @param colour
+	 * @param norm Total length of sub-branch having specified colour.
+	 * @return Randomly selected time or -1 if colour does not exist on
+	 * branch at age greater than t.
+	 */
+	public double chooseTimeWithColour(Node node, double t, int colour,
+			double norm) {
+
+		if (node.isRoot())
+			throw new IllegalArgumentException("Node argument to"
+					+ "chooseTimeWithColour is not the bottom of a branch.");
+
+		if (t>node.getParent().getHeight() || t<node.getHeight())
+			throw new IllegalArgumentException("Time argument to"
+					+ "chooseTimeWithColour is not on specified branch.");
+
+		// Select random time within appropriately coloured region:
+		double alpha = norm*Randomizer.nextDouble();
+
+		// Convert to absolute time:
+		int lastColour = getInitialBranchColour(node);
+		double lastTime = node.getHeight();
+
+		double tChoice = t;
+		for (int i=0; i<getChangeCount(node); i++) {
+			int thisColour = getChangeColour(node,i);
+			double thisTime = getChangeTime(node,i);
+
+			if (lastColour==colour && thisTime>t)
+				alpha -= thisTime-Math.max(t,lastTime);
+
+			if (alpha<0) {
+				tChoice = thisTime + alpha;
+				break;
+			}
+
+			lastColour = thisColour;
+			lastTime = thisTime;
+		}
+
+		if (alpha>0)
+			tChoice = alpha+lastTime;
+
+		return tChoice;
 	}
 
 }
