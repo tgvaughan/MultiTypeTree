@@ -66,13 +66,15 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		do {
 			j = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
 			jP = j.getParent();
-		} while (j==i ||
+		} while (j==i || jP.getHeight()<i.getHeight() ||
 				(!j.isRoot() && ((jP == iP)
 				|| (newRange = cTree.getColouredSegmentLength(j, minNewTime, iColour))<0)));
 
 		if (iP.isRoot()) {
 
 			// TODO: calculate HR
+			Node CiP = getOtherChild(iP, i);
+
 			double logHR = Double.NEGATIVE_INFINITY;
 
 			// TODO: implement topology change
@@ -93,7 +95,9 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
 		// Calculate HR:
 		Node CiP = getOtherChild(iP, i);
-		double oldRange = cTree.getColouredSegmentLength(CiP, minNewTime, iColour);
+		double oldRange = cTree.getColouredSegmentLength(CiP, minNewTime, iColour)
+				+ cTree.getColouredSegmentLength(iP, minNewTime, iColour);
+						
 		double logHR = Math.log(newRange/oldRange);
 
 		// Implement topology change
@@ -101,6 +105,7 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		replace(iP.getParent(), iP, CiP);
 		replace(iP, CiP, j);
 		replace(jP, j, iP);
+		iP.setHeight(newTime);
 		
 		return logHR;
 	}
