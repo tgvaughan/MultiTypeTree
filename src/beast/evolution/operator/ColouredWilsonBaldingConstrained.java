@@ -36,7 +36,7 @@ import beast.util.Randomizer;
         "See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
 		+ "This version is altered to perform only those moves which preserve"
 		+ "the validity of the tree colouring.")
-public class ColouredWilsonBalding extends ColouredTreeOperator {
+public class ColouredWilsonBaldingConstrained extends ColouredTreeOperator {
 
 	@Override
 	public void initAndValidate() {};
