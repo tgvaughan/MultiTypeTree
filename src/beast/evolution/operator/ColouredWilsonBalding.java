@@ -17,6 +17,9 @@
 package beast.evolution.operator;
 
 import beast.core.Description;
+import beast.core.Input;
+import beast.core.Input.Validate;
+import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
@@ -38,6 +41,11 @@ import beast.util.Randomizer;
 		+ "the operator.")
 public class ColouredWilsonBalding extends ColouredTreeOperator {
 
+	public Input<MigrationModel> migrationModel = new Input<MigrationModel>(
+			"migrationModel",
+			"Migration model to use as prior for colouring branches",
+			Validate.REQUIRED);
+
 	@Override
 	public void initAndValidate() {};
 
@@ -54,12 +62,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		} while (i.isRoot());
 		Node iP = i.getParent();
 
-		int iColour = cTree.getFinalBranchColour(i);
-		double minNewTime = cTree.getFinalBranchTime(i);
-
-		// Choose coloured sub-edge having the same colour as the linage
-		// at i and with the time at the top of the edge being greater
-		// than the time at i.
+		int startColour = cTree.getInitialBranchColour(i);
+		double minNewTime = i.getHeight();
 
 		Node j,jP; // Node at bottom of edge.
 		double newRange = 0;
