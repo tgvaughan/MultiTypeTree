@@ -26,7 +26,7 @@ import beast.util.Randomizer;
  * @author Tim Vaughan
  */
 @Description("Plugin for specifying migration events along a tree.")
-public class ColouredTree extends Plugin {
+public class ColouredTree extends CalculationNode {
 
 	/*
 	 * Plugin inputs:
