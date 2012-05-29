@@ -61,8 +61,8 @@ public class ColouredTree extends CalculationNode {
             "changeCounts", "Number of colour changes on each branch.");
 
     /*
-      * Shadowing fields:
-      */
+     * Shadowing fields:
+     */
 
     protected String colourLabel;
     protected Integer nColours, maxBranchColours;
@@ -70,20 +70,28 @@ public class ColouredTree extends CalculationNode {
     protected IntegerParameter leafColours, changeColours, changeCounts;
     protected RealParameter changeTimes;
 
-    /*
-      * Private fields:
-      */
+	/*
+	 * Cache for final branch colours:
+	 */
+
     protected Integer[] finalColours;
     protected Boolean[] finalColoursDirty;
 
     public ColouredTree() {};
 
+	/**
+	 * Constructor to get coloured tree from coloured (single child)
+	 * newick tree.
+	 * 
+	 * @param newick
+	 * @param colourLabel
+	 * @param nColours
+	 * @param maxBranchColours
+	 * @throws Exception 
+	 */
+    public ColouredTree(String newick, String colourLabel, int nColours, int maxBranchColours) throws Exception {
 
-    // helper constructor to get coloured tree from coloured (single child) newick tree
-    public ColouredTree(String newick, String colourLabel, int nColours, int maxBranchColours) throws Exception{
-
-        TreeParser tree = new TreeParser();
-        tree.adjustTipHeightsWhenMissingDateTraits = false;
+		TreeParser tree = new TreeParser("", false);
         tree.setInputValue("singlechild", true);
         tree.setInputValue("newick", newick);
         tree.initAndValidate();
@@ -159,7 +167,14 @@ public class ColouredTree extends CalculationNode {
     }
 
 
-    // set up colours for newick constructor
+	/**
+	 * Set up colours for newick constructor .
+	 * 
+	 * @param node
+	 * @param cols
+	 * @param times
+	 * @param counts 
+	 */
     private void setupColourParameters(Node node, Integer[] cols, Double[] times, Integer[] counts){
 
         int nodeState = Integer.parseInt(node.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
@@ -195,7 +210,17 @@ public class ColouredTree extends CalculationNode {
 
     }
 
-    // set up colours for newick constructor
+	/**
+	 * Set up colours for newick constructor.
+	 * 
+	 * @param nodeNr
+	 * @param index
+	 * @param colour
+	 * @param time
+	 * @param cols
+	 * @param times
+	 * @param counts 
+	 */
     private void addChange(int nodeNr, int index, int colour, double time, Integer[] cols, Double[] times, Integer[] counts){
 
         cols[index] = colour;
@@ -480,7 +505,7 @@ public class ColouredTree extends CalculationNode {
 
         finalColoursDirty[node.getNr()] = true;
 
-        if (getChangeCount(node.getParent())==0)
+        if (node.getParent() != null && getChangeCount(node.getParent())==0)
             markFinalBranchColourDirty(node.getParent());
     }
 
