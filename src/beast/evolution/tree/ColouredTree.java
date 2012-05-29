@@ -822,4 +822,35 @@ public class ColouredTree extends CalculationNode {
         return tChoice;
     }
 
+
+    public static void main(String[] args){
+
+        try {
+
+            String newick = "(((1[&state='1']:1, (2[&state='0']:.5)[&state='1']:1.5)[&state='1']:2)[&state='0']:1, (3[&state='0']:1.5, (4[&state='1']:1.5)[&state='0']:1 )[&state='0']:2)[&state='0']:1;";
+            ColouredTree colouredTree = new ColouredTree(newick, "state", 2, 3);
+
+            System.out.println("Coloured tree colours:");
+
+            for (int i : colouredTree.finalColours){
+                System.out.println(i);
+            }
+
+            Tree ctree = colouredTree.getFlattenedTree();
+            Integer[] nodeStates = new Integer[ctree.getNodeCount() + colouredTree.getTotalNumberofChanges()];
+            ctree.getMetaData(ctree.getRoot(), nodeStates, colouredTree.getColourLabel());
+
+            System.out.println("Flattened tree colours:");
+
+            for (int i : nodeStates){
+                System.out.println(i);
+            }
+
+            System.out.println();
+
+        } catch (Exception e) {System.out.println(e.getMessage());}
+
+
+    }
+
 }
