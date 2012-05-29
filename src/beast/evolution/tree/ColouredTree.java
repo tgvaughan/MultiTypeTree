@@ -91,24 +91,24 @@ public class ColouredTree extends CalculationNode {
 	 */
     public ColouredTree(String newick, String colourLabel, int nColours, int maxBranchColours) throws Exception {
 
-		TreeParser tree = new TreeParser("", false);
-        tree.setInputValue("singlechild", true);
-        tree.setInputValue("newick", newick);
-        tree.initAndValidate();
+		TreeParser treeParser = new TreeParser("", false);
+        treeParser.setInputValue("singlechild", true);
+        treeParser.setInputValue("newick", newick);
+        treeParser.initAndValidate();
 
         this.colourLabel = colourLabel;
         this.nColours = nColours;
         this.maxBranchColours = maxBranchColours;
 
-        leafColours = new IntegerParameter(new Integer[tree.getLeafNodeCount()]);
+        leafColours = new IntegerParameter(new Integer[treeParser.getLeafNodeCount()]);
 
-        int nBranches = tree.getNodeCount()-1;
+        int nBranches = treeParser.getNodeCount()-1;
 
         Integer[] cols = new Integer[nBranches*maxBranchColours]; Arrays.fill(cols,-1);
         Double[] times = new Double[nBranches*maxBranchColours];  Arrays.fill(times,-1.);
         Integer[]  counts =  new Integer[nBranches]; Arrays.fill(counts,0);
 
-        setupColourParameters(tree.getRoot(),cols, times, counts);
+        setupColourParameters(treeParser.getRoot(),cols, times, counts);
 
         changeColours = new IntegerParameter(cols);
         changeTimes = new RealParameter(times);
@@ -122,6 +122,16 @@ public class ColouredTree extends CalculationNode {
 			finalColours[i] = 0;
 			finalColoursDirty[i] = true;
 		}
+
+		// Assign parsed tree to official tree topology field:
+		tree = treeParser;
+
+		// Ensure colouring is internally consistent:
+		if (!isValid())
+			throw new Exception("Inconsistent colour assignment.");
+
+		// Assign tree to input plugin:
+		treeInput.setValue(tree, this);
     }
 
     @Override
