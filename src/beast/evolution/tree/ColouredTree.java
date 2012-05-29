@@ -92,28 +92,27 @@ public class ColouredTree extends CalculationNode {
     public ColouredTree(String newick, String colourLabel, int nColours, int maxBranchColours) throws Exception {
 
 		TreeParser treeParser = new TreeParser("", false);
-        treeParser.setInputValue("singlechild", true);
-        treeParser.setInputValue("newick", newick);
-        treeParser.initAndValidate();
+        treeParser.initByName("adjustTipHeights",false, "singlechild", true, "newick", newick);
 
         this.colourLabel = colourLabel;
         this.nColours = nColours;
         this.maxBranchColours = maxBranchColours;
 
-        leafColours = new IntegerParameter(new Integer[treeParser.getLeafNodeCount()]);
 
         int nBranches = treeParser.getNodeCount()-1;
 
         Integer[] cols = new Integer[nBranches*maxBranchColours]; Arrays.fill(cols,-1);
         Double[] times = new Double[nBranches*maxBranchColours];  Arrays.fill(times,-1.);
         Integer[]  counts =  new Integer[nBranches]; Arrays.fill(counts,0);
-
-        setupColourParameters(treeParser.getRoot(),cols, times, counts);
+        Integer[] leafCols = new Integer[treeParser.getLeafNodeCount()];
+        
+        setupColourParameters(treeParser.getRoot(),cols, times, counts, leafCols);
 
         changeColours = new IntegerParameter(cols);
         changeTimes = new RealParameter(times);
         changeCounts = new IntegerParameter(counts);
-
+        leafColours = new IntegerParameter(leafCols);
+         
 		// Allocate and initialise array for lazily recording
 		// final colour of each branch:
 		finalColours = new Integer[nBranches];
@@ -185,7 +184,7 @@ public class ColouredTree extends CalculationNode {
 	 * @param times
 	 * @param counts 
 	 */
-    private void setupColourParameters(Node node, Integer[] cols, Double[] times, Integer[] counts){
+    private void setupColourParameters(Node node, Integer[] cols, Double[] times, Integer[] counts, Integer[] leafCols){
 
         int nodeState = Integer.parseInt(node.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
         int nodeNr = node.getNr();
@@ -196,8 +195,9 @@ public class ColouredTree extends CalculationNode {
             int child1state = Integer.parseInt(child1.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
 
             if (child1state!=nodeState)
-                addChange(child1.getNr(), maxBranchColours*child1.getNr()+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
-            setupColourParameters(child1,cols, times, counts);
+                addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
+
+            setupColourParameters(child1 ,cols, times, counts, leafCols);
         }
 
         if (node.getChildCount()==2){
@@ -208,14 +208,16 @@ public class ColouredTree extends CalculationNode {
             Node child2 = node.getRight();
             int child2state = Integer.parseInt(child2.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
 
-            if (child1state!=nodeState)
-                addChange(child1.getNr(), maxBranchColours*child1.getNr()+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
-            if (child2state!=nodeState)
-                addChange(child2.getNr(), maxBranchColours*child2.getNr()+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
+            if (child1state!=nodeState || child2state!=nodeState)
+                addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
 
-            setupColourParameters(child1,cols, times, counts);
-            setupColourParameters(child2,cols, times, counts);
+            setupColourParameters(child1 ,cols, times, counts, leafCols);
+            setupColourParameters(child2 ,cols, times, counts, leafCols);
 
+        }
+
+        if (node.isLeaf()){
+            leafCols[nodeNr] = nodeState;
         }
 
     }
