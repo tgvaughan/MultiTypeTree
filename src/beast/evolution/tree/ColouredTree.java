@@ -68,10 +68,10 @@ public class ColouredTree extends CalculationNode {
 	protected RealParameter changeTimes;
 
 	/*
-	 * Private fields:
+	 * Arrays used to lazily keep track of final colours on branches:
 	 */
-	private Integer[] finalColours;
-	private Boolean[] finalColoursDirty;
+	protected Integer[] finalColours;
+	protected Boolean[] finalColoursDirty;
 
 	public ColouredTree() {};
 
@@ -102,9 +102,14 @@ public class ColouredTree extends CalculationNode {
 		changeTimes.setDimension(nBranches*maxBranchColours);
 		changeCounts.setDimension(nBranches);
 
-		// Allocate array for lazily recording final colour of each branch:
-		finalColours = new Integer[tree.getLeafNodeCount()];
-		finalColoursDirty = new Boolean[tree.getLeafNodeCount()];
+		// Allocate and initialise array for lazily recording final colour of
+		// each branch:
+		finalColours = new Integer[nBranches];
+		finalColoursDirty = new Boolean[nBranches];
+		for (int i=0; i<nBranches; i++) {
+			finalColours[i] = 0;
+			finalColoursDirty[i] = true;
+		}
 
 		// Need to recalculate all final branch colours:
 		for (int i=0; i<tree.getNodeCount(); i++)
@@ -119,6 +124,24 @@ public class ColouredTree extends CalculationNode {
 	 */
 	public Tree getUncolouredTree() {
 		return tree;
+	}
+
+	/**
+	 * Check whether there is space for a branch above the specified
+	 * node on the coloured tree.
+	 * 
+	 * This is subtly different to calling node.isRoot(), which will return
+	 * true for all frontier nodes during the bottom-up construction of
+	 * a tree topology.
+	 * 
+	 * @param node
+	 * @return True if space for the branch exists.
+	 */
+	public boolean hasBranch(Node node) {
+		if (node.getNr()>=changeCounts.getDimension())
+			return false;
+		else
+			return true;
 	}
 
 	/**
@@ -302,9 +325,9 @@ public class ColouredTree extends CalculationNode {
 	 * @return Final colour.
 	 */
 	public int getFinalBranchColour(Node node) {
-		if (node.isRoot())
+		if (!hasBranch(node))
 			throw new IllegalArgumentException("Argument to getFinalBranchColour"
-					+ "is not the bottom of a branch.");
+					+ " is not the bottom of a branch.");
 
 		if (finalColoursDirty[node.getNr()]) {
 			if (getChangeCount(node)>0)
@@ -339,14 +362,14 @@ public class ColouredTree extends CalculationNode {
 	 */
 	private void markFinalBranchColourDirty(Node node) {
 
-		if (node.isRoot())
-			throw new IllegalArgumentException("Argument to"
-					+ "markFinalBranchColourDirty is not the bottom"
+		if (!hasBranch(node))
+			throw new IllegalArgumentException("Argument to "
+					+ "markFinalBranchColourDirty is not the bottom "
 					+ "of a branch.");
 
 		finalColoursDirty[node.getNr()] = true;
 
-		if (getChangeCount(node.getParent())==0)
+		if (node.getParent() != null && getChangeCount(node.getParent())==0)
 			markFinalBranchColourDirty(node.getParent());
 	}
 
@@ -359,9 +382,9 @@ public class ColouredTree extends CalculationNode {
 	 */
 	public double getFinalBranchTime(Node node) {
 
-		if (node.isRoot())
+		if (!hasBranch(node))
 			throw new IllegalArgumentException("Argument to"
-					+ "getFinalBranchTime is not the bottom of a branch.");
+					+ " getFinalBranchTime is not the bottom of a branch.");
 
 		if (getChangeCount(node)>0)
 			return getChangeTime(node, getChangeCount(node)-1);

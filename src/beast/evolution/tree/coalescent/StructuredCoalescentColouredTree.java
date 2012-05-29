@@ -134,6 +134,14 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		changeTimes.setDimension(nBranches*maxBranchColours);
 		changeCounts.setDimension(nBranches);
 
+		// Allocate array for lazily recording final colour of each branch:
+		finalColours = new Integer[nBranches];
+		finalColoursDirty = new Boolean[nBranches];
+		for (int i=0; i<nBranches; i++) {
+			finalColours[i] = 0;
+			finalColoursDirty[i] = true;
+		}
+
 		// Construct tree:
 		tree = new Tree(simulateTree());
 
