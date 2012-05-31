@@ -54,38 +54,49 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		ColouredTree cTree = colouredTreeInput.get();
 		Tree tree = cTree.getUncolouredTree();
 
-		Node i, j; 
+		// Choose non-root node at base of random edge.
 
-		i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+		Node i; // Node at bottom of edge.
+		do {
+			i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+		} while (i.isRoot());
+		Node iP = i.getParent();
+
+		int startColour = cTree.getInitialBranchColour(i);
+		double minNewTime = i.getHeight();
+
+		Node j,jP; // Node at bottom of edge.
+		double newRange = 0;
 		do {
 			j = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-		} while(j != i);
-
-		Node iP = i.getParent();
-		Node jP = j.getParent();
-
-		// Reject impossible proposals outright:
-		if (i.isRoot() || iP == j || iP == jP)
-			return Double.NEGATIVE_INFINITY;
-
-		if (jP.getHeight() <= i.getHeight())
-			return Double.NEGATIVE_INFINITY;
-
-
-		// Implement topology changes:
-
-		if (j.isRoot()) {
-
-			return Double.NEGATIVE_INFINITY;
-		}
+			jP = j.getParent();
+		} while (j==i || jP.getHeight()<i.getHeight() ||
+				(!j.isRoot() && ((jP == iP)
+				|| (newRange = cTree.getColouredSegmentLength(j, minNewTime, startColour))<0)));
 
 		if (iP.isRoot()) {
 
-			return Double.NEGATIVE_INFINITY;
+			// TODO: calculate HR
+			Node CiP = getOtherChild(iP, i);
+
+			double logHR = Double.NEGATIVE_INFINITY;
+
+			// TODO: implement topology change
+
+			return logHR;
+
+		} else if (j.isRoot()) {
+
+			// TODO: calculate HR
+			double logHR = Double.NEGATIVE_INFINITY;
+
+			// TODO: implement topology change
+
+			return logHR;
 		}
 
-		Node CiP = getOtherChild(iP, i);
-
+		// Simple case where root is not involved:
+	
 		return Double.NEGATIVE_INFINITY;
 	}
 }

@@ -22,6 +22,10 @@ import beast.util.Randomizer;
 import beast.util.TreeParser;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * BEAST 2 plugin for specifying migration events along a tree.
@@ -70,28 +74,28 @@ public class ColouredTree extends CalculationNode {
     protected IntegerParameter leafColours, changeColours, changeCounts;
     protected RealParameter changeTimes;
 
-	/*
-	 * Cache for final branch colours:
-	 */
+    /*
+      * Cache for final branch colours:
+      */
 
     protected Integer[] finalColours;
     protected Boolean[] finalColoursDirty;
 
     public ColouredTree() {};
 
-	/**
-	 * Constructor to get coloured tree from coloured (single child)
-	 * newick tree.
-	 * 
-	 * @param newick
-	 * @param colourLabel
-	 * @param nColours
-	 * @param maxBranchColours
-	 * @throws Exception 
-	 */
+    /**
+     * Constructor to get coloured tree from coloured (single child)
+     * newick tree.
+     *
+     * @param newick
+     * @param colourLabel
+     * @param nColours
+     * @param maxBranchColours
+     * @throws Exception
+     */
     public ColouredTree(String newick, String colourLabel, int nColours, int maxBranchColours) throws Exception {
 
-		TreeParser treeParser = new TreeParser("", false);
+        TreeParser treeParser = new TreeParser("", false);
         treeParser.initByName("adjustTipHeights",false, "singlechild", true, "newick", newick);
 
         this.colourLabel = colourLabel;
@@ -99,38 +103,38 @@ public class ColouredTree extends CalculationNode {
         this.maxBranchColours = maxBranchColours;
 
 
-        int nBranches = treeParser.getNodeCount()-1;
+        List<Integer> markedForDeletion = new ArrayList<Integer>();
+        int nBranches = treeParser.getNodeCount() - 1 ;//
 
         Integer[] cols = new Integer[nBranches*maxBranchColours]; Arrays.fill(cols,-1);
         Double[] times = new Double[nBranches*maxBranchColours];  Arrays.fill(times,-1.);
         Integer[]  counts =  new Integer[nBranches]; Arrays.fill(counts,0);
-        Integer[] leafCols = new Integer[treeParser.getLeafNodeCount()];
-        
-        setupColourParameters(treeParser.getRoot(),cols, times, counts, leafCols);
 
-        changeColours = new IntegerParameter(cols);
-        changeTimes = new RealParameter(times);
-        changeCounts = new IntegerParameter(counts);
-        leafColours = new IntegerParameter(leafCols);
-         
-		// Allocate and initialise array for lazily recording
-		// final colour of each branch:
-		finalColours = new Integer[nBranches];
-		finalColoursDirty = new Boolean[nBranches];
-		for (int i=0; i<nBranches; i++) {
-			finalColours[i] = 0;
-			finalColoursDirty[i] = true;
-		}
+        setupColourParameters(treeParser.getRoot(),cols, times, counts);
 
-		// Assign parsed tree to official tree topology field:
-		tree = treeParser;
+        // Assign parsed tree to official tree topology field and remove single children from it:
+        tree = treeParser;
+        nBranches -= getSingleChildCount(treeParser, markedForDeletion) ;
+        removeSingleChildren(markedForDeletion);
 
-		// Ensure colouring is internally consistent:
-		if (!isValid())
-			throw new Exception("Inconsistent colour assignment.");
+        assignColourArrays(cols, times, counts, nBranches);
 
-		// Assign tree to input plugin:
-		treeInput.setValue(tree, this);
+
+        // Allocate and initialise array for lazily recording
+        // final colour of each branch:
+        finalColours = new Integer[nBranches];
+        finalColoursDirty = new Boolean[nBranches];
+        for (int i=0; i<nBranches; i++) {
+            finalColours[i] = 0;
+            finalColoursDirty[i] = true;
+        }
+
+        // Ensure colouring is internally consistent:
+        if (!isValid())
+            throw new Exception("Inconsistent colour assignment.");
+
+        // Assign tree to input plugin:
+        treeInput.setValue(tree, this);
     }
 
     @Override
@@ -161,13 +165,13 @@ public class ColouredTree extends CalculationNode {
         changeCounts.setDimension(nBranches);
 
         // Allocate and initialise arrays for lazily recording
-		// final colour of each branch:
+        // final colour of each branch:
         finalColours = new Integer[tree.getNodeCount()];
         finalColoursDirty = new Boolean[tree.getNodeCount()];
-		for (int i=0; i<nBranches; i++) {
-			finalColours[i] = 0;
-			finalColoursDirty[i] = true;
-		}
+        for (int i=0; i<nBranches; i++) {
+            finalColours[i] = 0;
+            finalColoursDirty[i] = true;
+        }
 
         // Need to recalculate all final branch colours:
         for (int i=0; i<tree.getNodeCount(); i++)
@@ -176,31 +180,127 @@ public class ColouredTree extends CalculationNode {
     }
 
 
-	/**
-	 * Set up colours for newick constructor .
-	 * 
-	 * @param node
-	 * @param cols
-	 * @param times
-	 * @param counts 
-	 */
-    private void setupColourParameters(Node node, Integer[] cols, Double[] times, Integer[] counts, Integer[] leafCols){
+    /**
+     * Get number of single child nodes of a tree.
+     *
+     * @param tree The tree.
+     */
+
+    public int getSingleChildCount(Tree tree, List<Integer> markedForDeletion){
+
+        int count = 0;
+
+        return getSingleChildCount(tree.getRoot(), markedForDeletion);
+
+    }
+
+    /**
+     * Get number of single child nodes of a tree.
+     *
+     * @param node The root of the (sub)tree.
+     */
+    public int getSingleChildCount(Node node, List<Integer> markedForDeletion){
+
+        if (node.isLeaf()) return 0;
+
+        if (node.getChildCount()==1) {
+
+            markedForDeletion.add(node.getNr());
+            return 1 + getSingleChildCount(node.getLeft(), markedForDeletion);
+        }
+
+        else return getSingleChildCount(node.getLeft(), markedForDeletion) + getSingleChildCount(node.getRight(), markedForDeletion);
+
+    }
+
+    /**
+     * Delete single child nodes from tree
+     *
+     * @param markedForDeletion list of single node numbers 
+     */
+    public void removeSingleChildren(List<Integer> markedForDeletion) throws Exception {
+
+        List<Node> nodes= new ArrayList<Node>();
+
+        for (int i : markedForDeletion){
+            nodes.add( tree.getNode(i));
+        }
+
+        for (Node node : nodes) {
+
+            Node parent = node.getParent();
+
+            parent.children = node.getChildren();
+
+            for (Node child : parent.children){
+                child.setParent(parent);
+            }
+        }
+
+        tree.setInputValue("newick", null);
+
+    }
+
+    /**
+     * Set up colours for newick constructor .
+     *
+     * @param node
+     * @param cols
+     * @param times
+     * @param counts
+     */
+    private void setupColourParameters(Node node, Integer[] cols, Double[] times, Integer[] counts){//, Integer[] leafCols){
 
         int nodeState = Integer.parseInt(node.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
         int nodeNr = node.getNr();
+        node.setMetaData("oldNodeNumber", nodeNr);
 
         if (node.getChildCount() == 1){
 
             Node child1 = node.getLeft();
             int child1state = Integer.parseInt(child1.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
 
-            if (child1state!=nodeState)
-                addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
+            if (child1.getChildCount()==1){
 
-            setupColourParameters(child1 ,cols, times, counts, leafCols);
+                int[] changes = new int[maxBranchColours];
+                double[] changetimes = new double[maxBranchColours];
+                changes[0] = nodeState;
+                changetimes[0] = node.getHeight();
+
+                int i = 1;
+                node = child1;
+
+                while (node.getChildCount()==1 && i < maxBranchColours){
+
+                    changes[i] = Integer.parseInt(node.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
+                    changetimes[i] = node.getHeight();
+                    i++;
+                    node = node.getLeft();
+                }
+
+                if (node.getChildCount()==1 && i == maxBranchColours) throw new RuntimeException("Too many changes on branch!");
+
+                nodeNr = node.getNr();
+
+                for (int j=0; j<=i; j++){
+                    addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], changes[i-j], changetimes[i-j], cols, times, counts);
+                    // todo: ask Tim if the order matters here
+                }
+
+                setupColourParameters(node ,cols, times, counts);//, leafCols);
+
+
+            } else {
+
+                nodeNr = child1.getNr();
+                if (child1state!=nodeState)
+                    addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
+
+                setupColourParameters(child1 ,cols, times, counts);//, leafCols);
+            }
         }
 
-        if (node.getChildCount()==2){
+        else if (node.getChildCount()==2){
 
             Node child1 = node.getLeft();
             int child1state = Integer.parseInt(child1.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
@@ -208,31 +308,71 @@ public class ColouredTree extends CalculationNode {
             Node child2 = node.getRight();
             int child2state = Integer.parseInt(child2.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
 
-            if (child1state!=nodeState || child2state!=nodeState)
+            if (child1state!=nodeState){
+                nodeNr = child1.getNr();
                 addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
+            }
+            if ( child2state!=nodeState) {
+                nodeNr = child2.getNr();
+                addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
+            }
 
-            setupColourParameters(child1 ,cols, times, counts, leafCols);
-            setupColourParameters(child2 ,cols, times, counts, leafCols);
+            setupColourParameters(child1 ,cols, times, counts);//, leafCols);
+            setupColourParameters(child2 ,cols, times, counts);//, leafCols);
 
         }
 
-        if (node.isLeaf()){
-            leafCols[nodeNr] = nodeState;
-        }
+//        else if (node.isLeaf()){
+//            leafCols[nodeNr] = nodeState;
+//        }
 
     }
 
-	/**
-	 * Set up colours for newick constructor.
-	 * 
-	 * @param nodeNr
-	 * @param index
-	 * @param colour
-	 * @param time
-	 * @param cols
-	 * @param times
-	 * @param counts 
-	 */
+    private void assignColourArrays(Integer[] cols, Double[] times, Integer[] counts, int nBranches) throws Exception{
+
+
+        Integer[] cols_afterRemoval = new Integer[nBranches*maxBranchColours]; Arrays.fill(cols_afterRemoval,-1);
+        Double[] times_afterRemoval = new Double[nBranches*maxBranchColours];  Arrays.fill(times_afterRemoval,-1.);
+        Integer[] counts_afterRemoval =  new Integer[nBranches]; Arrays.fill(counts_afterRemoval,0);
+        Integer[] leafCols = new Integer[tree.getLeafNodeCount()];
+
+        Node node;
+        int oldNodeNumber;
+
+        for (int i =0; i<nBranches; i++){
+            node = tree.getNode(i);
+
+            if (node.isLeaf())
+                leafCols[i] = Integer.parseInt(node.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
+
+            oldNodeNumber = (Integer) node.getMetaData("oldNodeNumber");
+            counts_afterRemoval[i] = counts[oldNodeNumber];
+
+            for (int j=0; j<counts_afterRemoval[i]; j++){
+
+                cols_afterRemoval[maxBranchColours*i+j] = cols[maxBranchColours*oldNodeNumber+j];
+                times_afterRemoval[maxBranchColours*i+j] = times[maxBranchColours*oldNodeNumber+j];
+            }
+        }
+
+        changeColours = new IntegerParameter(cols_afterRemoval);
+        changeTimes = new RealParameter(times_afterRemoval);
+        changeCounts = new IntegerParameter(counts_afterRemoval);
+        leafColours = new IntegerParameter(leafCols);
+
+    }
+
+    /**
+     * Set up colours for newick constructor.
+     *
+     * @param nodeNr
+     * @param index
+     * @param colour
+     * @param time
+     * @param cols
+     * @param times
+     * @param counts
+     */
     private void addChange(int nodeNr, int index, int colour, double time, Integer[] cols, Double[] times, Integer[] counts){
 
         cols[index] = colour;
@@ -251,23 +391,23 @@ public class ColouredTree extends CalculationNode {
         return tree;
     }
 
-	/**
-	 * Check whether there is space for a branch above the specified
-	 * node on the coloured tree.
-	 * 
-	 * This is subtly different to calling node.isRoot(), which will return
-	 * true for all frontier nodes during the bottom-up construction of
-	 * a tree topology.
-	 * 
-	 * @param node
-	 * @return True if space for the branch exists.
-	 */
-	public boolean hasBranch(Node node) {
-		if (node.getNr()>=changeCounts.getDimension())
-			return false;
-		else
-			return true;
-	}
+    /**
+     * Check whether there is space for a branch above the specified
+     * node on the coloured tree.
+     *
+     * This is subtly different to calling node.isRoot(), which will return
+     * true for all frontier nodes during the bottom-up construction of
+     * a tree topology.
+     *
+     * @param node
+     * @return True if space for the branch exists.
+     */
+    public boolean hasBranch(Node node) {
+        if (node.getNr()>=changeCounts.getDimension())
+            return false;
+        else
+            return true;
+    }
 
 
     /**
@@ -474,7 +614,7 @@ public class ColouredTree extends CalculationNode {
      */
     public int getFinalBranchColour(Node node) {
         if (!hasBranch(node))
-            throw new IllegalArgumentException("Argument to getFinalBranchColour"
+            throw new IllegalArgumentException("Argument to getFinalBranchColour "
                     + "is not the bottom of a branch.");
 
         if (finalColoursDirty[node.getNr()]) {
@@ -823,32 +963,21 @@ public class ColouredTree extends CalculationNode {
     }
 
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws Exception{
 
-        try {
 
-            String newick = "(((1[&state='1']:1, (2[&state='0']:.5)[&state='1']:1.5)[&state='1']:2)[&state='0']:1, (3[&state='0']:1.5, (4[&state='1']:1.5)[&state='0']:1 )[&state='0']:2)[&state='0']:1;";
-            ColouredTree colouredTree = new ColouredTree(newick, "state", 2, 3);
 
-            System.out.println("Coloured tree colours:");
+        // 4 taxa test tree:
+        String newick = "(((1[&state='1']:1, (2[&state='0']:.5)[&state='1']:1.5)[&state='1']:2)[&state='0']:1, (3[&state='0']:1.5, (4[&state='1']:1.5)[&state='0']:1 )[&state='0']:2)[&state='0']:1;";
 
-            for (int i : colouredTree.finalColours){
-                System.out.println(i);
-            }
+        // 100 taxa test tree:
 
-            Tree ctree = colouredTree.getFlattenedTree();
-            Integer[] nodeStates = new Integer[ctree.getNodeCount() + colouredTree.getTotalNumberofChanges()];
-            ctree.getMetaData(ctree.getRoot(), nodeStates, colouredTree.getColourLabel());
+//            String newick =" (((((((\"216_0_105.83\"[&state=\"0\"]:28.771977280210464, (\"343_0_147.99\"[&state=\"0\"]:64.96763642217283, \"392_0_166.73\"[&state=\"0\"]:83.7056007591273)[&state=\"0\"]:5.962532597025245)[&state=\"0\"]:21.807593094666487, (\"623_0_112.72\"[&state=\"0\"]:45.390415190303386, \"673_0_87.71\"[&state=\"0\"]:20.378326633337522)[&state=\"0\"]:12.081384556369898)[&state=\"0\"]:7.095479064167385, (\"699_0_98.05\"[&state=\"0\"]:35.875760300023444, \"710_0_107.73\"[&state=\"0\"]:45.5625524982232)[&state=\"0\"]:14.012876570744062)[&state=\"0\"]:21.14440426806084, (((\"804_0_111.52\"[&state=\"0\"]:51.26454621990025, ((((\"935_0_125.26\"[&state=\"0\"]:23.786912640445323, \"938_0_131.41\"[&state=\"0\"]:29.941708603448774)[&state=\"0\"]:37.94424586281844, (\"1065_0_133.28\"[&state=\"0\"]:61.47018901874536, (((\"1114_0_173.1\"[&state=\"0\"]:88.734385512821, \"1155_0_131.39\"[&state=\"0\"]:47.02736826092948)[&state=\"0\"]:8.030508878206135, \"1207_0_115.18\"[&state=\"0\"]:38.84873210218484)[&state=\"0\"]:1.3856178623677948, ((\"1242_0_136.0\"[&state=\"0\"]:43.33703974098212, (\"1281_0_175.51\"[&state=\"0\"]:76.42786535823336, \"1342_0_142.26\"[&state=\"0\"]:43.174171604761455)[&state=\"0\"]:6.418192948835795)[&state=\"0\"]:6.263459153561584, \"1347_0_114.33\"[&state=\"0\"]:27.928348007822336)[&state=\"0\"]:11.45582942270184)[&state=\"0\"]:3.1375877347302463)[&state=\"0\"]:8.282391183389642)[&state=\"0\"]:1.29451646842314, \"1359_0_107.49\"[&state=\"0\"]:45.252391392272834)[&state=\"0\"]:1.6039683074347835, (\"1382_0_91.33\"[&state=\"0\"]:29.47193465033193, \"1388_0_76.51\"[&state=\"0\"]:14.649816852734517)[&state=\"0\"]:1.2324415409658585)[&state=\"0\"]:0.3778755113478667)[&state=\"0\"]:12.421987637170936, (\"1429_0_72.82\"[&state=\"0\"]:13.322072203069787, ((\"1431_0_102.12\"[&state=\"0\"]:23.195581152395775, \"1744_0_136.6\"[&state=\"0\"]:57.676704951762616)[&state=\"0\"]:15.404711667852993, (\"1795_0_149.07\"[&state=\"0\"]:66.09569016146419, \"1798_0_115.66\"[&state=\"0\"]:32.6900298153066)[&state=\"0\"]:19.451407963260152)[&state=\"0\"]:4.023322910553695)[&state=\"0\"]:11.668511550401469)[&state=\"0\"]:16.400514940460315, (((\"1835_0_90.78\"[&state=\"0\"]:17.50739519046961, (((\"1847_0_133.32\"[&state=\"0\"]:38.814467957221765, \"1854_0_143.81\"[&state=\"0\"]:49.31301527702736)[&state=\"0\"]:3.482519552660193, ((\"2030_1_169.43\"[&state=\"1\"]:22.884347636952697, \"2047_1_172.73\"[&state=\"1\"]:26.185303807869644)[&state=\"1\"]:33.370694700899406)[&state=\"0\"]:22.159763219296806)[&state=\"0\"]:8.117353054905706, \"2126_0_116.46\"[&state=\"0\"]:33.55524142321835)[&state=\"0\"]:9.62650424861188)[&state=\"0\"]:21.099175966626483, (\"2235_0_78.65\"[&state=\"0\"]:26.180608059693242, \"2248_0_81.93\"[&state=\"0\"]:29.456805781326025)[&state=\"0\"]:0.29801468179062596)[&state=\"0\"]:20.52764025668319, ((\"2417_0_108.71\"[&state=\"0\"]:31.198505402850273, (\"2432_0_168.47\"[&state=\"0\"]:75.67086414394095, \"2473_0_114.26\"[&state=\"0\"]:21.461568479130563)[&state=\"0\"]:15.289858690795441)[&state=\"0\"]:12.083275434065172, (\"2512_0_124.43\"[&state=\"0\"]:57.70789585948346, (\"2671_0_125.55\"[&state=\"0\"]:54.34965593804053, \"2679_0_83.97\"[&state=\"0\"]:12.770963117912203)[&state=\"0\"]:4.477209939512022)[&state=\"0\"]:1.292312936462153)[&state=\"0\"]:33.78108843309889)[&state=\"0\"]:0.21922118940199908)[&state=\"0\"]:4.416155762876404)[&state=\"0\"]:5.718319568014781, \"2692_0_60.48\"[&state=\"0\"]:39.182123455821156)[&state=\"0\"]:2.664522929873929, ((\"2854_0_137.76\"[&state=\"0\"]:43.117258983481676, \"2880_0_152.12\"[&state=\"0\"]:57.468745544995656)[&state=\"0\"]:71.4955906873979, (((\"3024_0_108.22\"[&state=\"0\"]:30.071230359952267, (\"3063_0_174.37\"[&state=\"0\"]:62.174505583978785, \"3086_0_158.29\"[&state=\"0\"]:46.090991846334376)[&state=\"0\"]:34.045349289728705)[&state=\"0\"]:26.305969594194877, \"3219_0_91.4\"[&state=\"0\"]:39.55698332778984)[&state=\"0\"]:8.725122528114895, \"3366_0_53.19\"[&state=\"0\"]:10.072859477257971)[&state=\"0\"]:19.969190146244816)[&state=\"0\"]:4.521334546466672)[&state=\"0\"]:13.041755583822052, ((((((((((\"3456_2_158.72\"[&state=\"2\"]:24.186937201743547, \"3477_2_170.24\"[&state=\"2\"]:35.70426583098612)[&state=\"2\"]:1.2612824115472563)[&state=\"0\"]:56.32137082112472, (\"3700_2_168.07\"[&state=\"2\"]:81.68896715597695)[&state=\"0\"]:9.426361155574966)[&state=\"0\"]:2.732135878606954, \"3847_0_105.32\"[&state=\"0\"]:31.097398582811792)[&state=\"0\"]:4.281659351082425, \"3875_0_146.28\"[&state=\"0\"]:76.34000145536773)[&state=\"0\"]:12.372923764332853, \"3940_0_75.75\"[&state=\"0\"]:18.18239780793766)[&state=\"0\"]:10.576996345455427, \"3949_0_97.32\"[&state=\"0\"]:50.333494908482294)[&state=\"0\"]:5.806111000680623, (((\"3969_0_138.72\"[&state=\"0\"]:65.60963700250004, \"3973_0_89.13\"[&state=\"0\"]:16.024077280302706)[&state=\"0\"]:5.4142025112991945, \"4147_0_116.15\"[&state=\"0\"]:48.45391156005475)[&state=\"0\"]:17.644492475044153, \"4178_0_105.32\"[&state=\"0\"]:55.2711388012598)[&state=\"0\"]:8.863419276688873)[&state=\"0\"]:5.015509786906058, ((((\"4267_0_122.93\"[&state=\"0\"]:72.80507095407945, \"4299_0_70.9\"[&state=\"0\"]:20.77937559811869)[&state=\"0\"]:4.998844667856034, ((\"4317_0_132.03\"[&state=\"0\"]:35.9308102450744, \"4336_0_171.82\"[&state=\"0\"]:75.71804604832319)[&state=\"0\"]:27.90738917758948, (\"4439_0_158.82\"[&state=\"0\"]:85.41137508232269, ((\"4584_0_130.54\"[&state=\"0\"]:32.09231481246263, \"4592_0_140.4\"[&state=\"0\"]:41.94495287384183)[&state=\"0\"]:2.9540838415753257, \"4597_0_128.36\"[&state=\"0\"]:32.858735435381035)[&state=\"0\"]:22.087557615365398)[&state=\"0\"]:5.215944835472428)[&state=\"0\"]:23.07080442325318)[&state=\"0\"]:4.080258610990249, (((\"4665_0_76.83\"[&state=\"0\"]:16.308425841875163, (((\"4750_0_143.92\"[&state=\"0\"]:57.175569549527225, \"4846_0_165.32\"[&state=\"0\"]:78.57039091549812)[&state=\"0\"]:13.162331646217936, ((\"5062_0_144.97\"[&state=\"0\"]:39.888379895279556, \"5064_0_126.91\"[&state=\"0\"]:21.825998923520814)[&state=\"0\"]:20.29641666199295, (\"5068_0_154.04\"[&state=\"0\"]:64.21058536970061, \"5109_0_108.89\"[&state=\"0\"]:19.066790438165228)[&state=\"0\"]:5.037845840742719)[&state=\"0\"]:11.203864590884649)[&state=\"0\"]:11.569433877413083, \"5117_0_83.67\"[&state=\"0\"]:21.65418121768311)[&state=\"0\"]:1.4946484323150102)[&state=\"0\"]:4.099139410439932, (((\"5151_0_99.64\"[&state=\"0\"]:16.899940176598804, \"5201_0_157.33\"[&state=\"0\"]:74.59002156220181)[&state=\"0\"]:5.155344950640838, \"5302_0_120.84\"[&state=\"0\"]:43.257691317049094)[&state=\"0\"]:14.05941431718255, \"5304_0_96.89\"[&state=\"0\"]:33.370633854601685)[&state=\"0\"]:7.099708817642529)[&state=\"0\"]:7.081921553705271, (((\"5357_0_91.99\"[&state=\"0\"]:17.135562101655324, (\"5429_0_141.84\"[&state=\"0\"]:55.13360535644719, \"5448_0_144.77\"[&state=\"0\"]:58.062742683473715)[&state=\"0\"]:11.849978051741147)[&state=\"0\"]:8.36222931703044, \"5482_0_86.8\"[&state=\"0\"]:20.31350288685303)[&state=\"0\"]:12.228020731390565, (\"5491_0_83.87\"[&state=\"0\"]:23.275164682889233, ((\"5542_0_132.07\"[&state=\"0\"]:26.8129364503707, \"5545_0_139.09\"[&state=\"0\"]:33.84187727651445)[&state=\"0\"]:15.308691950965738, (\"5574_0_123.86\"[&state=\"0\"]:28.84376975861504, \"5586_0_129.32\"[&state=\"0\"]:34.30802617330515)[&state=\"0\"]:5.068072942567866)[&state=\"0\"]:29.345258044728702)[&state=\"0\"]:6.336450504539286)[&state=\"0\"]:4.9229948491425475)[&state=\"0\"]:8.295518711635516)[&state=\"0\"]:0.5666530881693532, (\"5611_0_82.01\"[&state=\"0\"]:24.139896011666252, \"5683_0_120.0\"[&state=\"0\"]:62.130028898740434)[&state=\"0\"]:17.38826232600752)[&state=\"0\"]:4.307879706931075)[&state=\"0\"]:9.108778511052005, ((((\"5750_0_111.5\"[&state=\"0\"]:32.40266666821623, \"5921_0_118.9\"[&state=\"0\"]:39.80291802871788)[&state=\"0\"]:3.7483419386554147, \"5936_0_124.42\"[&state=\"0\"]:49.07118051517655)[&state=\"0\"]:14.782850096312806, \"5965_0_85.12\"[&state=\"0\"]:24.548650027693206)[&state=\"0\"]:9.626317596192102, ((\"6060_0_122.39\"[&state=\"0\"]:42.8814802179279, (\"6080_0_175.29\"[&state=\"0\"]:85.95127080757932, (\"6093_0_134.2\"[&state=\"0\"]:44.674161069980826, \"6157_0_137.69\"[&state=\"0\"]:48.165138326949986)[&state=\"0\"]:0.19236571893858923)[&state=\"0\"]:9.832840141720013)[&state=\"0\"]:9.081529645809013, (\"6178_0_130.81\"[&state=\"0\"]:46.948974028094256, \"6194_0_110.74\"[&state=\"0\"]:26.879507201132427)[&state=\"0\"]:13.435927370145862)[&state=\"0\"]:19.478529566704438)[&state=\"0\"]:23.883481661911613)[&state=\"0\"]:21.472647481136026)[&state=\"0\"]:5.58777462123409;";
+        ColouredTree colouredTree = new ColouredTree(newick, "state", 2, 3);
 
-            System.out.println("Flattened tree colours:");
+        Tree tree = colouredTree.getFlattenedTree();
+        System.out.println(colouredTree.getFinalBranchTime(tree.getRoot()));
 
-            for (int i : nodeStates){
-                System.out.println(i);
-            }
-
-            System.out.println();
-
-        } catch (Exception e) {System.out.println(e.getMessage());}
 
 
     }
