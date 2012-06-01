@@ -54,12 +54,17 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			"Deme population sizes.",
 			Validate.REQUIRED);
 
+	public Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
+			"leafColours",
+			"Colours of leaf nodes.");
+
 	/*
 	 * Shadowing fields:
 	 */
 
 	protected RealParameter rateMatrix;
 	protected RealParameter popSizes;
+	protected IntegerParameter leafColours;
 
 	/*
 	 * Other private fields and classes:
@@ -112,6 +117,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		changeColours = new IntegerParameter("0");
 		changeTimes = new RealParameter("0.0");
 		changeCounts = new IntegerParameter("0");
+		nodeColours = new IntegerParameter("0");
 
 		// Attach state nodes to temporary State, as Parameters must
 		// belong to a State before they can be modified by calls to
@@ -120,7 +126,8 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		state.initByName(
 				"stateNode", changeColours,
 				"stateNode", changeTimes,
-				"stateNode", changeCounts);
+				"stateNode", changeCounts,
+				"stateNode", nodeColours);
 		state.initialise();
 
 		// Ensure inputs retain references to colouring parameters:
@@ -133,14 +140,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		changeColours.setDimension(nBranches*maxBranchColours);
 		changeTimes.setDimension(nBranches*maxBranchColours);
 		changeCounts.setDimension(nBranches);
-
-		// Allocate array for lazily recording final colour of each branch:
-		finalColours = new Integer[nBranches];
-		finalColoursDirty = new Boolean[nBranches];
-		for (int i=0; i<nBranches; i++) {
-			finalColours[i] = 0;
-			finalColoursDirty[i] = true;
-		}
+		nodeColours.setDimension(nBranches+1);
 
 		// Construct tree:
 		tree = new Tree(simulateTree());
@@ -176,6 +176,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			node.setNr(nextNodeNr);
 			node.setID(String.valueOf(nextNodeNr));
 			activeNodes.get(leafColours.getValue(l)).add(node);
+			setNodeColour(node, leafColours.getValue(l));
 
 			nextNodeNr++;
 		}
@@ -344,6 +345,9 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			parent.setRight(son);
 			son.setParent(parent);
 			daughter.setParent(parent);
+
+			// Ensure new parent is set to correct colour:
+			setNodeColour(parent, event.fromColour);
 
 			// Update activeNodes:
 			activeNodes.get(event.fromColour).remove(son);

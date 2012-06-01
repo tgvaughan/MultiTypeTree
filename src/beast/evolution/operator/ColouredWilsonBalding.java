@@ -62,7 +62,7 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		} while (i.isRoot());
 		Node iP = i.getParent();
 
-		int startColour = cTree.getInitialBranchColour(i);
+		int startColour = cTree.getNodeColour(i);
 		double minNewTime = i.getHeight();
 
 		Node j,jP; // Node at bottom of edge.
