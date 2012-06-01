@@ -98,20 +98,20 @@ public class ColouredTree extends CalculationNode {
         this.maxBranchColours = maxBranchColours;
 
         List<Integer> markedForDeletion = new ArrayList<Integer>();
-        int nBranches = treeParser.getNodeCount() - 1 ;//
+        int nNodes = treeParser.getNodeCount();
 
-        Integer[] cols = new Integer[nBranches*maxBranchColours]; Arrays.fill(cols,-1);
-        Double[] times = new Double[nBranches*maxBranchColours];  Arrays.fill(times,-1.);
-        Integer[]  counts =  new Integer[nBranches]; Arrays.fill(counts,0);
+        Integer[] cols = new Integer[nNodes*maxBranchColours]; Arrays.fill(cols,-1);
+        Double[] times = new Double[nNodes*maxBranchColours];  Arrays.fill(times,-1.);
+        Integer[]  counts =  new Integer[nNodes]; Arrays.fill(counts,0);
 
         setupColourParameters(treeParser.getRoot(),cols, times, counts);
 
         // Assign parsed tree to official tree topology field and remove single children from it:
         tree = treeParser;
-        nBranches -= getSingleChildCount(treeParser, markedForDeletion) ;
+        nNodes -= getSingleChildCount(treeParser, markedForDeletion) ;
         removeSingleChildren(markedForDeletion);
 
-        assignColourArrays(cols, times, counts, nBranches);
+        assignColourArrays(cols, times, counts, nNodes);
 
         // Ensure colouring is internally consistent:
         if (!isValid())
@@ -139,11 +139,11 @@ public class ColouredTree extends CalculationNode {
 		nodeColours = nodeColoursInput.get();
 
         // Allocate arrays for recording colour change information:
-        int nBranches = tree.getNodeCount()-1;
-        changeColours.setDimension(nBranches*maxBranchColours);
-        changeTimes.setDimension(nBranches*maxBranchColours);
-        changeCounts.setDimension(nBranches);
-		nodeColours.setDimension(tree.getNodeCount());
+        int nNodes = tree.getNodeCount();
+        changeColours.setDimension(nNodes*maxBranchColours);
+        changeTimes.setDimension(nNodes*maxBranchColours);
+        changeCounts.setDimension(nNodes);
+		nodeColours.setDimension(nNodes);
 
     }
 
@@ -186,7 +186,7 @@ public class ColouredTree extends CalculationNode {
      *
      * @param markedForDeletion list of single node numbers 
      */
-    public void removeSingleChildren(List<Integer> markedForDeletion) throws Exception {
+	public void removeSingleChildren(List<Integer> markedForDeletion) throws Exception {
 
         List<Node> nodes= new ArrayList<Node>();
 
@@ -196,15 +196,29 @@ public class ColouredTree extends CalculationNode {
 
         for (Node node : nodes) {
 
+            if (node.getChildCount()!=1)
+				throw new RuntimeException("Error: node marked for deletion"
+						+ " should have exactly one child node, but has "
+						+ node.getChildCount());
+
             Node parent = node.getParent();
 
-            parent.children = node.getChildren();
+            if (node==parent.getLeft()) {
+                parent.setLeft(node.getLeft());
+                parent.getLeft().setParent(parent);
 
-            for (Node child : parent.children){
-                child.setParent(parent);
+            }
+            else if (node==parent.getRight()){
+                parent.setRight(node.getLeft());
+                parent.getRight().setParent(parent);
+
             }
         }
 
+        tree.nodeCount = tree.getNodeCount() - nodes.size();
+        tree.internalNodeCount = tree.getInternalNodeCount() - nodes.size();
+
+        tree.getRoot().labelInternalNodes(tree.getLeafNodeCount());
         tree.setInputValue("newick", null);
 
     }
@@ -297,21 +311,24 @@ public class ColouredTree extends CalculationNode {
 
     }
 
-    private void assignColourArrays(Integer[] cols, Double[] times, Integer[] counts, int nBranches) throws Exception{
+    private void assignColourArrays(Integer[] cols, Double[] times, Integer[] counts, int nNodes) throws Exception{
 
 
-        Integer[] cols_afterRemoval = new Integer[nBranches*maxBranchColours]; Arrays.fill(cols_afterRemoval,-1);
-        Double[] times_afterRemoval = new Double[nBranches*maxBranchColours];  Arrays.fill(times_afterRemoval,-1.);
-        Integer[] counts_afterRemoval =  new Integer[nBranches]; Arrays.fill(counts_afterRemoval,0);
-        Integer[] nodeCols = new Integer[nBranches+1];
+        Integer[] cols_afterRemoval = new Integer[nNodes*maxBranchColours]; Arrays.fill(cols_afterRemoval,-1);
+        Double[] times_afterRemoval = new Double[nNodes*maxBranchColours];  Arrays.fill(times_afterRemoval,-1.);
+        Integer[] counts_afterRemoval =  new Integer[nNodes]; Arrays.fill(counts_afterRemoval,0);
+        Integer[] nodeCols = new Integer[nNodes];
 
         Node node;
         int oldNodeNumber;
 
-        for (int i =0; i<nBranches; i++){
+        for (int i =0; i<nNodes; i++){
             node = tree.getNode(i);
 
-			nodeCols[i] = Integer.parseInt(node.m_sMetaData.split("=")[1].replaceAll("'","").replaceAll("\"",""));
+			nodeCols[i] = Integer.parseInt(node.m_sMetaData
+					.split("=")[1]
+					.replaceAll("'","")
+					.replaceAll("\"",""));
 
             oldNodeNumber = (Integer) node.getMetaData("oldNodeNumber");
             counts_afterRemoval[i] = counts[oldNodeNumber];
@@ -322,11 +339,6 @@ public class ColouredTree extends CalculationNode {
                 times_afterRemoval[maxBranchColours*i+j] = times[maxBranchColours*oldNodeNumber+j];
             }
         }
-
-		nodeCols[nBranches] = Integer.parseInt(tree.getRoot()
-				.m_sMetaData.split("=")[1]
-				.replaceAll("'","")
-				.replaceAll("\"",""));
 
         changeColours = new IntegerParameter(cols_afterRemoval);
         changeTimes = new RealParameter(times_afterRemoval);
@@ -362,24 +374,6 @@ public class ColouredTree extends CalculationNode {
      */
     public Tree getUncolouredTree() {
         return tree;
-    }
-
-    /**
-     * Check whether there is space for a branch above the specified
-     * node on the coloured tree.
-     *
-     * This is subtly different to calling node.isRoot(), which will return
-     * true for all frontier nodes during the bottom-up construction of
-     * a tree topology.
-     *
-     * @param node
-     * @return True if space for the branch exists.
-     */
-    public boolean hasBranch(Node node) {
-        if (node.getNr()>=changeCounts.getDimension())
-            return false;
-        else
-            return true;
     }
 
 
@@ -588,9 +582,6 @@ public class ColouredTree extends CalculationNode {
      * @return Final colour.
      */
     public int getFinalBranchColour(Node node) {
-        if (!hasBranch(node))
-            throw new IllegalArgumentException("Argument to getFinalBranchColour "
-                    + "is not the bottom of a branch.");
 
 		if (getChangeCount(node)>0)
 			return getChangeColour(node, getChangeCount(node)-1);
@@ -606,10 +597,6 @@ public class ColouredTree extends CalculationNode {
      * @return Time of final colour change.
      */
     public double getFinalBranchTime(Node node) {
-
-        if (node.isRoot())
-            throw new IllegalArgumentException("Argument to"
-                    + "getFinalBranchTime is not the bottom of a branch.");
 
         if (getChangeCount(node)>0)
             return getChangeTime(node, getChangeCount(node)-1);
@@ -642,7 +629,7 @@ public class ColouredTree extends CalculationNode {
         int nodeColour = getNodeColour(node);
         for (Node child : node.getChildren()) {
 
-            // Check that final child branch colour matches consensus:
+            // Check that final child branch colour parent node colour:
 			if (getFinalBranchColour(child) != nodeColour)
 				return false;
 
