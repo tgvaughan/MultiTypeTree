@@ -54,48 +54,59 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		ColouredTree cTree = colouredTreeInput.get();
 		Tree tree = cTree.getUncolouredTree();
 
-		// Choose non-root node at base of random edge.
+		Node i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
 
-		Node i; // Node at bottom of edge.
-		do {
-			i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-		} while (i.isRoot());
+		if (i.isRoot())
+			return Double.NEGATIVE_INFINITY;
+
 		Node iP = i.getParent();
 
-		int startColour = cTree.getNodeColour(i);
-		double minNewTime = i.getHeight();
-
-		Node j,jP; // Node at bottom of edge.
-		double newRange = 0;
+		Node j;
 		do {
 			j = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-			jP = j.getParent();
-		} while (j==i || jP.getHeight()<i.getHeight() ||
-				(!j.isRoot() && ((jP == iP)
-				|| (newRange = cTree.getColouredSegmentLength(j, minNewTime, startColour))<0)));
+		} while (j==i);
+
+		Node jP = j.getParent(); // may be null
+
+		if (iP == jP || iP == j || (jP != null && jP.getHeight()<i.getHeight()))
+			return Double.NEGATIVE_INFINITY;
 
 		if (iP.isRoot()) {
 
-			// TODO: calculate HR
-			Node CiP = getOtherChild(iP, i);
+			return Double.NEGATIVE_INFINITY;
+		}
 
-			double logHR = Double.NEGATIVE_INFINITY;
+		if (j.isRoot()) {
 
-			// TODO: implement topology change
-
-			return logHR;
-
-		} else if (j.isRoot()) {
-
-			// TODO: calculate HR
-			double logHR = Double.NEGATIVE_INFINITY;
-
-			// TODO: implement topology change
-
-			return logHR;
+			return Double.NEGATIVE_INFINITY;
 		}
 
 		// Simple case where root is not involved:
+
+		// Select height of new node:
+		double newTimeMin = Math.max(i.getHeight(), j.getHeight());
+		double newTimeMax = jP.getHeight();
+		double newTime = newTimeMin +
+				Randomizer.nextDouble()*(newTimeMax-newTimeMin);
+
+		Node CiP = getOtherChild(iP, i);
+
+		for (int idx=0; idx<cTree.getChangeCount(iP); idx++) {
+			int colour = cTree.getChangeColour(iP, idx);
+			double time = cTree.getChangeTime(iP, idx);
+			cTree.addChange(CiP, colour, time);
+		}
+
+		cTree.setNodeColour(iP, m_nNrAccepted);
+		int lastColour = cTree.getNodeColour(j);
+		for (int idx=0; idx<cTree.getChangeCount(j); idx++) {
+			int thisColour = cTree.getChangeColour(j,idx);
+			double thisTime = cTree.getChangeTime(j,idx);
+			if (thisTime > newTime) {
+
+			}
+
+		}
 	
 		return Double.NEGATIVE_INFINITY;
 	}
