@@ -139,14 +139,27 @@ public class ColouredTree extends CalculationNode {
 		nodeColours = nodeColoursInput.get();
 
         // Allocate arrays for recording colour change information:
-        int nNodes = tree.getNodeCount();
+        initParameters(tree.getNodeCount());
+
+    }
+
+	/**
+	 * Allocate memory for recording tree colour information.
+	 * 
+	 * @param nNodes Number of nodes tree will contain.
+	 */
+	public void initParameters(int nNodes) {
+
         changeColours.setDimension(nNodes*maxBranchColours);
         changeTimes.setDimension(nNodes*maxBranchColours);
         changeCounts.setDimension(nNodes);
 		nodeColours.setDimension(nNodes);
 
-    }
-
+		for (int n=0; n<nNodes; n++) {
+			changeCounts.setValue(n, 0);
+			nodeColours.setValue(n, 0);
+		}
+	}
 
     /**
      * Get number of single child nodes of a tree.

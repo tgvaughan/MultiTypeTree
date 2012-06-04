@@ -113,7 +113,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		// Obtain leaf colours:
 		leafColours = leafColoursInput.get();
 
-		// Allocate parameters used to store colouring:
+		// Parameters used to store colouring:
 		changeColours = new IntegerParameter("0");
 		changeTimes = new RealParameter("0.0");
 		changeCounts = new IntegerParameter("0");
@@ -136,11 +136,8 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		changeCountsInput.setValue(changeCounts, this);
 
 		// Allocate arrays for recording colour change information:
-		int nBranches = 2*leafColours.getDimension() - 2;
-		changeColours.setDimension(nBranches*maxBranchColours);
-		changeTimes.setDimension(nBranches*maxBranchColours);
-		changeCounts.setDimension(nBranches);
-		nodeColours.setDimension(nBranches+1);
+		int nNodes = 2*leafColours.getDimension() - 1;
+		initParameters(nNodes);
 
 		// Construct tree:
 		tree = new Tree(simulateTree());
