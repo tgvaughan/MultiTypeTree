@@ -399,6 +399,15 @@ public class ColouredTree extends CalculationNode {
         return colourLabel;
     }
 
+	/**
+	 * Retrieve number of distinct colours in model.
+	 * 
+	 * @return Number of colours.
+	 */
+	public int getNColours() {
+		return nColours;
+	}
+
     /**
      * Retrieve the total number of colour changes in tree.
      *

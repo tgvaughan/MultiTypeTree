@@ -20,6 +20,9 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.evolution.migrationmodel.MigrationModel;
+import beast.evolution.substitutionmodel.DefaultEigenSystem;
+import beast.evolution.substitutionmodel.EigenDecomposition;
+import beast.evolution.substitutionmodel.EigenSystem;
 import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
@@ -41,7 +44,7 @@ import beast.util.Randomizer;
 		+ "the operator.")
 public class ColouredWilsonBalding extends ColouredTreeOperator {
 
-	public Input<MigrationModel> migrationModel = new Input<MigrationModel>(
+	public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
 			"migrationModel",
 			"Migration model to use as prior for colouring branches",
 			Validate.REQUIRED);
@@ -51,8 +54,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
 	@Override
 	public double proposal() {
-		ColouredTree cTree = colouredTreeInput.get();
-		Tree tree = cTree.getUncolouredTree();
+		cTree = colouredTreeInput.get();
+		tree = cTree.getUncolouredTree();
 
 		Node i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
 
@@ -89,25 +92,104 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		double newTime = newTimeMin +
 				Randomizer.nextDouble()*(newTimeMax-newTimeMin);
 
-		Node CiP = getOtherChild(iP, i);
+		// Implement tree changes:
+		disconnectBranch(i);
+		connectBranch(i, j, newTime);
+		Node iP_prime = i.getParent();
 
-		for (int idx=0; idx<cTree.getChangeCount(iP); idx++) {
-			int colour = cTree.getChangeColour(iP, idx);
-			double time = cTree.getChangeTime(iP, idx);
-			cTree.addChange(CiP, colour, time);
-		}
+		// Recolour new branch:
+		recolour(i);
 
-		cTree.setNodeColour(iP, m_nNrAccepted);
-		int lastColour = cTree.getNodeColour(j);
-		for (int idx=0; idx<cTree.getChangeCount(j); idx++) {
-			int thisColour = cTree.getChangeColour(j,idx);
-			double thisTime = cTree.getChangeTime(j,idx);
-			if (thisTime > newTime) {
-
-			}
-
-		}
+		// Calculate Hastings ratio:
 	
 		return Double.NEGATIVE_INFINITY;
+	}
+
+	/**
+	 * Recolour branch between node and its parent conditional on the
+	 * starting initial and final colours of the branch.
+	 * 
+	 * @param node
+	 */
+	private void recolour(Node node) {
+
+		// Obtain initial and final conditions:
+
+		int initialColour = cTree.getNodeColour(node);
+		double initialTime = node.getHeight();
+
+		Node parent = node.getParent();
+		int finalColour = cTree.getNodeColour(parent);
+		double finalTime = parent.getHeight();
+
+		// Uniformize birth-death process and create sequence of virtual events:
+
+		double[] times = getTimes(initialTime, finalTime,
+				initialColour, finalColour);
+
+		// Use forward-backward algorithm to determine colour changes:
+		int[] colours = getColours(initialTime, finalTime,
+				initialColour, finalColour, times);
+
+		// Record new colour change events:
+		cTree.setChangeCount(node, times.length);
+		cTree.setChangeColours(node, colours);
+		cTree.setChangeTimes(node, times);
+
+	}
+
+	/**
+	 * Apply "Uniformization" algorithm to determine colour change times.
+	 * See Fearnhead and Sherlock, J. R. Statist. Soc. B (2006).
+	 * 
+	 * @param initialTime
+	 * @param finalTime
+	 * @param initialColour
+	 * @param finalColour
+	 * @return Array of colour change times.
+	 */
+	private double[] getTimes(double initialTime, double finalTime,
+			int initialColour, int finalColour) {
+
+		int nColours = cTree.getNColours();
+
+		// Obtain number of events:
+		double T = finalTime - initialTime;
+
+		double expTQ = 0.0;
+		EigenDecomposition eig = migrationModelInput.get().getEig();
+		for (int s=0; s<eig.getEigenValues().length; s++) {
+			expTQ += eig.getEigenVectors()[s*nColours+initialColour]
+					*eig.getEigenVectors()[s*nColours+finalColour]
+					*Math.exp(T*eig.getEigenValues()[s]);
+		}
+
+		double g = expTQ*Randomizer.nextDouble();
+
+		int n=0;
+		double cumulant = 0;
+		do {
+
+			n++;
+		} while (cumulant<g);
+
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	/**
+	 * Apply forward-backward algorithm to determine colour changes conditional
+	 * on initial and final colours.
+	 * See Fearnhead and Sherlock, J. R. Statist. Soc. B (2006).
+	 * 
+	 * @param initialTime
+	 * @param finalTime
+	 * @param initialColour
+	 * @param finalColour
+	 * @param times
+	 * @return Array containing colours following each change.
+	 */
+	private int[] getColours(double initialTime, double finalTime,
+			int initialColour, int finalColour, double[] times) {
+		throw new UnsupportedOperationException("Not yet implemented");
 	}
 }

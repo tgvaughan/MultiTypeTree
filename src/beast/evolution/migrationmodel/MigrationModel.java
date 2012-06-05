@@ -21,6 +21,9 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Plugin;
 import beast.core.parameter.RealParameter;
+import beast.evolution.substitutionmodel.DefaultEigenSystem;
+import beast.evolution.substitutionmodel.EigenDecomposition;
+import beast.evolution.substitutionmodel.EigenSystem;
 
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
@@ -36,13 +39,44 @@ public class MigrationModel extends Plugin {
 	public Input<RealParameter> rateMatrixInput = new Input<RealParameter>(
 			"rateMatrix", "Migration rate matrix", Validate.REQUIRED);
 
-	RealParameter rateMatrix;
+	protected RealParameter rateMatrix;
+	protected EigenDecomposition eigenDecomp;
 
 	public MigrationModel() { }
 
 	@Override
 	public void initAndValidate() {
 		rateMatrix = rateMatrixInput.get();
+
+		int nColours = rateMatrix.getMinorDimension1();
+		double[][] Q = new double[nColours][nColours];
+		for (int i=0; i<nColours; i++) {
+			for (int j=0; j<nColours; j++) {
+				Q[i][j] = rateMatrix.getMatrixValue(i, j);
+			}
+		}
+
+		EigenSystem eig = new DefaultEigenSystem(nColours);
+		eigenDecomp = eig.decomposeMatrix(Q);
+
 	}
-	
+
+	/**
+	 * Obtain rate matrix for migration model.
+	 * 
+	 * @return Rate matrix (RealParameter).
+	 */
+	public RealParameter getRateMatrix() {
+		return rateMatrix;
+	}
+
+	/**
+	 * Obtain eigenvector decomposition of rate matrix.
+	 * 
+	 * @return EigenSystem object.
+	 */
+	public EigenDecomposition getEig() {
+		return eigenDecomp;
+	}
+
 }

@@ -28,12 +28,15 @@ import beast.evolution.tree.Tree;
  *
  * @author Tim Vaughan
  */
-@Description("This operator changes a coloured beast tree.")
+@Description("This operator generates proposals for a coloured beast tree.")
 abstract public class ColouredTreeOperator extends Operator {
 
 	public Input<ColouredTree> colouredTreeInput = new Input<ColouredTree>(
 			"colouredTree", "Coloured tree on which to operate.",
 			Validate.REQUIRED);
+
+	protected Tree tree;
+	protected ColouredTree cTree;
 
 	/**
 	 * Return sister of given child.
@@ -64,5 +67,83 @@ abstract public class ColouredTreeOperator extends Operator {
         replacement.setParent(node);
         replacement.makeDirty(Tree.IS_FILTHY);
     }
+
+	/**
+	 * Disconnect edge <node,node.getParent()> by joining node's sister
+	 * directly to node's grandmother and adding all colour changes previously
+	 * on <node.getParent(),node.getParent().getParent()> to the new branch.
+	 * 
+	 * @param node 
+	 */
+	public void disconnectBranch(Node node) {
+
+		// Check argument validity:
+		Node parent = node.getParent();
+		if (node.isRoot() || parent.isRoot() || parent.getParent().isRoot()) {
+			throw new IllegalArgumentException("Illegal argument to "
+					+ "disconnectBranch().");
+		}
+
+		Node sister = getOtherChild(parent, node);
+
+		// Add colour changes originally attached to parent to those attached
+		// to node's sister:
+		for (int idx = 0; idx<cTree.getChangeCount(parent); idx++) {
+			int colour = cTree.getChangeColour(parent, idx);
+			double time = cTree.getChangeTime(parent, idx);
+			cTree.addChange(sister, colour, time);
+		}
+
+		// Implement topology change.
+		replace(parent.getParent(), parent, sister);
+	}
+
+	/**
+	 * Creates a new branch between node and a new node at time destTime
+	 * between destBranchBase and its parent.  Colour changes are divided
+	 * between the two new branches created by the split.
+	 * @param node
+	 * @param destBranchBase
+	 * @param destTime 
+	 */
+	public void connectBranch(Node node, Node destBranchBase, double destTime) {
+
+		// Check argument validity:
+		if (node.isRoot() || destBranchBase.isRoot()) {
+			throw new IllegalArgumentException("Illegal argument to "
+					+ "connectBranch().");
+		}
+
+		// Obtain existing parent of node and set new time:
+		Node parent = node.getParent();
+		parent.setHeight(destTime);
+
+		// Determine where the split comes in the list of colour changes
+		// attached to destBranchBase:
+		int split;
+		for (split=0; split<cTree.getChangeCount(destBranchBase); split++) {
+			if (cTree.getChangeTime(destBranchBase,split)>destTime)
+				break;
+		}
+
+		// Divide colour changes between new branches:
+		cTree.setChangeCount(parent, 0);
+		for (int idx=split; idx<cTree.getChangeCount(destBranchBase); idx++) {
+			cTree.addChange(parent, idx-split, destTime);
+		}
+		cTree.setChangeCount(destBranchBase, split);
+
+		// Set colour at split:
+		cTree.setNodeColour(parent, cTree.getFinalBranchColour(destBranchBase));
+
+		// Implement topology changes:
+		replace(destBranchBase.getParent(), destBranchBase, parent);
+		destBranchBase.setParent(parent);
+
+		if (parent.getLeft() == node)
+			parent.setRight(destBranchBase);
+		else
+			parent.setLeft(destBranchBase);
+	}
 	
 }
