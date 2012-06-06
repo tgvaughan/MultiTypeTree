@@ -95,6 +95,24 @@ public class MigrationModel extends Plugin {
 	}
 
 	/**
+	 * Obtain rate matrix as a plain array matrix.
+	 * 
+	 * @return Rate matrix(double[][])
+	 */
+	public double[][] getQ() {
+		return Q;
+	}
+
+	/**
+	 * Obtain uniformized rate matrix as a plain array matrix.
+	 * 
+	 * @return Rate matrix(double[][])
+	 */
+	public double[][] getUnifQ() {
+		return unifQ;
+	}
+
+	/**
 	 * Obtain eigenvector decomposition of rate matrix.
 	 * 
 	 * @return EigenSystem object.

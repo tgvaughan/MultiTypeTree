@@ -161,14 +161,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
 		double T = finalTime - initialTime;
 
-		double expTQ = 0.0;
 		EigenDecomposition eig = model.getQdecomp();
-		for (int s=0; s<eig.getEigenValues().length; s++) {
-			expTQ += eig.getEigenVectors()[s*nColours+initialColour]
-					*eig.getEigenVectors()[s*nColours+finalColour]
-					*Math.exp(T*eig.getEigenValues()[s]);
-		}
-
+		double expTQ = getMatrixExp(eig, initialColour, finalColour, T);
 		double g = expTQ*Randomizer.nextDouble();
 
 		double mu = model.getVirtTransRate();
@@ -182,13 +176,7 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 			double likelihood;
 			if (n>0) {
 				poissonFactor *= mu*T/(double)n;
-
-				likelihood = 0.0;
-				for (int s=0; s<eigUnif.getEigenValues().length; s++) {
-					likelihood += eigUnif.getEigenVectors()[s*nColours+initialColour]
-							*eigUnif.getEigenVectors()[s*nColours+finalColour]
-							*Math.pow(eigUnif.getEigenValues()[s],n);
-				}
+				likelihood = getMatrixPower(eigUnif, initialColour, finalColour, n);
 			} else {
 				likelihood = 1.0;
 			}
@@ -225,6 +213,86 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 	 */
 	private int[] getColours(double initialTime, double finalTime,
 			int initialColour, int finalColour, double[] times) {
-		throw new UnsupportedOperationException("Not yet implemented");
+
+		MigrationModel model = migrationModelInput.get();
+
+		int n = times.length;
+		int [] colours = new int[n];
+		int nColours = cTree.getNColours();
+
+		EigenDecomposition eigUnif = model.getUnifQdecomp();
+
+		int s = initialColour;
+		for (int i=0; i<n; i++) {
+
+			double denom = getMatrixPower(eigUnif, s, finalColour, n-i+2);
+			double g = denom*Randomizer.nextDouble();
+
+			int sPrime;
+			double acc = 0.0;
+			for (sPrime = 0; sPrime<nColours; sPrime++) {
+				acc += model.getQ()[s][sPrime]*getMatrixPower(eigUnif,
+						s, finalColour, n-i+1);
+
+				if (acc>g)
+					break;
+			}
+
+			s = sPrime;
+			colours[i] = s;
+		}
+
+		return colours;
 	}
+
+	/**
+	 * Use eigenvector decomposition of a matrix to evaluate elements
+	 * of its powers.
+	 * 
+	 * @param decomp
+	 * @param i Row index
+	 * @param j Column index
+	 * @param exponent Exponent to raise matrix to.
+	 * @return Element (i,j) of A^n.
+	 */
+	private double getMatrixPower(EigenDecomposition decomp,
+			int i, int j, double exponent) {
+
+		int nColours = cTree.getNColours();
+
+		double res = 0.0;
+		for (int l=0; l<decomp.getEigenValues().length; l++) {
+			res += decomp.getEigenVectors()[l*nColours+i]
+					*decomp.getEigenVectors()[l*nColours+j]
+					*Math.pow(decomp.getEigenValues()[l], exponent);
+		}
+
+		return res;
+	}
+
+	/**
+	 * Use eigenvector decomposition of a matrix to evaluate elements
+	 * an exponentiated matrix.
+	 * 
+	 * @param decomp Eigenvector decomposition of matrix A.
+	 * @param i Row index
+	 * @param j Column index
+	 * @param c Constant factor to appear before matrix.
+	 * @return Element (i,j) of exp(c*A).
+	 */
+	private double getMatrixExp(EigenDecomposition decomp,
+			int i, int j, double c) {
+
+		int nColours = cTree.getNColours();
+
+		double res = 0.0;
+		for (int l=0; l<decomp.getEigenValues().length; l++) {
+			res += decomp.getEigenVectors()[l*nColours+i]
+					*decomp.getEigenVectors()[l*nColours+j]
+					*Math.exp(c*decomp.getEigenValues()[l]);
+		}
+
+		return res;
+	}
+
 }
