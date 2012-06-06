@@ -40,7 +40,9 @@ public class MigrationModel extends Plugin {
 			"rateMatrix", "Migration rate matrix", Validate.REQUIRED);
 
 	protected RealParameter rateMatrix;
-	protected EigenDecomposition eigenDecomp;
+	protected double[][] Q, unifQ;
+	protected double mu;
+	protected EigenDecomposition Qdecomp, unifQdecomp;
 
 	public MigrationModel() { }
 
@@ -49,15 +51,37 @@ public class MigrationModel extends Plugin {
 		rateMatrix = rateMatrixInput.get();
 
 		int nColours = rateMatrix.getMinorDimension1();
-		double[][] Q = new double[nColours][nColours];
+		Q = new double[nColours][nColours];
+
+		mu = 0;
 		for (int i=0; i<nColours; i++) {
+			double qi = 0.0;
 			for (int j=0; j<nColours; j++) {
-				Q[i][j] = rateMatrix.getMatrixValue(i, j);
+				if (i != j) {
+					double Qij = rateMatrix.getMatrixValue(i,j);
+					Q[i][j] = Qij;
+					qi += Qij;
+				}
 			}
+			Q[i][i] = -qi;
+
+			if (qi>mu)
+				mu = qi;
 		}
 
 		EigenSystem eig = new DefaultEigenSystem(nColours);
-		eigenDecomp = eig.decomposeMatrix(Q);
+		Qdecomp = eig.decomposeMatrix(Q);
+
+		unifQ = new double[nColours][nColours];
+		for (int i=0; i<nColours; i++) {
+			for (int j=0; j<nColours; j++) {
+				unifQ[i][j] = Q[i][j]/mu;
+				if (i==j)
+					unifQ[i][i] += 1.0;
+			}
+		}
+
+		unifQdecomp = eig.decomposeMatrix(unifQ);
 
 	}
 
@@ -75,8 +99,26 @@ public class MigrationModel extends Plugin {
 	 * 
 	 * @return EigenSystem object.
 	 */
-	public EigenDecomposition getEig() {
-		return eigenDecomp;
+	public EigenDecomposition getQdecomp() {
+		return Qdecomp;
+	}
+
+	/**
+	 * Obtain eigenvector decomposition of "uniformized" rate matrix.
+	 * 
+	 * @return EigenSystem object.
+	 */
+	public EigenDecomposition getUnifQdecomp() {
+		return unifQdecomp;
+	}
+
+	/**
+	 * Obtain virtual transition rate for uniformized process.
+	 * 
+	 * @return Rate of occurrence virtual events.
+	 */
+	public double getVirtTransRate() {
+		return mu;
 	}
 
 }

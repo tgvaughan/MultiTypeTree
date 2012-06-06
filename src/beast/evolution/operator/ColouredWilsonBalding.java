@@ -27,6 +27,7 @@ import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import beast.util.Randomizer;
+import java.util.Arrays;
 
 /**
  * Wilson-Balding branch swapping operator applied to coloured trees,
@@ -151,13 +152,17 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 	private double[] getTimes(double initialTime, double finalTime,
 			int initialColour, int finalColour) {
 
+		MigrationModel model = migrationModelInput.get();
+
 		int nColours = cTree.getNColours();
 
+
 		// Obtain number of events:
+
 		double T = finalTime - initialTime;
 
 		double expTQ = 0.0;
-		EigenDecomposition eig = migrationModelInput.get().getEig();
+		EigenDecomposition eig = model.getQdecomp();
 		for (int s=0; s<eig.getEigenValues().length; s++) {
 			expTQ += eig.getEigenVectors()[s*nColours+initialColour]
 					*eig.getEigenVectors()[s*nColours+finalColour]
@@ -166,14 +171,44 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
 		double g = expTQ*Randomizer.nextDouble();
 
+		double mu = model.getVirtTransRate();
+		double poissonFactor = Math.exp(-mu*T);
+
+		EigenDecomposition eigUnif = model.getUnifQdecomp();
+
 		int n=0;
 		double cumulant = 0;
 		do {
+			double likelihood;
+			if (n>0) {
+				poissonFactor *= mu*T/(double)n;
 
+				likelihood = 0.0;
+				for (int s=0; s<eigUnif.getEigenValues().length; s++) {
+					likelihood += eigUnif.getEigenVectors()[s*nColours+initialColour]
+							*eigUnif.getEigenVectors()[s*nColours+finalColour]
+							*Math.pow(eigUnif.getEigenValues()[s],n);
+				}
+			} else {
+				likelihood = 1.0;
+			}
+
+			cumulant += likelihood*poissonFactor;
 			n++;
-		} while (cumulant<g);
 
-		throw new UnsupportedOperationException("Not yet implemented");
+		} while (cumulant<g);
+		n--;
+
+		double[] eventTimes = new double[n];
+
+
+		// Position events randomly along branch:
+
+		for (int i=0; i<n; i++)
+			eventTimes[i] = Randomizer.nextDouble()*T + initialTime;
+		Arrays.sort(eventTimes);
+
+		return eventTimes;
 	}
 
 	/**
