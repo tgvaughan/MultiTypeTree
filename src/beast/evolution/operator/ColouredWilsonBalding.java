@@ -27,7 +27,9 @@ import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import beast.util.Randomizer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Wilson-Balding branch swapping operator applied to coloured trees,
@@ -131,6 +133,32 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		// Use forward-backward algorithm to determine colour changes:
 		int[] colours = getColours(initialTime, finalTime,
 				initialColour, finalColour, times);
+
+
+		// Remove events which don't actually change colours:
+		// (Would love to put this in a private method, but Java's mysterious
+		// pass-by-POINTER semantics have me stumped.)
+
+		List<Double> newTimesList = new ArrayList<Double>(); 
+		List<Integer> newColoursList = new ArrayList<Integer>();
+
+		int lastColour = initialColour;
+		for (int i=0; i<times.length; i++) {
+			if (colours[i] != lastColour) {
+				newTimesList.add(times[i]);
+				newColoursList.add(colours[i]);
+				lastColour = colours[i];
+			}
+		}
+
+		times = new double[newTimesList.size()];
+		colours = new int[newColoursList.size()];
+
+		for (int i=0; i<newTimesList.size(); i++) {
+			times[i] = newTimesList.get(i);
+			colours[i] = newColoursList.get(i);
+		}
+
 
 		// Record new colour change events:
 		cTree.setChangeCount(node, times.length);
