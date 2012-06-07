@@ -137,7 +137,7 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
 		// Remove events which don't actually change colours:
 		// (Would love to put this in a private method, but Java's mysterious
-		// pass-by-POINTER semantics have me stumped.)
+		// pass-by-VALUE semantics have me stumped.)
 
 		List<Double> newTimesList = new ArrayList<Double>(); 
 		List<Integer> newColoursList = new ArrayList<Integer>();
@@ -164,6 +164,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		cTree.setChangeCount(node, times.length);
 		cTree.setChangeColours(node, colours);
 		cTree.setChangeTimes(node, times);
+
+		// TODO: Calculate and return Hastings ratio
 
 	}
 
@@ -321,6 +323,17 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		}
 
 		return res;
+	}
+
+	/**
+	 * Main method for debugging.
+	 * 
+	 * @param args 
+	 */
+	public static void main (String[] args) {
+
+		// TODO: Test branch recolouring algorithm.
+
 	}
 
 }
