@@ -905,10 +905,8 @@ public class ColouredTree extends CalculationNode {
 
         return tChoice;
     }
+ 
 	
-
-
-
 	/**
 	 * Main for debugging.
 	 * 

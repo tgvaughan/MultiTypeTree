@@ -89,6 +89,9 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
 		// Simple case where root is not involved:
 
+		// Record probability of old branch colouring (needed for HR):
+		double oldColourProb = getPathProb(i);
+
 		// Select height of new node:
 		double newTimeMin = Math.max(i.getHeight(), j.getHeight());
 		double newTimeMax = jP.getHeight();
@@ -101,11 +104,20 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		Node iP_prime = i.getParent();
 
 		// Recolour new branch:
-		recolour(i);
+		recolourBranch(i);
+
+		// Calculate probability of new branch colouring:
+		double newColourProb = getPathProb(i);
 
 		// Calculate Hastings ratio:
-	
-		return Double.NEGATIVE_INFINITY;
+		Node CiP = getOtherChild(iP, i);
+		Node PiP = iP.getParent();
+
+		double HR = (jP.getHeight()-Math.max(i.getHeight(),j.getHeight()))
+				/(PiP.getHeight()-Math.max(i.getHeight(),CiP.getHeight()))
+				*oldColourProb/newColourProb;
+
+		return HR;
 	}
 
 	/**
@@ -114,7 +126,7 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 	 * 
 	 * @param node
 	 */
-	private void recolour(Node node) {
+	private void recolourBranch(Node node) {
 
 		// Obtain initial and final conditions:
 
@@ -159,13 +171,10 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 			colours[i] = newColoursList.get(i);
 		}
 
-
 		// Record new colour change events:
 		cTree.setChangeCount(node, times.length);
 		cTree.setChangeColours(node, colours);
 		cTree.setChangeTimes(node, times);
-
-		// TODO: Calculate and return Hastings ratio
 
 	}
 
@@ -323,6 +332,56 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		}
 
 		return res;
+	}
+
+	/**
+	 * Calculate probability of the colouration (migratory path) along the
+	 * branch starting at node, given the initial and final colours of the
+	 * branch.
+	 * 
+	 * @param node
+	 * @return 
+	 */
+	private double getPathProb(Node node) {
+		double[][] Q = migrationModelInput.get().getQ();
+
+		double initialTime = node.getHeight();
+		double finalTime = node.getParent().getHeight();
+		double T = finalTime - initialTime;
+
+		// Use the inverse maximum overall transition rate to fix the interval
+		// size:
+		int nIntervals = 10*(int)(T/(migrationModelInput.get().getVirtTransRate()));
+		double deltaT = T/(double)nIntervals;
+
+		int thisChange = -1;
+		int thisColour = cTree.getNodeColour(node);
+		int lastColour = thisColour;
+
+		double prob = 1.0;
+		for (int i=0; i<nIntervals; i++) {
+
+			double thisTime = initialTime + deltaT*i;
+
+			// If thisTime > nextChangeTime, update colour.
+			while (thisChange+1<cTree.getChangeCount(node)
+					&& thisTime>cTree.getChangeTime(node,thisChange+1)) {
+				thisChange++;
+			}
+
+			if (thisChange>=0) {
+				lastColour = thisColour;
+				thisColour = cTree.getChangeColour(node, thisChange);
+			}
+			
+			if (thisColour == lastColour)
+				prob *= 1+deltaT*Q[thisColour][thisColour];
+			else
+				prob *= deltaT*Q[thisColour][lastColour];
+
+		}
+
+		return prob;
 	}
 
 	/**
