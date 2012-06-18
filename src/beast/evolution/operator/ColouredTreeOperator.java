@@ -79,7 +79,7 @@ abstract public class ColouredTreeOperator extends Operator {
 
 		// Check argument validity:
 		Node parent = node.getParent();
-		if (node.isRoot() || parent.isRoot() || parent.getParent().isRoot()) {
+		if (node.isRoot() || parent.isRoot()) {
 			throw new IllegalArgumentException("Illegal argument to "
 					+ "disconnectBranch().");
 		}
@@ -96,6 +96,27 @@ abstract public class ColouredTreeOperator extends Operator {
 
 		// Implement topology change.
 		replace(parent.getParent(), parent, sister);
+	}
+
+	/**
+	 * Disconnect node from root, discarding all colouring
+	 * on <node,root> and <node's sister,root>.
+	 * 
+	 * @param node 
+	 */
+	public void disconnectBranchFromRoot(Node node) {
+
+		// Check argument validity:
+		if (node.isRoot() || !node.getParent().isRoot())
+			throw new IllegalArgumentException("Illegal argument to"
+					+ " disconnectBranchFromRoot().");
+
+		// Implement topology change:
+		Node parent = node.getParent();
+		Node sister = getOtherChild(parent, node);
+		sister.setParent(null);
+		parent.getChildren().remove(sister);
+
 	}
 
 	/**
@@ -144,6 +165,30 @@ abstract public class ColouredTreeOperator extends Operator {
 			parent.setRight(destBranchBase);
 		else
 			parent.setLeft(destBranchBase);
+	}
+
+	/**
+	 * Create a new branch between node and a new root node at destTime,
+	 * making oldRoot the sister of node.
+	 * 
+	 * @param node
+	 * @param oldRoot
+	 * @param destTime 
+	 */
+	public void connectBranchToRoot(Node node, Node oldRoot, double destTime) {
+
+		// Check argument validity:
+		if (node.isRoot() || !oldRoot.isRoot())
+			throw new IllegalArgumentException("Illegal argument "
+					+ "to connectBranchToRoot().");
+
+		// Obtain existing parent of node and set new time:
+		Node parent = node.getParent();
+		parent.setHeight(destTime);
+
+		// Implement topology changes:
+		parent.addChild(oldRoot);
+
 	}
 	
 }
