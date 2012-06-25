@@ -89,7 +89,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
      * @param maxBranchColours
      * @throws Exception
      */
-    public ColouredTree(Tree treeInput, TreeParser treeParser, String colourLabel, int nColours, int maxBranchColours) throws Exception {
+    public ColouredTree(Tree tree, TreeParser treeParser, String colourLabel, int nColours, int maxBranchColours) throws Exception {
 
 //        TreeParser treeParser = new TreeParser("", false);
 //        treeParser.initByName("adjustTipHeights",false, "singlechild", true, "newick", newick);
@@ -119,8 +119,8 @@ public class ColouredTree extends CalculationNode implements Loggable{
         binaryTree.setInputValue("singlechild", false);
 
         // Assign tree to input plugin:
-        tree = treeInput.copy();
-        tree.assignFromWithoutID(binaryTree);
+        this.tree = tree.copy();
+        this.tree.assignFromWithoutID(binaryTree);
 
         // Ensure colouring is internally consistent:
         if (!isValid())

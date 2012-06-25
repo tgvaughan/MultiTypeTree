@@ -40,36 +40,6 @@ abstract public class ColouredTreeOperator extends TreeOperator {
     protected ColouredTree cTree;
 
     /**
-     * Return sister of given child.
-     *
-     * @param parent
-     * @param child
-     * @return Sister node of child.
-     */
-    protected Node getOtherChild(Node parent, Node child) {
-        if (parent.getLeft().getNr()==child.getNr())
-            return parent.getRight();
-        else
-            return parent.getLeft();
-    }
-
-    /**
-     * Replace child with another node
-     *
-     * @param node
-     * @param child
-     * @param replacement
-     */
-    public void replace(Node node, Node child, Node replacement) {
-        node.getChildren().remove(child);
-        node.getChildren().add(replacement);
-
-        node.makeDirty(Tree.IS_FILTHY);
-        replacement.setParent(node);
-        replacement.makeDirty(Tree.IS_FILTHY);
-    }
-
-    /**
      * Disconnect edge <node,node.getParent()> by joining node's sister
      * directly to node's grandmother and adding all colour changes previously
      * on <node.getParent(),node.getParent().getParent()> to the new branch.

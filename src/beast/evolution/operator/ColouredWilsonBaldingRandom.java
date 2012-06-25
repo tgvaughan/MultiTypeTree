@@ -51,7 +51,6 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
     @Override
     public double proposal() {
         cTree = colouredTreeInput.get();
-//		tree = cTree.getUncolouredTree();
         Tree tree = m_tree.get(this);
 
         Node i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
@@ -69,24 +68,24 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
         do {
             j = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
             jP = j.getParent();
-//        } while (j==i);
-        } while ((jP != null && jP.getHeight() <= i.getHeight()) || (i.getNr() == j.getNr()));
+        } while (j==i);
+//        } while ((jP != null && jP.getHeight() <= i.getHeight()) || (i.getNr() == j.getNr()));
 
         double t_j = j.getHeight();
 
-        if (j.isRoot() || iP.isRoot())  return Double.NEGATIVE_INFINITY;
-
-        if (iP == jP || iP == j || iP == i || (jP != null && jP.getHeight()<i.getHeight()))
+        if (iP == jP || iP == j || iP == i || (jP != null && jP.getHeight()<=i.getHeight()))
             return Double.NEGATIVE_INFINITY;
 
 
         // Select number of colour changes from Poissonian:
         int nChanges = poissonian(muInput.get().getValue());
 
-        if (nChanges > cTree.maxBranchColoursInput.get()) return Double.NEGATIVE_INFINITY;
+		// @DENISE: I think that this is not a good idea, as it causes quiet
+		// failures in the case that maxBranchColours is set too low for the
+		// chosen migration rates.
+        // if (nChanges > cTree.maxBranchColoursInput.get()) return Double.NEGATIVE_INFINITY;
 
         int nCount = tree.getRoot().getNodeCount();
-//        System.out.println(tree.getRoot().toNewick(null));
 
    
         if (j.isRoot()) {
@@ -101,11 +100,16 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             double probOldConfig = getPathProb(i)/(t_PiP-Math.max(t_i,t_CiP));
 
             // Select height of new root:
-            double span=2.0*(t_j-Math.max(j.getLeft().getHeight(),
-                    j.getRight().getHeight()));
-//            double newTime = span*Randomizer.nextDouble();
-            double newTime = t_j + Randomizer.nextExponential(muInput.get().getValue());
-            // @TIM: I changed the time according to Drummond2002, because it produced negative times. But I haven't adapted the hastings ratio yet (TODO),
+			/* @DENISE: Changed back to the old method.  I'd forgotten to
+			 * add t_j when generating newTime...
+			 */
+            double span=2.0*(t_j-
+					Math.max(j.getLeft().getHeight(), j.getRight().getHeight()));
+            double newTime = t_j + span*Randomizer.nextDouble();
+
+            //double newTime = t_j + Randomizer.nextExponential(muInput.get().getValue());
+            // @TIM: I changed the time according to Drummond2002, because it produced negative times.
+			// But I haven't adapted the hastings ratio yet,
             // just using non-root moves for now. 
 
             // Implement tree changes:
