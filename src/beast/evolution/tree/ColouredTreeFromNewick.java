@@ -50,7 +50,7 @@ public class ColouredTreeFromNewick extends ColouredTree implements StateNodeIni
         changeCountsInput.get().assignFromWithoutID(ctree.changeCounts);
         nodeColoursInput.get().assignFromWithoutID(ctree.nodeColours);
         treeInput.get().assignFromWithoutID(ctree.tree);     
-        System.out.println();
+//        System.out.println();
     }
 
     public List<StateNode> getInitialisedStateNodes() {

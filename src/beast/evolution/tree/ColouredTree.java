@@ -1002,4 +1002,12 @@ public class ColouredTree extends CalculationNode implements Loggable{
     public void close(PrintStream printStream) {
         printStream.print("End;");
     }
+
+
+    public Boolean somethingIsDirty(){
+
+        return changeColours.somethingIsDirty() || changeTimes.somethingIsDirty() || changeCounts.somethingIsDirty() ||
+                nodeColours.somethingIsDirty();
+        
+    }
 }
