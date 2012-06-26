@@ -59,7 +59,7 @@
 		<operator spec='beast.evolution.operator.ColouredWilsonBaldingRandom' id="CWBR"
 			weight="1" tree="@tree" colouredTree='@colouredTree' mu="@mu"/>
 
-		<logger logEvery="100" fileName="BDMM_test2.$(seed).log">
+		<logger logEvery="100" fileName="colouredWBtest.log">
 			<model idref='prior'/>
 			<log idref="prior"/>
 			<log idref="birthRate"/>
@@ -71,11 +71,11 @@
 			</log>
 		</logger>
 
-		<logger logEvery="100" fileName="BDMM_test_dis.trees">
+		<logger logEvery="100" fileName="colouredWBtest.trees">
 			<log idref="tree"/>
 		</logger>  
 
-		<logger logEvery="100" fileName="BDMM_coloured2.$(seed).trees" mode="tree">
+		<logger logEvery="100" fileName="colouredWBtest_col.trees" mode="tree">
 			<log idref="colouredTree"/>
 		</logger>
 
