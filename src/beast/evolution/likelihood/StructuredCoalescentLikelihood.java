@@ -22,6 +22,7 @@ import beast.core.parameter.IntegerParameter;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 	}
 
 	private List<SCEvent> eventList;
-	private List<List<Integer>> lineageCountList;
+	private List<Integer[]> lineageCountList;
 
 	@Override
 	public void initAndValidate() {
@@ -64,6 +65,9 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 		leafColours = m_leafColours.get();
 		ctree = m_ctree.get();
 		tree = ctree.getUncolouredTree();
+
+		eventList = new ArrayList<SCEvent>();
+		lineageCountList = new ArrayList<Integer[]>();
 	}
 
 	@Override
@@ -84,6 +88,9 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 	 */
 	public void updateEventSequence() {
 
+		eventList.clear();
+		lineageCountList.clear();
+
 		List<Node> nodeList = new ArrayList<Node>();
 		nodeList.add(tree.getRoot());
 
@@ -93,6 +100,16 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 		event.time = tree.getRoot().getHeight();
 		event.colour = ctree.getNodeColour(tree.getRoot());
 		eventList.add(event);
+
+		Integer[] lineageCount = new Integer[ctree.getNColours()];
+		for (int c=0; c<ctree.getNColours(); c++) {
+			if (c != event.colour)
+				lineageCount[c] = 0;
+			else
+				lineageCount[c] = 1;
+		}
+		lineageCountList.add(Arrays.copyOf(lineageCount, lineageCount.length));
+
 
 		while(nodeList.size()>0) {
 
@@ -143,18 +160,35 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				}
 			}
 
-			// Add event to list:
-			eventList.add(nextEvent);
+			// TODO: Update changeIdx
+			// (This is actually where it's initialised for every new node in
+			// the nodeList, besides the root node.)
 
 			// Update state appropriately:
 			switch(nextEvent.type) {
 				case COALESCE:
+					lineageCount[nextEvent.colour]++;
+					nodeList.remove(eventNode);
+					nodeList.add(eventNode.getLeft());
+					nodeList.add(eventNode.getRight());
 					break;
+
 				case SAMPLE:
+					lineageCount[nextEvent.colour]--;
+					nodeList.remove(eventNode);
 					break;
+
 				case MIGRATE:
+					lineageCount[nextEvent.colour]--;
+					lineageCount[nextEvent.destColour]++;
 					break;
 			}
+
+
+			// Add event to list:
+			eventList.add(nextEvent);
+			lineageCountList.add(Arrays.copyOf(lineageCount, lineageCount.length));
+
 		}
 
 	}
