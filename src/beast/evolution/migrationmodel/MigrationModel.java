@@ -44,7 +44,7 @@ public class MigrationModel extends Plugin {
 			"Deme population sizes.",
 			Validate.REQUIRED);
 
-	protected RealParameter rateMatrix;
+	protected RealParameter rateMatrix, popSizes;
 	protected double[][] Q, unifQ;
 	protected double mu;
 	protected EigenDecomposition Qdecomp, unifQdecomp;
@@ -54,6 +54,7 @@ public class MigrationModel extends Plugin {
 	@Override
 	public void initAndValidate() {
 		rateMatrix = rateMatrixInput.get();
+		popSizes = popSizesInput.get();
 
 		int nColours = rateMatrix.getMinorDimension1();
 		Q = new double[nColours][nColours];
@@ -144,4 +145,12 @@ public class MigrationModel extends Plugin {
 		return mu;
 	}
 
+	/**
+	 * Obtain array of effective population sizes, indexed by colour.
+	 * 
+	 * @return Population size array.
+	 */
+	public RealParameter getPopSizes() {
+		return popSizes;
+	}
 }

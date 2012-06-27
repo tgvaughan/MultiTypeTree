@@ -78,9 +78,63 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 		// Ensure sequence of events is up-to-date:
 		updateEventSequence();
 
-
 		// Start from the tips of the tree, working up.
 		logP = 0;
+
+		// Note that the first event is always a sample. We begin at the first
+		// _interval_ and the event following that interval.
+		for (int eventIdx=1; eventIdx<eventList.size(); eventIdx++) {
+
+			SCEvent event = eventList.get(eventIdx);
+			Integer[] lineageCount = lineageCountList.get(eventIdx);
+			double delta_t = event.time - eventList.get(eventIdx-1).time;
+
+			// Abort if interval is of zero length
+			// (It's usually a bad idea to check for equivalence of floats,
+			// but we make an exception here as failure of the test will
+			// still yield a correct result, only less efficiently.)
+			if (delta_t==0)
+				continue;
+
+			// Interval contribution:
+			double lambda = 0.0;
+			for (int c=0; c<lineageCount.length; c++) {
+				int k = lineageCount[c];
+				double N = migrationModel.getPopSizes().getArrayValue(c);
+				lambda += k*(k-1)/(4.0*N);
+
+				for (int cp=0; cp<lineageCount.length; cp++) {
+					if (cp==c)
+						continue;
+
+					double m = migrationModel.getRateMatrix().getMatrixValue(cp, c);
+					lambda += k*m;
+				}
+			}
+			logP += -delta_t*lambda;
+
+			// Event contribution:
+			switch(event.type) {
+				case COALESCE:
+					double N = migrationModel
+							.getPopSizes()
+							.getArrayValue(event.colour);
+					logP += Math.log(1.0/(2.0*N));
+					break;
+
+				case MIGRATE:
+					double m = migrationModel
+							.getRateMatrix()
+							.getMatrixValue(event.colour,event.destColour);
+					logP += Math.log(m);
+					break;
+
+				case SAMPLE:
+					// Do nothing here: only effect of sampling event is
+					// to change the lineage counts in subsequent intervals.
+					break;
+			}
+		}
 
 		return logP;
 	}
