@@ -21,6 +21,7 @@ import beast.core.Input.Validate;
 import beast.core.parameter.IntegerParameter;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.*;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -77,10 +78,11 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 		// Ensure sequence of events is up-to-date:
 		updateEventSequence();
 
-		// Start from the tips of the tree, working up.
 
-		double likelihood = 0;
-		return likelihood;
+		// Start from the tips of the tree, working up.
+		logP = 0;
+
+		return logP;
 	}
 
 	/**
@@ -89,13 +91,16 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 	 */
 	public void updateEventSequence() {
 
+		// Clean up previous list:
 		eventList.clear();
 		lineageCountList.clear();
 		Node rootNode = tree.getRoot();
 
+		// Initialise map of active nodes to active change indices:
 		Map<Node,Integer> changeIdx = new HashMap<Node,Integer>();
 		changeIdx.put(rootNode, ctree.getChangeCount(rootNode)-1);
 
+		// Initialise lineage count per colour array:
 		Integer[] lineageCount = new Integer[ctree.getNColours()];
 		for (int c=0; c<ctree.getNColours(); c++) {
 			if (c != ctree.getNodeColour(rootNode))
@@ -104,6 +109,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				lineageCount[c] = 1;
 		}
 
+		// Calculate event sequence:
 		while(!changeIdx.isEmpty()) {
 
 			SCEvent nextEvent = new SCEvent();
@@ -148,11 +154,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				}
 			}
 
-			// TODO: Update changeIdx
-			// (This is actually where it's initialised for every new node in
-			// the nodeList, besides the root node.)
-
-			// Update state appropriately:
+			// Update active node list (changeIdx) and lineage count appropriately:
 			switch(nextEvent.type) {
 				case COALESCE:
 					Node leftChild = nextEvent.node.getLeft();
@@ -178,8 +180,11 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 			// Add event to list:
 			eventList.add(nextEvent);
 			lineageCountList.add(Arrays.copyOf(lineageCount, lineageCount.length));
-
 		}
+
+		// Reverse event and lineage count lists (order them from tips to root):
+		eventList = Lists.reverse(eventList);
+		lineageCountList = Lists.reverse(lineageCountList);
 
 	}
 
