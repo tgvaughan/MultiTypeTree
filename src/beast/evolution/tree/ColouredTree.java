@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.io.PrintStream;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * BEAST 2 plugin for specifying migration events along a tree.
