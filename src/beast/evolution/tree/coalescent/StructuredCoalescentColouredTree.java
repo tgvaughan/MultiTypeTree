@@ -56,7 +56,8 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 
 	public Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
 			"leafColours",
-			"Colours of leaf nodes.");
+			"Colours of leaf nodes.",
+			Validate.REQUIRED);
 
 	/*
 	 * Shadowing fields:
@@ -71,6 +72,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 	 */
 
 	private abstract class SCEvent {
+
 		double time;
 		int fromColour, toColour; 
 

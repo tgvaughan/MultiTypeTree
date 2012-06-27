@@ -39,6 +39,11 @@ public class MigrationModel extends Plugin {
 	public Input<RealParameter> rateMatrixInput = new Input<RealParameter>(
 			"rateMatrix", "Migration rate matrix", Validate.REQUIRED);
 
+	public Input<RealParameter> popSizesInput = new Input<RealParameter>(
+			"popSizes",
+			"Deme population sizes.",
+			Validate.REQUIRED);
+
 	protected RealParameter rateMatrix;
 	protected double[][] Q, unifQ;
 	protected double mu;

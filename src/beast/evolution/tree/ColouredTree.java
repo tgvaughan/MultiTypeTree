@@ -966,6 +966,74 @@ public class ColouredTree extends CalculationNode implements Loggable{
 
         return tChoice;
     }
+
+
+    /**
+     * Count how many tips there are of each colour.
+     *
+     * @return int array with number of tips per colour  
+     */
+    public int[] getSamplesPerLocation(){
+
+        // update parameters
+        nodeColours = nodeColoursInput.get();
+        tree = treeInput.get();
+           
+        int[] samplesPerLoc = new int[nColours];
+        int state;
+        for (int j=0; j<tree.getLeafNodeCount(); j++){
+
+            state = nodeColours.getValue(tree.getNode(j).getNr());
+            samplesPerLoc[state]++;
+        }
+
+        return samplesPerLoc;
+    }
+
+
+    /**
+      * Determine when each colour occurs the first time in the tree (from root)
+      *
+      * @param T time span of tree+orig  
+      * @return firstInfected array with first occurence time per colour
+      */
+    public double[] getFirstColourOccurence(double T){
+
+        // update parameters
+        changeCounts = changeCountsInput.get();
+        changeColours = changeColoursInput.get();
+        changeTimes = changeTimesInput.get();
+        nodeColours = nodeColoursInput.get();
+        tree = treeInput.get();
+
+        double[] firstInfected = new double[nColours];
+        
+        Arrays.fill(firstInfected, -1.);
+
+        firstInfected[nodeColours.getValue(tree.getRoot().getNr())] = T;
+        double changeTime;
+        int previousColour;
+        int nodeNr;
+
+        for (int i=0; i<changeColours.getDimension(); i++){
+
+            nodeNr = i / maxBranchColours;
+
+            if ((i % maxBranchColours) < changeCounts.getValue(nodeNr)){
+
+                changeTime = changeTimes.getValue(i);
+                previousColour = ( i % maxBranchColours > 0) ? changeColours.getValue(i-1) : nodeColours.getValue(nodeNr) ;
+
+                if (changeTime > firstInfected[previousColour])
+
+                    firstInfected[previousColour] = changeTime;
+            }
+        }
+
+        return firstInfected;
+    }
+
+
  
 	
 	/**

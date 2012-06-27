@@ -80,14 +80,9 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
         // Select number of colour changes from Poissonian:
         int nChanges = poissonian(muInput.get().getValue());
 
-		// @DENISE: I think that this is not a good idea, as it causes quiet
-		// failures in the case that maxBranchColours is set too low for the
-		// chosen migration rates.
-        // if (nChanges > cTree.maxBranchColoursInput.get()) return Double.NEGATIVE_INFINITY;
-
         int nCount = tree.getRoot().getNodeCount();
 
-   
+
         if (j.isRoot()) {
 
             // Record probability of old configuration:
@@ -99,18 +94,10 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 
             double probOldConfig = getPathProb(i)/(t_PiP-Math.max(t_i,t_CiP));
 
-            // Select height of new root:
-			/* @DENISE: Changed back to the old method.  I'd forgotten to
-			 * add t_j when generating newTime...
-			 */
             double span=2.0*(t_j-
-					Math.max(j.getLeft().getHeight(), j.getRight().getHeight()));
+                    Math.max(j.getLeft().getHeight(), j.getRight().getHeight()));
             double newTime = t_j + span*Randomizer.nextDouble();
 
-            //double newTime = t_j + Randomizer.nextExponential(muInput.get().getValue());
-            // @TIM: I changed the time according to Drummond2002, because it produced negative times.
-			// But I haven't adapted the hastings ratio yet,
-            // just using non-root moves for now. 
 
             // Implement tree changes:
             disconnectBranch(i);
@@ -119,14 +106,13 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             tree.setRoot(iP);
 
             if (m_tree.get().getRoot().getNodeCount() != nCount)
-                    throw new RuntimeException("Error: Lost a child during j-root move!!!");
+                throw new RuntimeException("Error: Lost a child during j-root move!!!");
 
             // Recolour branches:
             recolourBranch(i, nChanges);
 
             // Select number of colour changes for second branch from Poissonian:
             nChanges = poissonian(muInput.get().getValue());
-            if (nChanges > cTree.maxBranchColoursInput.get()) return Double.NEGATIVE_INFINITY;
 
             recolourBranch(j, nChanges);
 
@@ -155,25 +141,25 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 
         else if (iP.isRoot()) {
 
-             // Moving subtree connected to root node.
-             double t_jP = jP.getHeight();
+            // Moving subtree connected to root node.
+            double t_jP = jP.getHeight();
 
-             Node CiP = getOtherChild(iP, i);
-             double t_CiP = CiP.getHeight();
+            Node CiP = getOtherChild(iP, i);
+            double t_CiP = CiP.getHeight();
 
-             // Record probability of old configuration:
-             double span = 2.0*(CiP.getHeight()
-                     -Math.max((CiP.getLeft()!=null)?CiP.getLeft().getHeight():0,
-                     (CiP.getRight()!=null)?CiP.getRight().getHeight():0));
-             double probOldConfig = getPathProb(i)*getPathProb(CiP)/span;
+            // Record probability of old configuration:
+            double span = 2.0*(CiP.getHeight()
+                    -Math.max((CiP.getLeft()!=null)?CiP.getLeft().getHeight():0,
+                    (CiP.getRight()!=null)?CiP.getRight().getHeight():0));
+            double probOldConfig = getPathProb(i)*getPathProb(CiP)/span;
 
-             // Select height of new branch connection:
-             double newTimeMin = Math.max(i.getHeight(), j.getHeight());
-             double newTimeMax = jP.getHeight();
-             double newTime = newTimeMin +
-                     Randomizer.nextDouble()*(newTimeMax-newTimeMin);
+            // Select height of new branch connection:
+            double newTimeMin = Math.max(i.getHeight(), j.getHeight());
+            double newTimeMax = jP.getHeight();
+            double newTime = newTimeMin +
+                    Randomizer.nextDouble()*(newTimeMax-newTimeMin);
 
-             Node sister = getOtherChild(i.getParent(), i);
+            Node sister = getOtherChild(i.getParent(), i);
 
             // Implement tree changes:
             disconnectBranchFromRoot(i);
@@ -183,31 +169,32 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             tree.setRoot(sister);
 
             if (m_tree.get().getRoot().getNodeCount() != nCount)
-                     throw new RuntimeException("Error: Lost a child during iP-root move!!!");
+                throw new RuntimeException("Error: Lost a child during iP-root move!!!");
 
 
-             // Recolour new branch:
-             recolourBranch(i, nChanges);
+            // Recolour new branch:
+            recolourBranch(i, nChanges);
 
-             // Reject if colours inconsistent:
-             if (cTree.getFinalBranchColour(i) != cTree.getNodeColour(iP))
-                 return Double.NEGATIVE_INFINITY;
 
-             // Calculate probability of new configuration
-             double probNewConfig = getPathProb(i)/
-                     (t_jP - Math.max(t_j,t_i));
+            // Reject if colours inconsistent:
+            if (cTree.getFinalBranchColour(i) != cTree.getNodeColour(iP))
+                return Double.NEGATIVE_INFINITY;
 
-             // Calculate Hastings ratio:
-             double HR = probOldConfig/probNewConfig;
+            // Calculate probability of new configuration
+            double probNewConfig = getPathProb(i)/
+                    (t_jP - Math.max(t_j,t_i));
 
-             Tree helper = cTree.getFlattenedTree();
+            // Calculate Hastings ratio:
+            double HR = probOldConfig/probNewConfig;
 
-             // reject if colour change doesn't change anything
-             if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))     // invalid tree
-                 return Double.NEGATIVE_INFINITY;
+            Tree helper = cTree.getFlattenedTree();
 
-             return HR;
-         }
+            // reject if colour change doesn't change anything
+            if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))     // invalid tree
+                return Double.NEGATIVE_INFINITY;
+
+            return HR;
+        }
 
         else {
 
@@ -236,8 +223,8 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             connectBranch(i, j, newTime);
 
             if (m_tree.get().getRoot().getNodeCount() != nCount)
-                    throw new RuntimeException("Error: Lost a child during non-root move!!!");
-            
+                throw new RuntimeException("Error: Lost a child during non-root move!!!");
+
             // Recolour new branch:
             recolourBranch(i, nChanges);
 
