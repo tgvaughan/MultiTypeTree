@@ -798,8 +798,15 @@ public class ColouredTree extends CalculationNode implements Loggable{
             Node startNode = flatTree.getNode(nodeNum);
             startNode.setMetaData(colourLabel,
                     getNodeColour(node));
+			startNode.m_sMetaData = String.format("&%s=%d",
+					colourLabel, getNodeColour(node));
+
 
             Node endNode = startNode.getParent();
+            endNode.setMetaData(colourLabel,
+                    getNodeColour(node.getParent()));
+			endNode.m_sMetaData = String.format("&%s=%d",
+					colourLabel, getNodeColour(node.getParent()));
 
             Node branchNode = startNode;
             for (int i=0; i<getChangeCount(node); i++) {
@@ -818,6 +825,8 @@ public class ColouredTree extends CalculationNode implements Loggable{
                 colourChangeNode.setHeight(getChangeTime(node, i));
                 colourChangeNode.setMetaData(colourLabel,
                         getChangeColour(node, i));
+				colourChangeNode.m_sMetaData = String.format("&%s=%d",
+						colourLabel, getChangeColour(node,i));
 
                 // Update branchNode:
                 branchNode = colourChangeNode;
