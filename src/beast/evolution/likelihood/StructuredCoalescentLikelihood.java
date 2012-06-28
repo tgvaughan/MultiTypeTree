@@ -19,6 +19,7 @@ package beast.evolution.likelihood;
 import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.IntegerParameter;
+import beast.core.parameter.RealParameter;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.*;
 import beast.util.TreeParser;
@@ -258,11 +259,41 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				"singlechild", true,
 				"newick", newickStr);
 		Tree flatTree = parser;
-		ColouredTree ctree = new ColouredTree();
 
-		StructuredCoalescentLikelihood instance = new StructuredCoalescentLikelihood();
+		ColouredTree ctree = new ColouredTree();
+		ctree.initByName(
+				"nColours", 2,
+				"maxBranchColours", 10,
+				"tree", new Tree(),
+				"changeColours", new IntegerParameter(),
+				"changeTimes", new RealParameter(),
+				"changeCounts", new IntegerParameter(),
+				"nodeColours", new IntegerParameter());
+		ctree.initFromFlatTree(flatTree);
+
+		// Assemble migration model:
+		RealParameter rateMatrix = new RealParameter();
+		rateMatrix.initByName(
+				"minordimension",2,
+				"dimension",4,
+				"value","0.0,1.0,1.0,0.0");
+		RealParameter popSizes = new RealParameter();
+		popSizes.initByName(
+				"dimension",2,
+				"value","5.0,5.0");
+		MigrationModel migrationModel = new MigrationModel();
+		migrationModel.initByName(
+				"rateMatrix", rateMatrix,
+				"popSizes", popSizes);
+
+		// Set up likelihood instance:
+		StructuredCoalescentLikelihood likelihood = new StructuredCoalescentLikelihood();
+		likelihood.initByName(
+				"migrationModel", migrationModel,
+				"colouredTree", ctree);
+
 		double expResult = 0.0;
-		double result = instance.calculateLogP();
+		double result = likelihood.calculateLogP();
 
 	}
 }

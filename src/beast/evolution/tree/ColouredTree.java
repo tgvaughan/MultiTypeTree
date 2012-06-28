@@ -100,7 +100,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
 		nodeColours = nodeColoursInput.get();
 
         // Allocate arrays for recording colour change information:
-        initParameters(tree.getNodeCount());
+        //initParameters(tree.getNodeCount());
     }
 
     /**
