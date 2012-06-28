@@ -258,8 +258,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				"singlechild", true,
 				"newick", newickStr);
 		Tree flatTree = parser;
-		flatTree.
-
+		ColouredTree ctree = new ColouredTree();
 
 		StructuredCoalescentLikelihood instance = new StructuredCoalescentLikelihood();
 		double expResult = 0.0;
