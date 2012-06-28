@@ -20,11 +20,14 @@ import beast.core.*;
 import beast.core.parameter.*;
 import beast.util.Randomizer;
 import beast.util.TreeParser;
+import com.google.common.collect.Lists;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.PrintStream;
+import java.util.*;
+import javax.swing.event.ListSelectionEvent;
 
 
 /**
@@ -79,6 +82,27 @@ public class ColouredTree extends CalculationNode implements Loggable{
 
     public ColouredTree() {};
 
+    @Override
+    public void initAndValidate() throws Exception {
+
+        // Grab primary colouring parameters from inputs:
+        colourLabel = colourLabelInput.get();
+        nColours = nColoursInput.get();
+        maxBranchColours = maxBranchColoursInput.get();
+
+        // Obtain tree to colour:
+        tree = treeInput.get();
+
+        // Obtain references to Parameters used to store colouring:
+        changeColours = changeColoursInput.get();
+        changeTimes = changeTimesInput.get();
+        changeCounts = changeCountsInput.get();
+		nodeColours = nodeColoursInput.get();
+
+        // Allocate arrays for recording colour change information:
+        initParameters(tree.getNodeCount());
+    }
+
     /**
      * Constructor to get coloured tree from coloured (single child)
      * newick tree.
@@ -127,28 +151,6 @@ public class ColouredTree extends CalculationNode implements Loggable{
 
      }
 
-    @Override
-    public void initAndValidate() throws Exception {
-
-        // Grab primary colouring parameters from inputs:
-        colourLabel = colourLabelInput.get();
-        nColours = nColoursInput.get();
-        maxBranchColours = maxBranchColoursInput.get();
-
-        // Obtain tree to colour:
-        tree = treeInput.get();
-
-        // Obtain references to Parameters used to store colouring:
-        changeColours = changeColoursInput.get();
-        changeTimes = changeTimesInput.get();
-        changeCounts = changeCountsInput.get();
-		nodeColours = nodeColoursInput.get();
-
-        // Allocate arrays for recording colour change information:
-        initParameters(tree.getNodeCount());
-
-    }
-
 	/**
 	 * Allocate memory for recording tree colour information.
 	 * 
@@ -181,8 +183,6 @@ public class ColouredTree extends CalculationNode implements Loggable{
      */
 
     public int getSingleChildCount(Tree tree, List<Integer> markedForDeletion){
-
-        int count = 0;
 
         return getSingleChildCount(tree.getRoot(), markedForDeletion);
 
@@ -842,6 +842,149 @@ public class ColouredTree extends CalculationNode implements Loggable{
 
         return flatTree;
     }
+
+	/**
+	 * Initialise colours and tree topology from Tree object in which colour
+	 * changes are marked by single-child nodes and colours are stored
+	 * in metadata tags.
+	 * 
+	 * @param flatTree
+	 */
+	public void initFromFlatTree(Tree flatTree) {
+
+
+        // Grab primary colouring parameters from inputs:
+        colourLabel = colourLabelInput.get();
+        nColours = nColoursInput.get();
+        maxBranchColours = maxBranchColoursInput.get();
+
+        // Obtain tree to colour:
+        tree = treeInput.get();
+
+        // Obtain references to Parameters used to store colouring:
+        changeColours = changeColoursInput.get();
+        changeTimes = changeTimesInput.get();
+        changeCounts = changeCountsInput.get();
+		nodeColours = nodeColoursInput.get();
+
+		// Obtain number of nodes and leaves in tree to construct:
+		int nNodes = getTrueNodeCount(flatTree.root);
+		int nLeaves = flatTree.root.getLeafNodeCount();
+
+		// Allocate memory for colour arrays:
+		initParameters(nNodes);
+
+		// Initialise lists of available node numbers:
+		List<Integer> leafNrs = new ArrayList<Integer>();
+		List<Integer> internalNrs = new ArrayList<Integer>();
+
+		for (int i=0; i<nLeaves; i++)
+			leafNrs.add(i);
+
+		for (int i=0; i<nNodes; i++) {
+			if (i<nLeaves)
+				leafNrs.add(i);
+			else
+				internalNrs.add(i);
+		}
+
+		// Build new coloured tree:
+
+		List<Node> activeFlatTreeNodes = new ArrayList<Node>();
+		List<Node> nextActiveFlatTreeNodes = new ArrayList<Node>();
+		List<Node> activeTreeNodes = new ArrayList<Node>();
+		List<Node> nextActiveTreeNodes = new ArrayList<Node>();
+
+		// Populate active node lists with root:
+		activeFlatTreeNodes.add(flatTree.getRoot());
+		Node root = new Node();
+		root.setNr(internalNrs.get(0));
+		internalNrs.remove(0);
+		activeTreeNodes.add(root);
+
+		while (!activeFlatTreeNodes.isEmpty()) {
+
+			nextActiveFlatTreeNodes.clear();
+
+			for (int idx=0; idx<activeFlatTreeNodes.size(); idx++) {
+				Node flatTreeNode = activeFlatTreeNodes.get(idx);
+				Node treeNode = activeTreeNodes.get(idx);
+
+				Node thisFlatNode = flatTreeNode;
+				List<Integer> colours = new ArrayList<Integer>();
+				List<Double> times = new ArrayList<Double>();
+
+				while (thisFlatNode.getChildCount()==1) {
+					int col = (Integer)thisFlatNode.getMetaData("&state");
+					colours.add(col);
+					times.add(thisFlatNode.getHeight());
+
+					thisFlatNode = thisFlatNode.getLeft();
+				}
+
+				// Order changes from youngest to oldest:
+				colours = Lists.reverse(colours);
+				times = Lists.reverse(times);
+
+				switch(thisFlatNode.getChildCount()) {
+					case 0:
+						// Leaf at base of branch
+						treeNode.setNr(leafNrs.get(0));
+						leafNrs.remove(0);
+						break;
+
+					case 2:
+						// Non-leaf at base of branch
+						treeNode.setNr(internalNrs.get(0));
+						internalNrs.remove(0);
+
+						nextActiveFlatTreeNodes.add(thisFlatNode.getLeft());
+						nextActiveFlatTreeNodes.add(thisFlatNode.getRight());
+
+						Node daughter = new Node();
+						Node son = new Node();
+						treeNode.setLeft(daughter);
+						treeNode.setRight(son);
+						nextActiveTreeNodes.add(daughter);
+						nextActiveTreeNodes.add(son);
+
+						break;
+				}
+
+				// Add colour changes to coloured tree branch:
+				for (int i=0; i<colours.size(); i++)
+					addChange(treeNode, colours.get(i), times.get(i));
+			}
+
+			// Replace old active node lists with new:
+			activeFlatTreeNodes.clear();
+			activeFlatTreeNodes.addAll(nextActiveFlatTreeNodes);
+
+			activeTreeNodes.clear();
+			activeTreeNodes.addAll(nextActiveTreeNodes);
+
+		}
+
+		// Assign tree topology:
+		tree.assignFromWithoutID(new Tree(root));
+	}
+
+	/**
+	 * Obtain total number of non-single-child nodes in subtree under node.
+	 * @param node Root of subtree.
+	 * @return 
+	 */
+	private static int getTrueNodeCount(Node node) {
+		if (node.isLeaf())
+			return 1;
+
+		if (node.getChildCount()>1) {
+			return 1 + getTrueNodeCount(node.getLeft())
+					+ getTrueNodeCount(node.getRight());
+		}
+
+		return getTrueNodeCount(node.getLeft());
+	}
 
     /**
      * Determine whether colour exists somewhere on the portion of the branch

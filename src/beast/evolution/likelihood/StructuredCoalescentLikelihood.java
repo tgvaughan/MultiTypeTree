@@ -21,6 +21,7 @@ import beast.core.Input.Validate;
 import beast.core.parameter.IntegerParameter;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.*;
+import beast.util.TreeParser;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,14 +40,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 			"migrationModel", "Model of migration between demes.",
 			Validate.REQUIRED);
 
-	public Input<IntegerParameter> m_leafColours = new Input<IntegerParameter>(
-			"leafColours",
-			"Colours of leaf nodes.",
-			Validate.REQUIRED);
-
-
 	protected MigrationModel migrationModel;
-	protected IntegerParameter leafColours;
 	protected ColouredTree ctree;
 	protected Tree tree;
 
@@ -61,10 +55,12 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 	private List<SCEvent> eventList;
 	private List<Integer[]> lineageCountList;
 
+	// Empty constructor as required:
+	public StructuredCoalescentLikelihood() {};
+
 	@Override
 	public void initAndValidate() {
 		migrationModel = m_migrationModel.get();
-		leafColours = m_leafColours.get();
 		ctree = m_ctree.get();
 		tree = ctree.getUncolouredTree();
 
@@ -89,29 +85,28 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 			Integer[] lineageCount = lineageCountList.get(eventIdx);
 			double delta_t = event.time - eventList.get(eventIdx-1).time;
 
-			// Abort if interval is of zero length
-			// (It's usually a bad idea to check for equivalence of floats,
-			// but we make an exception here as failure of the test will
-			// still yield a correct result, only less efficiently.)
-			if (delta_t==0)
-				continue;
-
 			// Interval contribution:
-			double lambda = 0.0;
-			for (int c=0; c<lineageCount.length; c++) {
-				int k = lineageCount[c];
-				double N = migrationModel.getPopSizes().getArrayValue(c);
-				lambda += k*(k-1)/(4.0*N);
+			if (delta_t>0) {
+				double lambda = 0.0;
+				for (int c=0; c<lineageCount.length; c++) {
+					int k = lineageCount[c];
+					double N = migrationModel
+							.getPopSizes()
+							.getArrayValue(c);
+					lambda += k*(k-1)/(4.0*N);
 
-				for (int cp=0; cp<lineageCount.length; cp++) {
-					if (cp==c)
-						continue;
+					for (int cp=0; cp<lineageCount.length; cp++) {
+						if (cp==c)
+							continue;
 
-					double m = migrationModel.getRateMatrix().getMatrixValue(cp, c);
-					lambda += k*m;
+						double m = migrationModel
+								.getRateMatrix()
+								.getMatrixValue(cp, c);
+						lambda += k*m;
+					}
 				}
+				logP += -delta_t*lambda;
 			}
-			logP += -delta_t*lambda;
 
 			// Event contribution:
 			switch(event.type) {
@@ -245,5 +240,30 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 	@Override
 	public boolean requiresRecalculation() {
 		return true;
+	}
+
+	/**
+	 * Test code.  Move to JUnit test.
+	 * @param argv 
+	 */
+	public static void main (String[] argv) throws Exception {
+
+		// Assemble test ColouredTree:
+		TreeParser parser = new TreeParser("", false);
+		String newickStr =
+				"(((A[&state=0]:0.25)[&state=1]:0.25,B[&state=1]:0.5)[&state=0]:1.5,"
+				+ "(C[&state=0]:1.0,D[&state=0]:1.0)[&state=0]:1.0)[&state=0]:0.0;";
+		parser.initByName(
+				"adjustTipHeights", true,
+				"singlechild", true,
+				"newick", newickStr);
+		Tree flatTree = parser;
+		flatTree.
+
+
+		StructuredCoalescentLikelihood instance = new StructuredCoalescentLikelihood();
+		double expResult = 0.0;
+		double result = instance.calculateLogP();
+
 	}
 }

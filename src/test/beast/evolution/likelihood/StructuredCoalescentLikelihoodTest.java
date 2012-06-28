@@ -17,6 +17,10 @@
 package test.beast.evolution.likelihood;
 
 import beast.evolution.likelihood.StructuredCoalescentLikelihood;
+import beast.evolution.tree.ColouredTree;
+import beast.evolution.tree.ColouredTreeFromNewick;
+import beast.evolution.tree.Tree;
+import beast.util.TreeParser;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -30,8 +34,16 @@ public class StructuredCoalescentLikelihoodTest {
 	 * Test of calculateLogP method, of class StructuredCoalescentLikelihood.
 	 */
 	@Test
-	public void testCalculateLogP() {
+	public void testCalculateLogP() throws Exception {
 		System.out.println("calculateLogP");
+
+		// Assemble test ColouredTree:
+		Tree flatTree = new TreeParser(
+				"((A[&state=0]:0.5,B[&state=0]:0.5)[&state=0]:1.5,"
+				+ "(C[&state=0]:1.0,D[&state=0]:1.0)[&state=0]:1.0,)"
+				+ "[&state=0]:0.0;");
+
+
 		StructuredCoalescentLikelihood instance = new StructuredCoalescentLikelihood();
 		double expResult = 0.0;
 		double result = instance.calculateLogP();
