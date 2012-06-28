@@ -265,10 +265,10 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				"nColours", 2,
 				"maxBranchColours", 10,
 				"tree", new Tree(),
-				"changeColours", new IntegerParameter(),
-				"changeTimes", new RealParameter(),
-				"changeCounts", new IntegerParameter(),
-				"nodeColours", new IntegerParameter());
+				"changeColours", new IntegerParameter("0"),
+				"changeTimes", new RealParameter("0.0"),
+				"changeCounts", new IntegerParameter("0"),
+				"nodeColours", new IntegerParameter("0"));
 		ctree.initFromFlatTree(flatTree);
 
 		// Assemble migration model:
@@ -276,11 +276,11 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 		rateMatrix.initByName(
 				"minordimension",2,
 				"dimension",4,
-				"value","0.0,1.0,1.0,0.0");
+				"value","0.0 1.0 1.0 0.0");
 		RealParameter popSizes = new RealParameter();
 		popSizes.initByName(
 				"dimension",2,
-				"value","5.0,5.0");
+				"value","5.0 5.0");
 		MigrationModel migrationModel = new MigrationModel();
 		migrationModel.initByName(
 				"rateMatrix", rateMatrix,

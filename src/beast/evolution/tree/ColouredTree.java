@@ -850,7 +850,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
 	 * 
 	 * @param flatTree
 	 */
-	public void initFromFlatTree(Tree flatTree) {
+	public void initFromFlatTree(Tree flatTree) throws Exception {
 
 
         // Grab primary colouring parameters from inputs:
@@ -866,6 +866,18 @@ public class ColouredTree extends CalculationNode implements Loggable{
         changeTimes = changeTimesInput.get();
         changeCounts = changeCountsInput.get();
 		nodeColours = nodeColoursInput.get();
+
+		// Hack to deal with StateNodes that haven't been attached to
+		// a state yet.
+		if (changeColours.getState()==null) {
+			State state = new State();
+			state.initByName(
+					"stateNode", changeColours,
+					"stateNode", changeTimes,
+					"stateNode", changeCounts,
+					"stateNode", nodeColours);
+			state.initialise();
+		}
 
 		// Obtain number of nodes and leaves in tree to construct:
 		int nNodes = getTrueNodeCount(flatTree.root);
@@ -898,13 +910,14 @@ public class ColouredTree extends CalculationNode implements Loggable{
 		// Populate active node lists with root:
 		activeFlatTreeNodes.add(flatTree.getRoot());
 		Node root = new Node();
-		root.setNr(internalNrs.get(0));
-		internalNrs.remove(0);
+		//root.setNr(internalNrs.get(0));
+		//internalNrs.remove(0);
 		activeTreeNodes.add(root);
 
 		while (!activeFlatTreeNodes.isEmpty()) {
 
 			nextActiveFlatTreeNodes.clear();
+			nextActiveTreeNodes.clear();
 
 			for (int idx=0; idx<activeFlatTreeNodes.size(); idx++) {
 				Node flatTreeNode = activeFlatTreeNodes.get(idx);
@@ -915,7 +928,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
 				List<Double> times = new ArrayList<Double>();
 
 				while (thisFlatNode.getChildCount()==1) {
-					int col = (Integer)thisFlatNode.getMetaData("&state");
+					int col = (int)Math.round((Double)thisFlatNode.getMetaData("&state"));
 					colours.add(col);
 					times.add(thisFlatNode.getHeight());
 
@@ -954,6 +967,13 @@ public class ColouredTree extends CalculationNode implements Loggable{
 				// Add colour changes to coloured tree branch:
 				for (int i=0; i<colours.size(); i++)
 					addChange(treeNode, colours.get(i), times.get(i));
+
+				// Set node colour at base of coloured tree branch:
+				int nodeCol = (int)Math.round((Double)thisFlatNode.getMetaData("&state"));
+				setNodeColour(treeNode, nodeCol);
+
+				// Set node height:
+				treeNode.setHeight(thisFlatNode.getHeight());
 			}
 
 			// Replace old active node lists with new:
