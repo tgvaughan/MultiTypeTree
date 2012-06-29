@@ -23,6 +23,7 @@ import beast.core.State;
 import beast.core.StateNode;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
+import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import beast.evolution.tree.ColouredTree;
@@ -44,14 +45,9 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 	 * Plugin inputs:
 	 */
 
-	public Input<RealParameter> rateMatrixInput = new Input<RealParameter>(
-			"rateMatrix",
-			"Migration rate matrix (diagonals are ignored)",
-			Validate.REQUIRED);
-
-	public Input<RealParameter> popSizesInput = new Input<RealParameter>(
-			"popSizes",
-			"Deme population sizes.",
+	public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
+			"migrationModel",
+			"Migration model to use in simulator.",
 			Validate.REQUIRED);
 
 	public Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
@@ -60,9 +56,10 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			Validate.REQUIRED);
 
 	/*
-	 * Shadowing fields:
+	 * Shadowing and supplimentary fields:
 	 */
 
+	protected MigrationModel migrationModel; 
 	protected RealParameter rateMatrix;
 	protected RealParameter popSizes;
 	protected IntegerParameter leafColours;
@@ -109,8 +106,9 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		nColours = nColoursInput.get();
 		colourLabel = colourLabelInput.get();
 		maxBranchColours = maxBranchColoursInput.get();
-		rateMatrix = rateMatrixInput.get();
-		popSizes = popSizesInput.get();
+		migrationModel = migrationModelInput.get();
+		rateMatrix = migrationModel.getRateMatrix();
+		popSizes = migrationModel.getPopSizes();
 
 		// Obtain leaf colours:
 		leafColours = leafColoursInput.get();
@@ -396,6 +394,53 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			n++;
 
 		return nodeList.get(n);
+	}
+
+	/**
+	 * Generates an ensemble of trees from the structured coalescent for
+	 * testing coloured tree-space samplers.
+	 * 
+	 * @param argv 
+	 */
+	public static void main(String[] argv) throws Exception {
+
+		// Set up migration model.
+		RealParameter rateMatrix = new RealParameter();
+		rateMatrix.initByName(
+				"dimension",4,
+				"minordimension",2,
+				"value","0.0 1.0 1.0 0.0");
+		RealParameter popSizes = new RealParameter();
+		popSizes.initByName(
+				"dimension",2,
+				"value", "5.0 5.0");
+		MigrationModel migrationModel = new MigrationModel();
+		migrationModel.initByName(
+				"rateMatrix", rateMatrix,
+				"popSizes", popSizes);
+
+		// Specify leaf colours:
+		IntegerParameter leafColours = new IntegerParameter();
+		leafColours.initByName(
+				"dimension",4,
+				"value", "0 0 0 0");
+
+		// Generate ensemble:
+		List<ColouredTree> ensemble = new ArrayList<ColouredTree>();
+		for (int i=0; i<1; i++) {
+
+			StructuredCoalescentColouredTree sctree;
+			sctree = new StructuredCoalescentColouredTree();
+			sctree.initByName(
+					"migrationModel", migrationModel,
+					"leafColours", leafColours,
+					"nColours", 2,
+					"maxBranchColours", 50);
+			sctree.initAndValidate();
+
+			ensemble.add(sctree);
+		}
+
 	}
 	
 }

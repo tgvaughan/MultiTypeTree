@@ -323,7 +323,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
      * random colouring algorithm.
      *
      * @param node
-     * @return
+     * @return Probability of path.
      */
     private double getPathProb(Node node) {
 
