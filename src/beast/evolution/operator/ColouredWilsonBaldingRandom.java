@@ -23,7 +23,11 @@ import beast.core.parameter.RealParameter;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import beast.math.GammaFunction;
+import beast.util.PoissonRandomizer;
 import beast.util.Randomizer;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.OutputStreamWriter;
 import java.util.Arrays;
 
 /**
@@ -77,11 +81,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             return Double.NEGATIVE_INFINITY;
 
 
-        // Select number of colour changes from Poissonian:
-        int nChanges = poissonian(muInput.get().getValue());
-
         int nCount = tree.getRoot().getNodeCount();
-
 
         if (j.isRoot()) {
 
@@ -109,12 +109,8 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
                 throw new RuntimeException("Error: Lost a child during j-root move!!!");
 
             // Recolour branches:
-            recolourBranch(i, nChanges);
-
-            // Select number of colour changes for second branch from Poissonian:
-            nChanges = poissonian(muInput.get().getValue());
-
-            recolourBranch(j, nChanges);
+            recolourBranch(i);
+            recolourBranch(j);
 
             // Reject if colours inconsistent:
             if ((cTree.getFinalBranchColour(i) != cTree.getNodeColour(iP))
@@ -134,7 +130,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))     // invalid tree
                 return Double.NEGATIVE_INFINITY;
 
-            return HR;
+            return Math.log(HR);
 
         }
 
@@ -173,7 +169,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 
 
             // Recolour new branch:
-            recolourBranch(i, nChanges);
+            recolourBranch(i);
 
 
             // Reject if colours inconsistent:
@@ -193,7 +189,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))     // invalid tree
                 return Double.NEGATIVE_INFINITY;
 
-            return HR;
+            return Math.log(HR);
         }
 
         else {
@@ -226,7 +222,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
                 throw new RuntimeException("Error: Lost a child during non-root move!!!");
 
             // Recolour new branch:
-            recolourBranch(i, nChanges);
+            recolourBranch(i);
 
             // Reject if colours inconsistent:
             if (cTree.getFinalBranchColour(i) != cTree.getNodeColour(iP))
@@ -251,7 +247,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))     // invalid tree
                 return Double.NEGATIVE_INFINITY;
 
-            return HR;
+            return Math.log(HR);
         }
     }
 
@@ -260,16 +256,16 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
      *
      * @param node
      */
-    private void recolourBranch(Node node, int nChanges) {
+    private void recolourBranch(Node node)  {
+
+		double t = node.getParent().getHeight() - node.getHeight();
+		int nChanges = PoissonRandomizer.nextInt(muInput.get().getValue()*t);
 
         if (nChanges > 0){
             double initialTime = node.getHeight();
             double finalTime = node.getParent().getHeight();
 
-            // Uniformize birth-death process and create sequence of virtual events:
             double[] times = getTimes(initialTime, finalTime, nChanges);
-
-            // Use forward-backward algorithm to determine colour changes:
             int[] colours = getColours(times.length);
 
             // Record new colour change events:
@@ -333,41 +329,18 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 
         // P(path) = P(colours|n)*P(n)
 
+		double t = node.getParent().getHeight()-node.getHeight();
+
         int nChanges = cTree.getChangeCount(node);
         int nColours = cTree.getNColours();
         double mu = muInput.get().getValue();
 
-        double Pn = Math.exp(-mu + Math.log(mu)*nChanges
-                - GammaFunction.lnGamma(nChanges));
+        double Pn = Math.exp(-mu*t + Math.log(mu*t)*nChanges
+                - GammaFunction.lnGamma(nChanges+1));
 
         double Pcol = Math.pow(1.0/(nColours-1), nChanges);
 
         return Pcol*Pn;
-    }
-
-    /**
-     * Draw an integer from a Poissonian distribution with mean lambda.
-     * BEAST 2's Randomizer class doesn't yet provide a Poissonian RNG.
-     * This method is only efficient for small lambda.
-     *
-     * @param lambda
-     * @return int drawn from Poissonian.
-     */
-    private int poissonian(Double lambda) {
-
-        int n = 0;
-        double u = Randomizer.nextDouble();
-
-        double poissonFactor = Math.exp(-lambda);
-        double acc = poissonFactor;
-
-        while (u>acc) {
-            n++;
-            poissonFactor *= Math.pow(lambda,n)/(double)n;
-            acc += poissonFactor;
-        }
-
-        return n;
     }
 
     /**
@@ -377,10 +350,10 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
      */
     public static void main (String[] args) {
 
-
         ColouredWilsonBaldingRandom wb = new ColouredWilsonBaldingRandom();
 
-        System.out.println(wb.poissonian(.1));
+		for (int i=0; i<10000; i++)
+	        System.out.println(PoissonRandomizer.nextInt(10));
     }
 
 }

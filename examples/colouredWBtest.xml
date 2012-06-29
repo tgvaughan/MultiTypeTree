@@ -24,11 +24,11 @@
 	</model>
     
 	    
-    <run spec="MCMC" id="mcmc" chainLength="10000"> 
+    <run spec="MCMC" id="mcmc" chainLength="200000"> 
 
 		<init spec='beast.evolution.tree.ColouredTreeFromNewick'
 			id="colouredTree" tree="@tree" colouredNewick="@tree2" 
-   	     		colourLabel="state" nColours="2" maxBranchColours="10">
+   	     		colourLabel="state" nColours="2" maxBranchColours="20">
    	     	<changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
         	<changeTimes id="tree.times"  spec="RealParameter" value="0."/>
         	<changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
@@ -41,19 +41,14 @@
 			<stateNode idref="tree.counts"/>
 			<stateNode idref="tree.nodecols"/>
 			<stateNode spec="beast.evolution.tree.Tree" id="tree"/>
-			<stateNode spec="RealParameter" id="mu" value="1."/>
+			<stateNode spec="RealParameter" value="1.0" id="mu"/>
 		</state>
         
-
 		<distribution spec="CompoundDistribution" id="prior">
 
 			<distribution id='scLikelihood' spec="StructuredCoalescentLikelihood">
 				<migrationModel idref="migmodel"/>
 				<colouredTree idref="colouredTree"/>
-			</distribution>
-
-			<distribution id='muLikelihood' spec="beast.math.distributions.Prior" x="@mu">
-				<distr spec="beast.math.distributions.Uniform"/>
 			</distribution>
 
 		</distribution>
