@@ -262,19 +262,23 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
      */
     private void recolourBranch(Node node, int nChanges) {
 
-        double initialTime = node.getHeight();
-        double finalTime = node.getParent().getHeight();
+        if (nChanges > 0){
+            double initialTime = node.getHeight();
+            double finalTime = node.getParent().getHeight();
 
-        // Uniformize birth-death process and create sequence of virtual events:
-        double[] times = getTimes(initialTime, finalTime, nChanges);
+            // Uniformize birth-death process and create sequence of virtual events:
+            double[] times = getTimes(initialTime, finalTime, nChanges);
 
-        // Use forward-backward algorithm to determine colour changes:
-        int[] colours = getColours(times.length);
+            // Use forward-backward algorithm to determine colour changes:
+            int[] colours = getColours(times.length);
 
-        // Record new colour change events:
-        cTree.setChangeCount(node, times.length);
-        cTree.setChangeColours(node, colours);
-        cTree.setChangeTimes(node, times);
+            // Record new colour change events:
+            cTree.setChangeCount(node, times.length);
+            cTree.setChangeColours(node, colours);
+            cTree.setChangeTimes(node, times);
+        }
+        else
+            cTree.setChangeCount(node, 0);
 
     }
 
@@ -373,8 +377,10 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
      */
     public static void main (String[] args) {
 
-        // TODO: Test branch recolouring algorithm.
 
+        ColouredWilsonBaldingRandom wb = new ColouredWilsonBaldingRandom();
+
+        System.out.println(wb.poissonian(.1));
     }
 
 }
