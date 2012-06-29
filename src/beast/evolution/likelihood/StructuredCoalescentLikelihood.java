@@ -102,7 +102,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 
 						double m = migrationModel
 								.getRateMatrix()
-								.getMatrixValue(cp, c);
+								.getMatrixValue(c, cp);
 						lambda += k*m;
 					}
 				}
@@ -121,7 +121,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				case MIGRATE:
 					double m = migrationModel
 							.getRateMatrix()
-							.getMatrixValue(event.colour,event.destColour);
+							.getMatrixValue(event.destColour,event.colour);
 					logP += Math.log(m);
 					break;
 
@@ -246,7 +246,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 	}
 
 	/**
-	 * Test code.  Move to JUnit test.
+	 * Test likelihood result.  Duplicate of JUnit test for debugging purposes.
 	 * @param argv 
 	 */
 	public static void main (String[] argv) throws Exception {
@@ -278,11 +278,11 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 		rateMatrix.initByName(
 				"minordimension",2,
 				"dimension",4,
-				"value","0.0 1.0 1.0 0.0");
+				"value","0.0 1.0 2.0 0.0");
 		RealParameter popSizes = new RealParameter();
 		popSizes.initByName(
 				"dimension",2,
-				"value","5.0 5.0");
+				"value","5.0 10.0");
 		MigrationModel migrationModel = new MigrationModel();
 		migrationModel.initByName(
 				"rateMatrix", rateMatrix,
@@ -294,8 +294,12 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				"migrationModel", migrationModel,
 				"colouredTree", ctree);
 
-		double expResult = 0.0;
+		double expResult = -12.43961;  // Calculated by hand
 		double result = likelihood.calculateLogP();
+
+		System.out.println("Expected result: " + expResult);
+		System.out.println("Actual result: " + result);
+		System.out.format("Difference: %g\n", result-expResult);
 
 	}
 }
