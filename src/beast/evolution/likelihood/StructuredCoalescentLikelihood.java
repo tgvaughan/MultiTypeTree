@@ -224,6 +224,8 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				case MIGRATE:
 					lineageCount[nextEvent.colour]--;
 					lineageCount[nextEvent.destColour]++;
+					int oldIdx = changeIdx.get(nextEvent.node);
+					changeIdx.put(nextEvent.node, oldIdx-1);
 					break;
 			}
 
@@ -252,7 +254,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 		// Assemble test ColouredTree:
 		TreeParser parser = new TreeParser("", false);
 		String newickStr =
-				"(((A[&state=0]:0.25)[&state=1]:0.25,B[&state=1]:0.5)[&state=0]:1.5,"
+				"(((A[&state=1]:0.25)[&state=0]:0.25,B[&state=0]:0.5)[&state=0]:1.5,"
 				+ "(C[&state=0]:1.0,D[&state=0]:1.0)[&state=0]:1.0)[&state=0]:0.0;";
 		parser.initByName(
 				"adjustTipHeights", true,
