@@ -16,6 +16,7 @@
  */
 package test.beast.evolution.likelihood;
 
+import beast.core.Operator;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.likelihood.StructuredCoalescentLikelihood;
@@ -28,10 +29,18 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 /**
+ * Tests for StructuredCoalescentLikelihood class methods.  Must extend
+ * operator, as only operators are allowed to edit state nodes and current
+ * approach to building coloured tree involves multiple calls to the
+ * setValue() method of the state nodes representing the colouring information.
+ * 
+ * Possible way around this problem would be to have the initialiser work on
+ * temporary arrays would then be used to initialise the state nodes in
+ * one go.  (This is what Denise did earlier on..)
  *
  * @author Tim Vaughan
  */
-public class StructuredCoalescentLikelihoodTest {
+public class StructuredCoalescentLikelihoodTest extends Operator {
 
 	/**
 	 * Test of calculateLogP method, of class StructuredCoalescentLikelihood.
@@ -85,7 +94,14 @@ public class StructuredCoalescentLikelihoodTest {
 
 		double expResult = -12.43961; // Calculated by hand
 		double result = likelihood.calculateLogP();
+
+		System.out.println(result);
 		assertEquals(expResult, result, 1e-5);
+	}
+
+	@Override
+	public double proposal() {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 }

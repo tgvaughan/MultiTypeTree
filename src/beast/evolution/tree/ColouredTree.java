@@ -852,7 +852,6 @@ public class ColouredTree extends CalculationNode implements Loggable{
 	 */
 	public void initFromFlatTree(Tree flatTree) throws Exception {
 
-
         // Grab primary colouring parameters from inputs:
         colourLabel = colourLabelInput.get();
         nColours = nColoursInput.get();
