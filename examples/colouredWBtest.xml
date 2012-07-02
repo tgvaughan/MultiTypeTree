@@ -56,7 +56,7 @@
 		<operator spec='beast.evolution.operator.ColouredWilsonBaldingRandom' id="CWBR"
 			weight="1" tree="@tree" colouredTree='@colouredTree' mu="@mu"/>
 
-		<logger logEvery="100" fileName="colouredWBtest.log">
+		<logger logEvery="1000" fileName="colouredWBtest.log">
 			<model idref='prior'/>
 			<log idref="prior"/>
 			<log spec='beast.evolution.tree.TreeHeightLogger'>
@@ -68,7 +68,7 @@
 			<log idref="tree"/>
 		</logger>  
 
-		<logger logEvery="100" fileName="colouredWBtest_col.trees" mode="tree">
+		<logger logEvery="1000" fileName="colouredWBtest_col.trees" mode="tree">
 			<log idref="colouredTree"/>
 		</logger>
 

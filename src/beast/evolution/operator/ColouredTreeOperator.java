@@ -62,7 +62,7 @@ abstract public class ColouredTreeOperator extends TreeOperator {
         for (int idx = 0; idx<cTree.getChangeCount(parent) && cTree.getChangeCount(sister)<cTree.getMaxBranchColours() ; idx++) {
             int colour = cTree.getChangeColour(parent, idx);
             double time = cTree.getChangeTime(parent, idx);
-            cTree.addChange(sister, colour, time);
+            addChange(sister, colour, time);
         }
 
         // Implement topology change.
@@ -119,15 +119,15 @@ abstract public class ColouredTreeOperator extends TreeOperator {
         }
 
         // Divide colour changes between new branches:
-        cTree.setChangeCount(parent, 0);
+        setChangeCount(parent, 0);
         for (int idx=split; idx<cTree.getChangeCount(destBranchBase); idx++) {
-//            cTree.addChange(parent, idx-split, destTime);
-            cTree.addChange(parent, cTree.getChangeColour(destBranchBase,idx), destTime);
+            addChange(parent, cTree.getChangeColour(destBranchBase,idx),
+					cTree.getChangeTime(destBranchBase,idx));
         }
-        cTree.setChangeCount(destBranchBase, split);
+        setChangeCount(destBranchBase, split);
 
         // Set colour at split:
-        cTree.setNodeColour(parent, cTree.getFinalBranchColour(destBranchBase));
+        setNodeColour(parent, cTree.getFinalBranchColour(destBranchBase));
 
         // Implement topology changes:
         replace(destBranchBase.getParent(), destBranchBase, parent);
@@ -233,5 +233,117 @@ abstract public class ColouredTreeOperator extends TreeOperator {
 //
 //    }
 
+	
+    /**
+     * Set new colour for change which has already been recorded.
+     *
+     * @param node
+     * @param idx
+     * @param colour
+     */
+    public void setChangeColour(Node node, int idx, int colour) {
+
+        if (idx>cTree.getChangeCount(node))
+            throw new RuntimeException(
+                    "Attempted to alter non-existent change colour.");
+
+        int offset = node.getNr()*cTree.getMaxBranchColours();
+        cTree.changeColoursInput.get().setValue(offset+idx, colour);
+
+    }
+
+    /**
+     * Sets colour changes along branch between node and its parent.
+     *
+     * @param node
+     * @param colours Vararg list of colour indices.
+     */
+    public void setChangeColours(Node node, int ... colours) {
+
+        if (colours.length>cTree.getMaxBranchColours())
+            throw new IllegalArgumentException(
+                    "Maximum number of colour changes along branch exceeded.");
+
+        int offset = node.getNr()*cTree.getMaxBranchColours();
+        for (int i=0; i<colours.length; i++)
+            cTree.changeColoursInput.get().setValue(offset+i, colours[i]);
+
+    }
+
+	 /**
+     * Set new time for change which has already been recorded.
+     *
+     * @param node
+     * @param idx
+     * @param time
+     */
+    public void setChangeTime(Node node, int idx, double time) {
+
+        if (idx>cTree.getChangeCount(node))
+            throw new IllegalArgumentException(
+                    "Attempted to alter non-existent change time.");
+
+        int offset = node.getNr()*cTree.getMaxBranchColours();
+        cTree.changeTimesInput.get().setValue(offset+idx, time);
+    }
+
+    /**
+     * Sets times of colour changes along branch between node and its parent.
+     *
+     * @param node
+     * @param times Vararg list of colour change times.
+     */
+    public void setChangeTimes(Node node, double ... times) {
+
+        if (times.length>cTree.getMaxBranchColours())
+            throw new IllegalArgumentException(
+                    "Maximum number of colour changes along branch exceeded.");
+
+        int offset = cTree.getBranchOffset(node);
+        for (int i=0; i<times.length; i++)
+            cTree.changeTimesInput.get().setValue(offset+i, times[i]);
+    }
+	
+    /**
+     * Set number of colours on branch between node and its parent.
+     *
+     * @param node
+     * @param count Number of colours on branch. (>=1)
+     */
+    public void setChangeCount(Node node, int count) {
+        cTree.changeCountsInput.get().setValue(node.getNr(), count);
+    }
+
+    /**
+     * Add a colour change to a branch between node and its parent.
+     * @param node
+     * @param newColour
+     * @param time
+     */
+    public void addChange(Node node, int newColour, double time) {
+        int count = cTree.getChangeCount(node);
+
+        if (count>=cTree.getMaxBranchColours())
+            throw new RuntimeException(
+                    "Maximum number of colour changes along branch exceeded.");
+
+        // Add spot for new colour change:
+        setChangeCount(node, count+1);
+
+        // Set change colour and time:
+        setChangeColour(node, count, newColour);
+        setChangeTime(node, count, time);
+
+    }
+
+	/**
+	 * Set colour of node.
+	 * 
+	 * @param node
+	 * @param colour New colour for node.
+	 */
+	public void setNodeColour(Node node, int colour) {
+		cTree.nodeColoursInput.get().setValue(node.getNr(), colour);
+	}
 
 }

@@ -266,15 +266,15 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             double finalTime = node.getParent().getHeight();
 
             double[] times = getTimes(initialTime, finalTime, nChanges);
-            int[] colours = getColours(times.length);
+            int[] colours = getColours(cTree.getNodeColour(node), times.length);
 
             // Record new colour change events:
-            cTree.setChangeCount(node, times.length);
-            cTree.setChangeColours(node, colours);
-            cTree.setChangeTimes(node, times);
+            setChangeCount(node, times.length);
+            setChangeColours(node, colours);
+            setChangeTimes(node, times);
         }
         else
-            cTree.setChangeCount(node, 0);
+            setChangeCount(node, 0);
 
     }
 
@@ -296,6 +296,13 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             times[i] = T*Randomizer.nextDouble() + initialTime;
         Arrays.sort(times);
 
+		/*
+		System.out.print("times = [ ");
+		for (double time : times)
+			System.out.print(time + " ");
+		System.out.println("]");
+		*/
+
         return times;
     }
 
@@ -305,13 +312,19 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
      * @param nChanges
      * @return Array of colours.
      */
-    private int[] getColours(int nChanges) {
+    private int[] getColours(int startColour, int nChanges) {
 
         int[] colours = new int[nChanges];
         int nColours = cTree.getNColours();
 
+		int lastCol = startColour;
         for (int i=0; i<nChanges; i++) {
-            colours[i] = Randomizer.nextInt(nColours);
+			int newCol;
+			do {
+	            newCol = Randomizer.nextInt(nColours);
+			} while (newCol == lastCol);
+            colours[i] = newCol;
+			lastCol = newCol;
         }
 
         return colours;

@@ -78,7 +78,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
     protected Tree tree;
     protected Tree flatTree; // the flat tree with single child nodes and colours as metadata, for logging
 	public IntegerParameter nodeColours, changeColours, changeCounts;
-    protected RealParameter changeTimes;
+    public RealParameter changeTimes;
 
     public ColouredTree() {};
 
@@ -626,7 +626,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
      * @param node
      * @return Offset into changeColours and changeTimes
      */
-    private int getBranchOffset(Node node) {
+    public int getBranchOffset(Node node) {
         return node.getNr()*maxBranchColours;
     }
 
@@ -675,7 +675,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
      * @param node Root node of subtree to validate.
      * @return True if valid, false otherwise.
      */
-    private boolean colourIsValid(Node node) {
+    public boolean colourIsValid(Node node) {
 
         // Leaves are always valid.
         if (node.isLeaf())
@@ -1232,8 +1232,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
         printStream.print("tree STATE_" + i + " = ");
         String sNewick = flatTree.getRoot().toNewick(null);
         printStream.print(sNewick);
-        printStream.print(";");        
-        
+        printStream.print(";");
     }
 
     @Override
