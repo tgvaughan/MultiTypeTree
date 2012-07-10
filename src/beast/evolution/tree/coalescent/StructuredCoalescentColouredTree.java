@@ -20,13 +20,12 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.State;
-import beast.core.StateNode;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.migrationmodel.MigrationModel;
+import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
-import beast.evolution.tree.ColouredTree;
 import beast.util.Randomizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +61,6 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 	protected MigrationModel migrationModel; 
 	protected RealParameter rateMatrix;
 	protected RealParameter popSizes;
-	protected IntegerParameter leafColours;
 
 	/*
 	 * Other private fields and classes:
@@ -134,6 +132,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		changeColoursInput.setValue(changeColours, this);
 		changeTimesInput.setValue(changeTimes, this);
 		changeCountsInput.setValue(changeCounts, this);
+		nodeColoursInput.setValue(nodeColours, this);
 
 		// Allocate arrays for recording colour change information:
 		int nNodes = 2*leafColours.getDimension() - 1;
@@ -422,8 +421,8 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		// Specify leaf colours:
 		IntegerParameter leafColours = new IntegerParameter();
 		leafColours.initByName(
-				"dimension",4,
-				"value", "0 0 0 0");
+				"dimension",2,
+				"value", "0 0");
 
 		// Generate ensemble:
 		List<ColouredTree> ensemble = new ArrayList<ColouredTree>();
@@ -436,8 +435,9 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 					"leafColours", leafColours,
 					"nColours", 2,
 					"maxBranchColours", 50);
-			sctree.initAndValidate();
+			//sctree.initAndValidate();
 
+			System.out.println(sctree.getUncolouredTree().getRoot().getHeight());
 			ensemble.add(sctree);
 		}
 

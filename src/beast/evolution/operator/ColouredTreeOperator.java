@@ -139,31 +139,6 @@ abstract public class ColouredTreeOperator extends TreeOperator {
             parent.setLeft(destBranchBase);
     }
 
-    /**
-     * Create a new branch between node and a new root node at destTime,
-     * making oldRoot the sister of node.
-     *
-     * @param node
-     * @param oldRoot
-     * @param destTime
-     */
-//    public void connectBranchToRoot(Node node, Node oldRoot, double destTime) {
-//
-//        // Check argument validity:
-//        if (node.isRoot() || !oldRoot.isRoot())
-//            throw new IllegalArgumentException("Illegal argument "
-//                    + "to connectBranchToRoot().");
-//
-//        // Obtain existing parent of node and set new time:
-//        Node parent = node.getParent();
-//        parent.setHeight(destTime);
-//
-//        // Implement topology changes:
-//        parent.addChild(oldRoot);
-//
-//    }
-
-
     public void connectBranchToRoot(Node node, Node oldRoot, double destTime) {
 
         // Check argument validity:
@@ -189,50 +164,6 @@ abstract public class ColouredTreeOperator extends TreeOperator {
         node.makeDirty(Tree.IS_FILTHY);
 
     }
-
-//    public void connectBranchToRoot(Node node, Node oldRoot, double destTime) {
-//
-//
-//        // Check argument validity:
-//		if (node.isRoot() || !oldRoot.isRoot())
-//            throw new IllegalArgumentException("Illegal argument to "
-//                    + "connectBranch().");
-//
-//
-//        // Obtain existing parent of node and set new time:
-//        Node parent = node.getParent();
-//        parent.setHeight(destTime);
-//
-//        // Determine where the split comes in the list of colour changes
-//        // attached to destBranchBase:
-//        int split;
-//        for (split=0; split<cTree.getChangeCount(oldRoot); split++) {
-//            if (cTree.getChangeTime(oldRoot,split)>destTime)
-//                break;
-//        }
-//
-//        // Divide colour changes between new branches:
-//        cTree.setChangeCount(parent, 0);
-//        for (int idx=split; idx<cTree.getChangeCount(oldRoot); idx++) {
-////            cTree.addChange(parent, idx-split, destTime);
-//            cTree.addChange(parent, cTree.getChangeColour(oldRoot,idx), destTime);
-//        }
-//        cTree.setChangeCount(oldRoot, split);
-//
-//        // Set colour at split:
-//        cTree.setNodeColour(parent, cTree.getFinalBranchColour(oldRoot));
-//
-//        // Implement topology changes:
-//        replace(oldRoot.getParent(), oldRoot, parent);
-//        oldRoot.setParent(parent);
-//
-//        if (parent.getLeft() == node)
-//            parent.setRight(oldRoot);
-//        else if (parent.getRight() == node)
-//            parent.setLeft(oldRoot);
-//
-//    }
-
 	
     /**
      * Set new colour for change which has already been recorded.
