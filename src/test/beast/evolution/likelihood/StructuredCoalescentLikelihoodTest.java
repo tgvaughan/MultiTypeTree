@@ -92,7 +92,7 @@ public class StructuredCoalescentLikelihoodTest extends Operator {
 				"migrationModel", migrationModel,
 				"colouredTree", ctree);
 
-		double expResult = -12.43961; // Calculated by hand
+		double expResult = -16.52831; // Calculated by hand
 		double result = likelihood.calculateLogP();
 
 		System.out.println(result);

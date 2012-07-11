@@ -44,10 +44,10 @@ public class MigrationModel extends Plugin {
 			"Deme population sizes.",
 			Validate.REQUIRED);
 
-	protected RealParameter rateMatrix, popSizes;
-	protected double[][] Q, unifQ;
-	protected double mu;
-	protected EigenDecomposition Qdecomp, unifQdecomp;
+	private RealParameter rateMatrix, popSizes;
+	private double[][] Q, unifQ;
+	private double mu;
+	private EigenDecomposition Qdecomp, unifQdecomp;
 
 	public MigrationModel() { }
 
@@ -101,6 +101,45 @@ public class MigrationModel extends Plugin {
 	}
 
 	/**
+	 * Obtain element of rate matrix for migration model.
+	 * 
+	 * @return Rate matrix element.
+	 */
+	public double getRate(int i, int j) {
+		return rateMatrix.getMatrixValue(i, j);
+	}
+
+	/**
+	 * Obtain element of backward-time migration matrix.
+	 * 
+	 * @return Rate matrix element.
+	 */
+	public double getBackwardRate(int i, int j) {
+		return rateMatrix.getMatrixValue(j, i)
+				*popSizes.getArrayValue(i)
+				/popSizes.getArrayValue(j);
+	}
+
+	/**
+	 * Obtain array of effective population sizes, indexed by colour.
+	 * 
+	 * @return Population size array.
+	 */
+	public RealParameter getPopSizes() {
+		return popSizes;
+	}
+
+	/**
+	 * Obtain effective population size of particular colour.
+	 * 
+	 * @param i colour index
+	 * @return Effective population size.
+	 */
+	public double getPopSize(int i) {
+		return popSizes.getArrayValue(i);
+	}
+
+	/**
 	 * Obtain rate matrix as a plain array matrix.
 	 * 
 	 * @return Rate matrix(double[][])
@@ -145,12 +184,4 @@ public class MigrationModel extends Plugin {
 		return mu;
 	}
 
-	/**
-	 * Obtain array of effective population sizes, indexed by colour.
-	 * 
-	 * @return Population size array.
-	 */
-	public RealParameter getPopSizes() {
-		return popSizes;
-	}
 }

@@ -91,18 +91,14 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				double lambda = 0.0;
 				for (int c=0; c<lineageCount.length; c++) {
 					int k = lineageCount[c];
-					double N = migrationModel
-							.getPopSizes()
-							.getArrayValue(c);
-					lambda += k*(k-1)/(4.0*N);
+					double Nc = migrationModel.getPopSize(c);
+					lambda += k*(k-1)/(2.0*Nc);
 
 					for (int cp=0; cp<lineageCount.length; cp++) {
 						if (cp==c)
 							continue;
 
-						double m = migrationModel
-								.getRateMatrix()
-								.getMatrixValue(c, cp);
+						double m = migrationModel.getBackwardRate(cp,c);
 						lambda += k*m;
 					}
 				}
@@ -112,16 +108,13 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 			// Event contribution:
 			switch(event.type) {
 				case COALESCE:
-					double N = migrationModel
-							.getPopSizes()
-							.getArrayValue(event.colour);
-					logP += Math.log(1.0/(2.0*N));
+					double N = migrationModel.getPopSize(event.colour);
+					logP += Math.log(1.0/N);
 					break;
 
 				case MIGRATE:
 					double m = migrationModel
-							.getRateMatrix()
-							.getMatrixValue(event.destColour,event.colour);
+							.getBackwardRate(event.destColour, event.colour);
 					logP += Math.log(m);
 					break;
 
@@ -193,12 +186,12 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 					if (thisChangeTime>nextEvent.time) {
 						nextEvent.time = thisChangeTime;
 						nextEvent.type = SCEventType.MIGRATE;
-						nextEvent.colour = ctree.getChangeColour(node, changeIdx.get(node));
+						nextEvent.destColour = ctree.getChangeColour(node, changeIdx.get(node));
 						if (changeIdx.get(node)>0)
-							nextEvent.destColour = ctree.getChangeColour(node,
+							nextEvent.colour = ctree.getChangeColour(node,
 									changeIdx.get(node)-1);
 						else
-							nextEvent.destColour = ctree.getNodeColour(node);
+							nextEvent.colour = ctree.getNodeColour(node);
 						nextEvent.node = node;
 					}
 				}
@@ -222,8 +215,8 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 					break;
 
 				case MIGRATE:
-					lineageCount[nextEvent.colour]--;
-					lineageCount[nextEvent.destColour]++;
+					lineageCount[nextEvent.destColour]--;
+					lineageCount[nextEvent.colour]++;
 					int oldIdx = changeIdx.get(nextEvent.node);
 					changeIdx.put(nextEvent.node, oldIdx-1);
 					break;
@@ -288,18 +281,23 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 				"rateMatrix", rateMatrix,
 				"popSizes", popSizes);
 
+		System.out.println(migrationModel.getPopSize(0));
+		System.out.println(migrationModel.getPopSize(1));
+		System.out.println(migrationModel.getBackwardRate(0, 0)+" "+migrationModel.getBackwardRate(0,1));
+		System.out.println(migrationModel.getBackwardRate(1, 0)+" "+migrationModel.getBackwardRate(1,1));
+
 		// Set up likelihood instance:
 		StructuredCoalescentLikelihood likelihood = new StructuredCoalescentLikelihood();
 		likelihood.initByName(
 				"migrationModel", migrationModel,
 				"colouredTree", ctree);
 
-		double expResult = -12.43961;  // Calculated by hand
+		double expResult = -16.52831;  // Calculated by hand
 		double result = likelihood.calculateLogP();
 
 		System.out.println("Expected result: " + expResult);
 		System.out.println("Actual result: " + result);
-		System.out.format("Difference: %g\n", result-expResult);
+		System.out.println("Difference: " + String.valueOf(result-expResult));
 
 	}
 }
