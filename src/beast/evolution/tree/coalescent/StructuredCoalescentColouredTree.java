@@ -26,6 +26,7 @@ import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
+import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -236,7 +237,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			double N = popSizes.getArrayValue(i);
 			int k = activeNodes.get(i).size();
 
-			coalesceProp.set(i, k*(k-1)/(4.0*N));
+			coalesceProp.set(i, k*(k-1)/(2.0*N));
 			totalProp += coalesceProp.get(i);
 
 			for (int j=0; j<migrationProp.size(); j++) {
@@ -283,7 +284,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			throws Exception {
 
 		// Get time of next event:
-		t += Randomizer.nextExponential(1.0/totalProp);
+		t += Randomizer.nextExponential(totalProp);
 
 		// Select event type:
 		double U = Randomizer.nextDouble()*totalProp;
@@ -408,7 +409,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		rateMatrix.initByName(
 				"dimension",4,
 				"minordimension",2,
-				"value","0.0 1.0 1.0 0.0");
+				"value","0.0 0.1 0.1 0.0");
 		RealParameter popSizes = new RealParameter();
 		popSizes.initByName(
 				"dimension",2,
@@ -422,11 +423,15 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		IntegerParameter leafColours = new IntegerParameter();
 		leafColours.initByName(
 				"dimension",2,
-				"value", "0 0");
+				"value", "0 0 0 0");
 
 		// Generate ensemble:
-		List<ColouredTree> ensemble = new ArrayList<ColouredTree>();
-		for (int i=0; i<1; i++) {
+		int reps = 10000;
+		double[] heights = new double[reps];
+		
+		long startTime = System.currentTimeMillis();
+		
+		for (int i=0; i<reps; i++) {
 
 			StructuredCoalescentColouredTree sctree;
 			sctree = new StructuredCoalescentColouredTree();
@@ -435,11 +440,19 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 					"leafColours", leafColours,
 					"nColours", 2,
 					"maxBranchColours", 50);
-			//sctree.initAndValidate();
 
-			System.out.println(sctree.getUncolouredTree().getRoot().getHeight());
-			ensemble.add(sctree);
+			heights[i] = sctree.getUncolouredTree().getRoot().getHeight();
+			//mean += Randomizer.nextExponential(1/(5.0));
 		}
+		
+		long time = System.currentTimeMillis() - startTime;
+
+		System.out.printf("E[T] = %1.4f +/- %1.4f\n", 
+				DiscreteStatistics.mean(heights), DiscreteStatistics.stdev(heights)/Math.sqrt(reps));
+		System.out.printf("V[T] = %1.4f\n", DiscreteStatistics.variance(heights));
+		
+		System.out.printf("Took %1.2f seconds\n", time/1000.0);
+		
 
 	}
 	
