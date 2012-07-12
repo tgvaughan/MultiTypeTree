@@ -37,6 +37,10 @@ public class ColouredTreeScale extends ColouredTreeOperator {
 	@Override
 	public double proposal() {
 
+		// Is there a better way to do this?
+		cTree = colouredTreeInput.get();
+		tree = m_tree.get();
+
 		// Record old tree height:
 		double h = tree.getRoot().getHeight();
 
