@@ -16,23 +16,23 @@
 
 	</tree>
 
-<!--
 	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
 		<rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
-		<popSizes spec="RealParameter" value="5.0 5.0"/>
+		<popSizes spec="RealParameter" value="7.0 7.0"/>
 	</model>
--->
 
+<!--
 	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
 		<rateMatrix spec='RealParameter' value="0.0" minordimension="1"/>
-		<popSizes spec="RealParameter" value="5.0"/>
+		<popSizes spec="RealParameter" value="7.0"/>
 	</model>
+-->
 	    
     <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
 		<init spec='beast.evolution.tree.ColouredTreeFromNewick'
 			id="colouredTree" tree="@tree" colouredNewick="@tree2" 
-   	     		colourLabel="state" nColours="1" maxBranchColours="20">
+   	     		colourLabel="state" nColours="2" maxBranchColours="20">
    	     	<changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
         	<changeTimes id="tree.times"  spec="RealParameter" value="0."/>
         	<changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
@@ -59,10 +59,8 @@
 		<operator spec='beast.evolution.operator.ColouredTreeScale' id="CTS"
 			weight="0.5" tree="@tree" colouredTree='@colouredTree' scaleParam="2.0"/>
 
-<!--
 		<operator spec='beast.evolution.operator.BranchRecolour' id="BR"
-			weight="0.5" tree="@tree" colouredTree="@colouredTree" mu="1.0"/>
--->
+			weight="0.5" tree="@tree" colouredTree="@colouredTree" mu="0.1"/>
 
 		<logger logEvery="1000" fileName="operatorTests.log">
 			<model idref='prior'/>
@@ -72,6 +70,15 @@
 			</log>
 		</logger>
 
+		<logger logEvery="100000">
+			<model idref='prior'/>
+			<log idref="prior"/>
+			<log spec='beast.evolution.tree.TreeHeightLogger' >
+				<tree idref="tree"/>
+			</log>
+		</logger>
+
+<!--
 		<logger logEvery="100" fileName="operatorTests.trees">
 			<log idref="tree"/>
 		</logger>  
@@ -79,14 +86,7 @@
 		<logger logEvery="1000" fileName="operatorTests_col.trees" mode="tree">
 			<log idref="colouredTree"/>
 		</logger>
-
-		<logger logEvery="100">
-			<model idref='prior'/>
-			<log idref="prior"/>
-			<log spec='beast.evolution.tree.TreeHeightLogger' >
-				<tree idref="tree"/>
-			</log>
-		</logger>
+-->
 
 <!--
 		<logger spec="beast.evolution.tree.TreeReport" id="treeReporter" >

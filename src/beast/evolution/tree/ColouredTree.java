@@ -400,7 +400,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
      * @param times
      * @param counts
      */
-    private void addChange(int nodeNr, int index, int colour, double time, Integer[] cols, Double[] times, Integer[] counts){
+    protected void addChange(int nodeNr, int index, int colour, double time, Integer[] cols, Double[] times, Integer[] counts){
 
         cols[index] = colour;
         times[index] = time;
@@ -1157,7 +1157,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
       * Determine when each colour occurs the first time in the tree (from root)
       *
       * @param T time span of tree+orig  
-      * @return firstInfected array with first occurence time per colour
+      * @return firstInfected array with first occurrence time per colour
       */
     public double[] getFirstColourOccurence(double T){
 
@@ -1196,6 +1196,25 @@ public class ColouredTree extends CalculationNode implements Loggable{
     }
 
 
+	/**
+	 * Obtain colour of branch starting at node at particular time t.
+	 * 
+	 * @param node
+	 * @param t
+	 * @return colour
+	 */
+	public int getColourOnBranch(Node node, double t) {
+
+		int lastColour = getNodeColour(node);
+
+		for (int i=0; i<getChangeCount(node); i++) {
+			if (getChangeTime(node, i)>t)
+				break;
+			lastColour = getChangeColour(node, i);
+		}
+
+		return lastColour;
+	}
  
 	
 	/**

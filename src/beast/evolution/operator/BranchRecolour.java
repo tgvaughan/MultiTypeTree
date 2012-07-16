@@ -47,6 +47,10 @@ public class BranchRecolour extends ColouredTreeOperator {
 		tree = cTree.getUncolouredTree();
 		mu = muInput.get();
 
+		if (cTree.getNColours()<2) {
+			throw new IllegalStateException("BranchRecolour cannot be used with 1-colour trees.");
+		}
+
 		// Randomly select branch to recolour:
 		Node node;
 		do {
@@ -54,18 +58,27 @@ public class BranchRecolour extends ColouredTreeOperator {
 		} while (node.isRoot());
 
 		// Record old change count:
-		int nChangesOld = cTree.getChangeCount(node);
+		//int nChangesOld = cTree.getChangeCount(node);
+		double logProbOldBranch = getBranchProb(node, 50);
 
 		// Recolour branch:
 		recolourBranch(node);
 
+		// Reject outright if colours invalid:
+		if (cTree.getFinalBranchColour(node) != cTree.getNodeColour(node.getParent()))
+			return Double.NEGATIVE_INFINITY;
+
 		// Record new change count:
-		int nChangesNew = cTree.getChangeCount(node);
+		//int nChangesNew = cTree.getChangeCount(node);
+		double logProbNewBranch = getBranchProb(node, 50);
 
 		// Calculate HR:
+		/*
 		double logHR = (nChangesOld-nChangesNew)*Math.log(mu/cTree.getNColours())
 				+ 2*(GammaFunction.lnGamma(nChangesNew+1)
 					- GammaFunction.lnGamma(nChangesOld+1));
+		*/
+		double logHR = logProbOldBranch - logProbNewBranch;
 
 		return logHR;
 	}
@@ -101,6 +114,37 @@ public class BranchRecolour extends ColouredTreeOperator {
 				lastCol = newCol;
 			}
 		}
+	}
+
+	/**
+	 * Estimate probability of particular colour arrangement using a finite
+	 * time step approximation.  Used for debugging exact Hastings ratio.
+	 * 
+	 * @param node
+	 * @param integrationSteps
+	 * @return 
+	 */
+	private double getBranchProb(Node node, int integrationSteps) {
+
+		double ti = node.getHeight();
+		double tf = node.getParent().getHeight();
+		double dt = (tf-ti)/(integrationSteps-1);
+
+		double logP = 0;
+		int lastColour = cTree.getNodeColour(node);
+
+		for (int step=1; step<integrationSteps; step++) {
+
+			int thisColour = cTree.getColourOnBranch(node, dt*step);
+
+			if (thisColour != lastColour) {
+				logP += Math.log(dt*mu/(cTree.getNColours()-1));
+				lastColour = thisColour;
+			} else
+				logP += Math.log(1-dt*mu);
+		}
+
+		return logP;
 	}
 
 }
