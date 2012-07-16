@@ -25,66 +25,56 @@ import beast.util.PoissonRandomizer;
 import beast.util.Randomizer;
 
 /**
+ * Operator to randomly recolour a branch on a coloured tree.
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 @Description("Recolour a branch of a coloured tree.")
 public class BranchRecolour extends ColouredTreeOperator {
 	
-    public Input<RealParameter> muInput = new Input<RealParameter>("mu",
+    public Input<Double> muInput = new Input<Double>("mu",
 			"Mean rate of colour change along branch.", Input.Validate.REQUIRED);
 
 	private double mu;
+
+	@Override
+	public void initAndValidate() { }
 
 	@Override
 	public double proposal() {
 
 		cTree = colouredTreeInput.get();
 		tree = cTree.getUncolouredTree();
-		mu = muInput.get().getValue();
+		mu = muInput.get();
 
 		// Randomly select branch to recolour:
 		Node node;
 		do {
 			node = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-		} while (!node.isRoot());
+		} while (node.isRoot());
 
-		// Determine probability of choosing current colouring:
-		double logOldProb = getLogColourProb(node);
+		// Record old change count:
+		int nChangesOld = cTree.getChangeCount(node);
 
 		// Recolour branch:
 		recolourBranch(node);
 
-		// Find probability of choosing new colouring:
-		double logNewProb = getLogColourProb(node);
+		// Record new change count:
+		int nChangesNew = cTree.getChangeCount(node);
 
 		// Calculate HR:
-		
+		double logHR = (nChangesOld-nChangesNew)*Math.log(mu/cTree.getNColours())
+				+ 2*(GammaFunction.lnGamma(nChangesNew+1)
+					- GammaFunction.lnGamma(nChangesOld+1));
 
-		return 0.0;
+		return logHR;
 	}
 
 	/**
-	 * Determine log probability of colouring on branch starting at node.
+	 * Recolour branch above node with random colour changes.
 	 * 
-	 * @param node
-	 * @return log probability
+	 * @param node 
 	 */
-	private double getLogColourProb(Node node) {
-
-		int nChanges = cTree.getChangeCount(node);
-		double T = node.getParent().getHeight() - node.getHeight();
-
-		// P(branch) = P(colours|nchanges)P(nchanges)
-
-		double logPnChanges = -mu*T + nChanges*Math.log(mu)
-				- GammaFunction.lnGamma(nChanges+1);
-
-		double logPcolours = -nChanges*Math.log(cTree.getNColours()-1);
-
-		return logPcolours + logPnChanges;
-	}
-
 	private void recolourBranch(Node node) {
 
 		// Clear current changes:
