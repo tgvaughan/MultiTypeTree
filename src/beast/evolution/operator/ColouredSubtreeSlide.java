@@ -52,6 +52,8 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 		mu = muInput.get();
 		rootSlideParam = rootSlideParamInput.get();
 
+		double logHR = 0;
+
 		// Choose non-root node:
 		Node node;
 		do {
@@ -65,17 +67,30 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 
 		if (parent.isRoot()) {
 
-			double tMin = Math.max(node.getHeight(), sister.getHeight());
-			double tMax = parent.getHeight() + rootSlideParam;
+
+			// Calculate probability of selecting old height:
+			double tMinHard = Math.max(node.getHeight(), sister.getHeight());
+			double tMin = (parent.getHeight()-tMinHard)/rootSlideParam + tMinHard;
+			double tMax = (parent.getHeight()-tMinHard)*rootSlideParam + tMinHard;
+			double logNewHeightProb = Math.log(1.0/(tMax-tMin));
+			logHR -= logNewHeightProb;
 
 			// Select new height of parent:
 			double tNew = tMin + Randomizer.nextDouble()*(tMax-tMin);
+
+			// Calculate probability of selecting new height:
+			double tMinPrime = (tNew-tMinHard)/rootSlideParam + tMinHard;
+			double tMaxPrime = (tNew-tMinHard)*rootSlideParam + tMinHard;
+			double logOldHeightProb = Math.log(1.0/(tMaxPrime-tMinPrime));
+			logHR += logOldHeightProb;
+
 
 			if (tNew>parent.getHeight()) {
 				// Root age INCREASE move
 
 				// Record probability of old path:
 				double logOldProb = getBranchProb(node, 50);
+				logHR += logOldProb;
 
 				// Assign new height to parent:
 				parent.setHeight(tNew);
@@ -86,12 +101,14 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 
 				// Calculate probability of new path:
 				double logNewProb = getRootBranchProb(node, tOld, 50);
+				logHR -= logNewProb;
 
 			} else {
 				// Root age DECREASE move:
 
 				// Record probability of old path:
 				double logOldProb = getRootBranchProb(node, tNew, 50);
+				logHR += logOldProb;
 
 				// Assign new height to parent:
 				parent.setHeight(tNew);
@@ -105,6 +122,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 
 				// Calculate probability of new path:
 				double logNewProb = getBranchProb(node, 50);
+				logHR -= logNewProb;
 			}
 
 
@@ -114,7 +132,6 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 
 		}
 
-		double logHR = 0;
 		return logHR;
 	}
 
