@@ -48,10 +48,11 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	public double proposal() {
 
 		cTree = colouredTreeInput.get();
-		tree = m_tree.get();
+		tree = cTree.getUncolouredTree();
 		mu = muInput.get();
 		rootSlideParam = rootSlideParamInput.get();
 
+		// Keep track of Hastings ratio while generating proposal:
 		double logHR = 0;
 
 		// Choose non-root node:
@@ -66,7 +67,6 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 		double tOld = parent.getHeight();
 
 		if (parent.isRoot()) {
-
 
 			// Calculate probability of selecting old height:
 			double tMinHard = Math.max(node.getHeight(), sister.getHeight());
@@ -88,6 +88,10 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			if (tNew>parent.getHeight()) {
 				// Root age INCREASE move
 
+				// DEBUG:
+				System.out.println("Root age INCREASE move...");
+				System.out.println("Before: " + cTree.getFlattenedTree());
+
 				// Record probability of old path:
 				double logOldProb = getBranchProb(node, 50);
 				logHR += logOldProb;
@@ -96,8 +100,14 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				parent.setHeight(tNew);
 
 				// Recolour branch between node, up to root, then down toward
-				// sister to a height of tOld.
-				recolourRootBranch(node, tOld);
+				// sister to a height of tOld.  Reject outright if final colour
+				// at the end of this path on sister is different to the original
+				// colour at that point.
+				if (!recolourRootBranch(node, tOld))
+					return Double.NEGATIVE_INFINITY;
+
+				// DEBUG:
+				System.out.println("After: " + cTree.getFlattenedTree());
 
 				// Calculate probability of new path:
 				double logNewProb = getRootBranchProb(node, tOld, 50);
@@ -105,6 +115,10 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 
 			} else {
 				// Root age DECREASE move:
+
+				// DEBUG:
+				System.out.println("Root age DECREASE move...");
+				System.out.println("Before: " + cTree.getFlattenedTree());
 
 				// Record probability of old path:
 				double logOldProb = getRootBranchProb(node, tNew, 50);
@@ -117,8 +131,13 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				// change:
 				removeExcessColours(node);
 
-				// Recolour branch between node and root:
-				recolourBranch(node);
+				// Recolour branch between node and root.  Reject outright if
+				// final colour is different to existing colour on root node.
+				if (!recolourBranch(node))
+					return Double.NEGATIVE_INFINITY;
+
+				// DEBUG:
+				System.out.println("After: " + cTree.getFlattenedTree());
 
 				// Calculate probability of new path:
 				double logNewProb = getBranchProb(node, 50);
@@ -215,7 +234,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	 * 
 	 * @param node 
 	 */
-	private void recolourBranch(Node node) {
+	private boolean recolourBranch(Node node) {
 
 		// Clear current changes:
 		setChangeCount(node, 0);
@@ -241,6 +260,11 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				lastCol = newCol;
 			}
 		}
+
+		if (lastCol != cTree.getNodeColour(node.getParent()))
+			return false;
+
+		return true;
 	}
 
 	/**
@@ -250,10 +274,10 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	 * @param node
 	 * @param tOnSister 
 	 */
-	private void recolourRootBranch(Node node, double tOnSister) {
+	private boolean recolourRootBranch(Node node, double tOnSister) {
 
 		// Obtain reference to sister node:
-		Node sister = getOtherChild(node, node.getParent());
+		Node sister = getOtherChild(node.getParent(), node);
 
 		// Clear branch above node:
 		setChangeCount(node, 0);
@@ -261,7 +285,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 		// Calculate length of path to create:
 		double t = node.getHeight();
 		double tRoot = node.getParent().getHeight();
-		double tVirtual = tRoot + (tRoot-t);
+		double tEnd = tRoot + (tRoot-tOnSister);
 
 		// Set up lists to hold colour changes along second
 		// part of path:
@@ -277,7 +301,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			t += Randomizer.nextExponential(mu);
 
 			// Check for end of path:
-			if (t>tVirtual)
+			if (t>tEnd)
 				break;
 
 			// select next colour:
@@ -305,6 +329,9 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			lastCol = newCol;
 		}
 
+		if (lastCol != cTree.getColourOnBranch(sister, tOnSister))
+			return false;
+
 		// Read change colours and times in direction from sister to root:
 		partTwoTimes = Lists.reverse(partTwoTimes);
 		partTwoColours = Lists.reverse(partTwoColours);
@@ -312,6 +339,8 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 		// Append new colour changes to sister branch:
 		for (int i=0; i<partTwoTimes.size(); i++)
 			addChange(sister, partTwoColours.get(i), partTwoTimes.get(i));
+
+		return true;
 	}
 
 	/**
