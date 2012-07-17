@@ -208,6 +208,8 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	private double getRootBranchProb(Node node, double timeOnSister,
 			int integrationSteps) {
 
+		Node sister = getOtherChild(node.getParent(), node);
+
 		double tNode = node.getHeight();
 		double tRoot = node.getParent().getHeight();
 		double tFull = (tRoot-tNode) + (tRoot-timeOnSister);
@@ -220,10 +222,11 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 
 			double t = dt*step + tNode;
 
-			if (t > tRoot)
-				t = tRoot - t;
-
-			int thisColour = cTree.getColourOnBranch(node, t);
+			int thisColour;
+			if (t < tRoot)
+				thisColour = cTree.getColourOnBranch(node, t);
+			else
+				thisColour = cTree.getColourOnBranch(sister, tRoot -(t-tRoot));
 
 			if (thisColour != lastColour) {
 				logP += Math.log(dt*mu/(cTree.getNColours()-1));
