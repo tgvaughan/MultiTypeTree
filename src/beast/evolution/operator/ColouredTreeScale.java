@@ -39,7 +39,7 @@ public class ColouredTreeScale extends ColouredTreeOperator {
 
 		// Is there a better way to do this?
 		cTree = colouredTreeInput.get();
-		tree = m_tree.get();
+		tree = cTree.getUncolouredTree();
 
 		// Record old tree height:
 		double h = tree.getRoot().getHeight();

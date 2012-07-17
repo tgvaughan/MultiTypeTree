@@ -89,8 +89,8 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				// Root age INCREASE move
 
 				// DEBUG:
-				System.out.println("Root age INCREASE move...");
-				System.out.println("Before: " + cTree.getFlattenedTree());
+				//System.out.println("Root age INCREASE move...");
+				//System.out.println("Before: " + cTree.getFlattenedTree());
 
 				// Record probability of old path:
 				double logOldProb = getBranchProb(node, 50);
@@ -103,11 +103,14 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				// sister to a height of tOld.  Reject outright if final colour
 				// at the end of this path on sister is different to the original
 				// colour at that point.
-				if (!recolourRootBranch(node, tOld))
+				if (!recolourRootBranch(node, tOld)) {
+					// DEBUG:
+					//System.out.println("Reject.");
 					return Double.NEGATIVE_INFINITY;
+				}
 
 				// DEBUG:
-				System.out.println("After: " + cTree.getFlattenedTree());
+				//System.out.println("After: " + cTree.getFlattenedTree());
 
 				// Calculate probability of new path:
 				double logNewProb = getRootBranchProb(node, tOld, 50);
@@ -117,8 +120,8 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				// Root age DECREASE move:
 
 				// DEBUG:
-				System.out.println("Root age DECREASE move...");
-				System.out.println("Before: " + cTree.getFlattenedTree());
+				//System.out.println("Root age DECREASE move...");
+				//System.out.println("Before: " + cTree.getFlattenedTree());
 
 				// Record probability of old path:
 				double logOldProb = getRootBranchProb(node, tNew, 50);
@@ -129,15 +132,18 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 
 				// Update colour changes between sister and root to reflect
 				// change:
-				removeExcessColours(node);
+				removeExcessColours(getOtherChild(parent, node));
 
 				// Recolour branch between node and root.  Reject outright if
 				// final colour is different to existing colour on root node.
-				if (!recolourBranch(node))
+				if (!recolourBranch(node)) {
+					// DEBUG:
+					//System.out.println("Reject.");
 					return Double.NEGATIVE_INFINITY;
+				}
 
 				// DEBUG:
-				System.out.println("After: " + cTree.getFlattenedTree());
+				//System.out.println("After: " + cTree.getFlattenedTree());
 
 				// Calculate probability of new path:
 				double logNewProb = getBranchProb(node, 50);
@@ -363,6 +369,9 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 
 		// Ensure colour at parent node consistent with last change:
 		setNodeColour(node.getParent(), cTree.getFinalBranchColour(node));
+
+		// DEBUG:
+		// System.out.println("After REC: " + cTree.getFlattenedTree());
 	}
 	
 }

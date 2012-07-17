@@ -76,7 +76,6 @@ public class ColouredTree extends CalculationNode implements Loggable{
     protected IntegerParameter leafColours;
 
     protected Tree tree;
-    protected Tree flatTree; // the flat tree with single child nodes and colours as metadata, for logging
 	public IntegerParameter nodeColours, changeColours, changeCounts;
     public RealParameter changeTimes;
 
@@ -181,7 +180,6 @@ public class ColouredTree extends CalculationNode implements Loggable{
      *
      * @param tree The tree.
      */
-
     public int getSingleChildCount(Tree tree, List<Integer> markedForDeletion){
 
         return getSingleChildCount(tree.getRoot(), markedForDeletion);
@@ -503,7 +501,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
      */
     public void setChangeColour(Node node, int idx, int colour) {
 
-        if (idx>getChangeCount(node))
+        if (idx>=getChangeCount(node))
             throw new RuntimeException(
                     "Attempted to alter non-existent change colour.");
 
@@ -539,7 +537,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
      */
     public void setChangeTime(Node node, int idx, double time) {
 
-        if (idx>getChangeCount(node))
+        if (idx>=getChangeCount(node))
             throw new IllegalArgumentException(
                     "Attempted to alter non-existent change time.");
 
@@ -595,7 +593,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
      * @return Integer value of colour.
      */
     public int getChangeColour(Node node, int idx) {
-        if (idx>getChangeCount(node))
+        if (idx>=getChangeCount(node))
             throw new IllegalArgumentException(
                     "Index to getChangeColour exceeded total number of colour"
                             + "changes on branch.");
@@ -612,7 +610,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
      * @return Time of change.
      */
     public double getChangeTime(Node node, int idx) {
-        if (idx>getChangeCount(node))
+        if (idx>=getChangeCount(node))
             throw new IllegalArgumentException(
                     "Index to getChangeTime exceeded total number of colour"
                             + "changes on branch.");
@@ -779,7 +777,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
         // Create new tree to modify.  Note that copy() doesn't
         // initialise the node array lists, so initArrays() must
         // be called manually.
-        flatTree = tree.copy();
+        Tree flatTree = tree.copy();
         flatTree.initArrays();
 
         int nextNodeNr = tree.getNodeCount();
@@ -1005,40 +1003,15 @@ public class ColouredTree extends CalculationNode implements Loggable{
 		return getTrueNodeCount(node.getLeft());
 	}
 
-    /**
-     * Determine whether colour exists somewhere on the portion of the branch
-     * between node and its parent with age greater than t.
-     *
-     * @param node
-     * @param t
-     * @param colour
-     * @return True if colour is on branch.
-     */
-    public boolean colourIsOnSubBranch(Node node, double t, int colour) {
-
-        if (node.isRoot())
-            throw new IllegalArgumentException("Node argument to"
-                    + "colourIsOnSubBranch is not the bottom of a branch.");
-
-        if (t>node.getParent().getHeight())
-            throw new IllegalArgumentException("Time argument to"
-                    + "colourIsOnSubBranch is not on specified branch.");
-
-        int thisColour = getNodeColour(node);
-
-        for (int i=0; i<getChangeCount(node); i++) {
-            if (getChangeTime(node,i)>=t && thisColour==colour)
-                return true;
-
-            thisColour = getChangeColour(node,i);
-        }
-
-        if (thisColour==colour)
-            return true;
-
-        return false;
-    }
-
+	/**
+	 * Obtain length of sub-branch between node and its parent above time
+	 * t which has a particular colour.
+	 * 
+	 * @param node
+	 * @param t
+	 * @param colour
+	 * @return length
+	 */
     public double getColouredSegmentLength(Node node, double t, int colour) {
 
         if (node.isRoot())
@@ -1247,7 +1220,8 @@ public class ColouredTree extends CalculationNode implements Loggable{
 
     @Override
     public void log(int i, PrintStream printStream) {
-        if (flatTree==null) getFlattenedTree();
+        //if (flatTree==null)
+		Tree flatTree = getFlattenedTree();
         printStream.print("tree STATE_" + i + " = ");
         String sNewick = flatTree.getRoot().toNewick(null);
         printStream.print(sNewick);
