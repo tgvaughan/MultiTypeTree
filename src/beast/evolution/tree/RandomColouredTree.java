@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 /**
  * @author dkuh004
  *         Date: Jul 16, 2012
@@ -26,6 +28,8 @@ public class RandomColouredTree extends ColouredTree implements StateNodeInitial
     Integer[]  counts;
 
     public void initAndValidate() throws Exception{
+
+        System.out.println("in RandomColouredtree");
 
         super.initAndValidate();
 
@@ -49,14 +53,17 @@ public class RandomColouredTree extends ColouredTree implements StateNodeInitial
         changeTimesInput.get().assignFromWithoutID(new RealParameter(times));
         changeCountsInput.get().assignFromWithoutID(new IntegerParameter(counts));
 
+        if (!isValid())
+            throw new Exception("Inconsistent colour assignment.");
+        
     }
 
-    public void simulateColouring(){
+    public void simulateColouring() throws Exception {
 
         /* fill leaf colour array */
         for (int i = 0; i<tree.getLeafNodeCount(); i++){
 
-            nodeCols[i] = (int) m_trait.get().getValue( tree.getNode(i).getNr() ) ;
+            nodeCols[i] = (int) m_trait.get().getValue(i) ;
 
         }
 
@@ -73,26 +80,70 @@ public class RandomColouredTree extends ColouredTree implements StateNodeInitial
             if (left.getNodeCount() >= 3)  simulateColouring(left);
             if (right.getNodeCount() >= 3)  simulateColouring(right);
 
-            int leftCol = nodeCols[left.getNr()];
-            int rightCol = nodeCols[right.getNr()];
+            int leftCol = counts[left.getNr()]==0 ? nodeCols[left.getNr()] : changeCols[left.getNr()*maxBranchColours + counts[left.getNr()] - 1];
+            int rightCol = counts[right.getNr()]==0 ? nodeCols[right.getNr()] : changeCols[right.getNr()*maxBranchColours + counts[right.getNr()] - 1];
 
 
-            if (leftCol == rightCol) nodeCols[node.getNr()] = leftCol;
+            if (leftCol == rightCol)
+                changeNodeColour(node.getNr(), leftCol);
 
             else {
 
                 int keep = Randomizer.nextBoolean()? 1 : 0;
 
-                nodeCols[node.getNr()] = nodeCols[node.getChild(keep).getNr()];
+                if (nodeCols[node.getNr()]!=null) {
+                    if (nodeCols[node.getNr()] == leftCol) keep = 0;
+                    if (nodeCols[node.getNr()] == rightCol) keep = 1;
+                }
+
+                changeNodeColour(node.getNr(), nodeCols[node.getChild(keep).getNr()]);
 
                 Node changeChild = node.getChild(1-keep);
-                double time = (node.getHeight() - changeChild.getHeight())*Randomizer.nextDouble() + changeChild.getHeight();
+                double lowerBound = counts[changeChild.getNr()]==0 ? changeChild.getHeight() : times[changeChild.getNr()*maxBranchColours + counts[changeChild.getNr()] - 1];
+                double time = (node.getHeight() - lowerBound)*Randomizer.nextDouble() + lowerBound;
 
-                addChange(changeChild.getNr(), counts[changeChild.getNr()], nodeCols[node.getNr()], time, changeCols, times, counts);
+                addChange(changeChild.getNr(), changeChild.getNr()*maxBranchColours + counts[changeChild.getNr()], nodeCols[node.getNr()], time, changeCols, times, counts);
             }
         }
     }
 
+    public void changeNodeColour(int nodeNr, int colour){
+
+        if (!(nodeCols[nodeNr] == null ||  nodeCols[nodeNr] == colour || tree.getNode(nodeNr).isRoot())){  //nodeCols[nodeNr] = colour;
+
+      //  else {
+
+            double time;
+
+            if (counts[nodeNr] ==0) {
+
+                time = (tree.getNode(nodeNr).getParent().getHeight() - tree.getNode(nodeNr).getHeight())*Randomizer.nextDouble() + tree.getNode(nodeNr).getHeight();
+
+                addChange(nodeNr, nodeNr*maxBranchColours + counts[nodeNr], nodeCols[nodeNr], time, changeCols, times, counts);
+            }
+
+            else { // need to insert a change before all others
+
+                Node node = tree.getNode(nodeNr);
+
+                if (!(nodeCols[node.getParent().getNr()] == colour)){
+
+                    for (int i = counts[nodeNr]; i > 0; i--){
+                        times[nodeNr*maxBranchColours + i] =  times[nodeNr*maxBranchColours + i -1];
+                        changeCols[nodeNr*maxBranchColours + i] =  changeCols[nodeNr*maxBranchColours + i -1];
+                    }
+
+                    time = (times[nodeNr*maxBranchColours + 1] - node.getHeight())*Randomizer.nextDouble() + node.getHeight();
+
+                    addChange(nodeNr, nodeNr*maxBranchColours, nodeCols[nodeNr], time, changeCols, times, counts);
+                }
+                else counts[nodeNr] = 0;
+            }
+        }
+
+        nodeCols[nodeNr] = colour;
+
+    }
 
 
     public List<StateNode> getInitialisedStateNodes() {

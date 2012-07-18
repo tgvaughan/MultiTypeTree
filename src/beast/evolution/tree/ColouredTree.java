@@ -469,7 +469,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
          return nodeColours.getValues();
      }
 
-    /**
+    /**                                     
      * Set number of colours on branch between node and its parent.
      *
      * @param node
@@ -679,7 +679,7 @@ public class ColouredTree extends CalculationNode implements Loggable{
         int nodeColour = getNodeColour(node);
         for (Node child : node.getChildren()) {
 
-            // Check that final child branch colour parent node colour:
+            // Check that final child branch colour equals parent node colour:
 			if (getFinalBranchColour(child) != nodeColour)
 				return false;
 
