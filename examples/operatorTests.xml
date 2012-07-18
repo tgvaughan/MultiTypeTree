@@ -17,8 +17,8 @@
 	</tree>
 
 	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
-		<rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
-		<popSizes spec="RealParameter" value="7.0 7.0"/>
+		<rateMatrix spec='RealParameter' value="0.0" minordimension="1"/>
+		<popSizes spec="RealParameter" value="7.0"/>
 	</model>
 
 <!--
@@ -32,7 +32,7 @@
 
 		<init spec='beast.evolution.tree.ColouredTreeFromNewick'
 			id="colouredTree" tree="@tree" colouredNewick="@tree2" 
-   	     		colourLabel="state" nColours="2" maxBranchColours="100">
+   	     		colourLabel="state" nColours="1" maxBranchColours="100">
    	     	<changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
         	<changeTimes id="tree.times"  spec="RealParameter" value="0."/>
         	<changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
