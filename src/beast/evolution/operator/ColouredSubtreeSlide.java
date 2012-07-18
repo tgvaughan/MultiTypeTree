@@ -93,7 +93,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				//System.out.println("Before: " + cTree.getFlattenedTree());
 
 				// Record probability of old path:
-				double logOldProb = getBranchProb(node, 50);
+				double logOldProb = getBranchProb(node);
 				logHR += logOldProb;
 
 				// Assign new height to parent:
@@ -113,7 +113,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				//System.out.println("After: " + cTree.getFlattenedTree());
 
 				// Calculate probability of new path:
-				double logNewProb = getRootBranchProb(node, tOld, 50);
+				double logNewProb = getRootBranchProb(node, tOld);
 				logHR -= logNewProb;
 
 			} else {
@@ -124,7 +124,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				//System.out.println("Before: " + cTree.getFlattenedTree());
 
 				// Record probability of old path:
-				double logOldProb = getRootBranchProb(node, tNew, 50);
+				double logOldProb = getRootBranchProb(node, tNew);
 				logHR += logOldProb;
 
 				// Assign new height to parent:
@@ -146,7 +146,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 				//System.out.println("After: " + cTree.getFlattenedTree());
 
 				// Calculate probability of new path:
-				double logNewProb = getBranchProb(node, 50);
+				double logNewProb = getBranchProb(node);
 				logHR -= logNewProb;
 			}
 
@@ -161,87 +161,75 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	}
 
 	/**
-	 * Estimate probability of particular colour arrangement using a finite
-	 * time step approximation.  Used for testing analytical expression for
-	 * acceptance probability.
+	 * Calculate probability density of a given colour assignment.
 	 * 
 	 * @param node
-	 * @param integrationSteps
-	 * @return 
+	 * @return Log probability density.
 	 */
-	private double getBranchProb(Node node, int integrationSteps) {
+	private double getBranchProb(Node node) {
+
+		double logP = 0;
 
 		// Special case for single colour models:
 		if (cTree.getNColours()<2)
-			return 0;
+			return logP;
 
 		double ti = node.getHeight();
 		double tf = node.getParent().getHeight();
-		double dt = (tf-ti)/(integrationSteps-1);
 
-		double logP = 0;
-		int lastColour = cTree.getNodeColour(node);
+		double lastTime = ti;
 
-		for (int step=1; step<integrationSteps; step++) {
+		for (int i=0; i<cTree.getChangeCount(node); i++) {
 
-			int thisColour = cTree.getColourOnBranch(node, dt*step);
+			double thisTime = cTree.getChangeTime(node, i);
 
-			if (thisColour != lastColour) {
-				logP += Math.log(dt*mu/(cTree.getNColours()-1));
-				lastColour = thisColour;
-			} else
-				logP += Math.log(1-dt*mu);
+			double delta = thisTime - lastTime;
+			logP += -delta*mu + Math.log(mu/3);
+
+			lastTime = thisTime;
 		}
+
+		logP += -(tf-lastTime)*mu;
 
 		return logP;
 	}
 
 
 	/**
-	 * Estimate probability of particular colour arrangement beginning at
-	 * node, up to the root, then back down to the point at height t on
-	 * the branch between the root and node's sister.  Uses finite time
-	 * step approximation.  For testing analytical expression for acceptance
-	 * probability.
+	 * Calculate probability density of colour assignment from node,
+	 * up to the root, then back down to the point at height t on
+	 * the branch between the root and node's sister.
 	 * 
 	 * @param node
-	 * @param t
-	 * @param integrationSteps
-	 * @return 
+	 * @param timeOnSister
+	 * @return Log probability density.
 	 */
-	private double getRootBranchProb(Node node, double timeOnSister,
-			int integrationSteps) {
+	private double getRootBranchProb(Node node, double timeOnSister) {
+
+		double logP = 0;
 
 		// Special case for single colour models:
 		if (cTree.getNColours()<2)
-			return 0.0;
+			return logP;
+
+		// Use existing method to find probability on first branch:
+		logP += getBranchProb(node);
 
 		Node sister = getOtherChild(node.getParent(), node);
+		double lastTime = node.getParent().getHeight();
 
-		double tNode = node.getHeight();
-		double tRoot = node.getParent().getHeight();
-		double tFull = (tRoot-tNode) + (tRoot-timeOnSister);
-		double dt = tFull/(integrationSteps-1);
+		int i = cTree.getChangeCount(sister)-1;
+		while (i>0 && cTree.getChangeTime(sister, i)>timeOnSister) {
 
-		double logP = 0;
-		int lastColour = cTree.getNodeColour(node);
+			double thisTime = cTree.getChangeTime(sister, i);
+			double delta = lastTime - thisTime;
+			logP += -delta*mu + Math.log(mu/3);
 
-		for (int step=1; step<integrationSteps; step++) {
-
-			double t = dt*step + tNode;
-
-			int thisColour;
-			if (t < tRoot)
-				thisColour = cTree.getColourOnBranch(node, t);
-			else
-				thisColour = cTree.getColourOnBranch(sister, tRoot -(t-tRoot));
-
-			if (thisColour != lastColour) {
-				logP += Math.log(dt*mu/(cTree.getNColours()-1));
-				lastColour = thisColour;
-			} else
-				logP += Math.log(1-dt*mu);
+			lastTime = thisTime;
+			i -= 1;
 		}
+
+		logP += -(lastTime-timeOnSister)*mu;
 
 		return logP;
 	}	
