@@ -85,7 +85,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			logHR += logOldHeightProb;
 
 
-			if (tNew>parent.getHeight()) {
+			if (tNew>tOld) {
 				// Root age INCREASE move
 
 				// DEBUG:
@@ -171,6 +171,10 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	 */
 	private double getBranchProb(Node node, int integrationSteps) {
 
+		// Special case for single colour models:
+		if (cTree.getNColours()<2)
+			return 0;
+
 		double ti = node.getHeight();
 		double tf = node.getParent().getHeight();
 		double dt = (tf-ti)/(integrationSteps-1);
@@ -208,6 +212,10 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	private double getRootBranchProb(Node node, double timeOnSister,
 			int integrationSteps) {
 
+		// Special case for single colour models:
+		if (cTree.getNColours()<2)
+			return 0.0;
+
 		Node sister = getOtherChild(node.getParent(), node);
 
 		double tNode = node.getHeight();
@@ -244,6 +252,10 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	 * @param node 
 	 */
 	private boolean recolourBranch(Node node) {
+
+		// Early exit for single-coloured trees:
+		if (cTree.getNColours()<2)
+			return true;
 
 		// Clear current changes:
 		setChangeCount(node, 0);
@@ -284,6 +296,10 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	 * @param tOnSister 
 	 */
 	private boolean recolourRootBranch(Node node, double tOnSister) {
+
+		// Early exit for single-coloured trees:
+		if (cTree.getNColours()<2)
+			return true;
 
 		// Obtain reference to sister node:
 		Node sister = getOtherChild(node.getParent(), node);
