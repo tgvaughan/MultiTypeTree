@@ -19,6 +19,7 @@ package beast.evolution.operator;
 import beast.core.Description;
 import beast.core.Input;
 import beast.evolution.tree.Node;
+import beast.math.GammaFunction;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -168,30 +169,15 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	 */
 	private double getBranchProb(Node node) {
 
-		double logP = 0;
-
 		// Special case for single colour models:
 		if (cTree.getNColours()<2)
-			return logP;
+			return 0.0;
 
-		double ti = node.getHeight();
-		double tf = node.getParent().getHeight();
+		double delta = node.getParent().getHeight() - node.getHeight();
+		int n = cTree.getChangeCount(node);
 
-		double lastTime = ti;
-
-		for (int i=0; i<cTree.getChangeCount(node); i++) {
-
-			double thisTime = cTree.getChangeTime(node, i);
-
-			double delta = thisTime - lastTime;
-			logP += -delta*mu + Math.log(mu/3);
-
-			lastTime = thisTime;
-		}
-
-		logP += -(tf-lastTime)*mu;
-
-		return logP;
+		return -mu*delta + n*Math.log(mu*delta) - 2*GammaFunction.lnGamma(n+1)
+				- n*Math.log(cTree.getNColours()-1);
 	}
 
 
@@ -206,32 +192,25 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 	 */
 	private double getRootBranchProb(Node node, double timeOnSister) {
 
-		double logP = 0;
-
 		// Special case for single colour models:
 		if (cTree.getNColours()<2)
-			return logP;
+			return 0.0;
 
-		// Use existing method to find probability on first branch:
-		logP += getBranchProb(node);
+		double delta = node.getParent().getHeight() - node.getHeight()
+				+ node.getParent().getHeight() - timeOnSister;
 
+		int n = cTree.getChangeCount(node);
+
+		// Count changes on sister above timeOnSister:
 		Node sister = getOtherChild(node.getParent(), node);
-		double lastTime = node.getParent().getHeight();
-
-		int i = cTree.getChangeCount(sister)-1;
-		while (i>0 && cTree.getChangeTime(sister, i)>timeOnSister) {
-
-			double thisTime = cTree.getChangeTime(sister, i);
-			double delta = lastTime - thisTime;
-			logP += -delta*mu + Math.log(mu/3);
-
-			lastTime = thisTime;
-			i -= 1;
+		for (int i=cTree.getChangeCount(sister)-1;
+				i>=0 && cTree.getChangeTime(sister, i)>timeOnSister;
+				i--) {
+			n  += 1;
 		}
 
-		logP += -(lastTime-timeOnSister)*mu;
-
-		return logP;
+		return -mu*delta + n*Math.log(mu*delta) - 2*GammaFunction.lnGamma(n+1)
+				- n*Math.log(cTree.getNColours()-1);
 	}	
 
 	/**
