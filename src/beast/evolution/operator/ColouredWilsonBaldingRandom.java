@@ -103,6 +103,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		double logHR = 0;
 
         if (destNode.isRoot()) {
+			// Moving subtree to new tree root
 			
 			// Choose new root height:
             double span=2.0*(t_destNode-
@@ -126,18 +127,12 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             connectBranchToRoot(srcNode, destNode, newTime);
             tree.setRoot(srcNodeP);
 			
-			// Recolour root branches:
+			// Recolour root branches, forcing reject if inconsistent:
 			if (!recolourRootBranches(srcNode, newChangeCount))
 				return Double.NEGATIVE_INFINITY;
 
             if (m_tree.get().getRoot().getNodeCount() != nCount)
                 throw new RuntimeException("Error: Lost a child during j-root move!!!");
-
-            // Reject if colours inconsistent:
-            if ((cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(srcNodeP))
-                    || cTree.getFinalBranchColour(destNode) != cTree.getNodeColour(srcNodeP))
-                return Double.NEGATIVE_INFINITY;
-
 
 			/*
             Tree helper = cTree.getFlattenedTree();
@@ -149,66 +144,52 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             return logHR;
 
         } else if (srcNodeP.isRoot()) {
-
             // Moving subtree connected to root node.
-            double t_jP = destNodeP.getHeight();
-
-            Node CiP = getOtherChild(srcNodeP, srcNode);
-            double t_CiP = CiP.getHeight();
-
-            // Record probability of old configuration:
-            double span = 2.0*(CiP.getHeight()
-                    -Math.max((CiP.getLeft()!=null)?CiP.getLeft().getHeight():0,
-                    (CiP.getRight()!=null)?CiP.getRight().getHeight():0));
-            double probOldConfig = getPathProb(srcNode)*getPathProb(CiP)/span;
-
-            // Select height of new branch connection:
-            double newTimeMin = Math.max(srcNode.getHeight(), destNode.getHeight());
-            double newTimeMax = destNodeP.getHeight();
-            double newTime = newTimeMin +
-                    Randomizer.nextDouble()*(newTimeMax-newTimeMin);
-
-            Node sister = getOtherChild(srcNode.getParent(), srcNode);
+			
+			// Choose height of new attachement point:
+            double t_destNodeP = destNodeP.getHeight();
+			double span = t_destNodeP - Math.max(t_srcNode,t_destNode);
+			double newTime = t_destNode + span*Randomizer.nextDouble();
+			
+			// Choose number of new colour changes to generate:
+			double L = newTime - t_srcNode;
+			int newChangeCount = PoissonRandomizer.nextInt(mu*L);
+			
+			// Include probability of chosen move in HR:
+			logHR -= getLogMoveProb(srcNode, destNode, newTime, newChangeCount);
+			
+			// Include probability of reverse move in HR:
+			Node reverseDestNode = getOtherChild(srcNodeP, srcNode);
+			logHR += getLogMoveProb(srcNode, reverseDestNode, t_srcNodeP,
+					cTree.getChangeCount(srcNode));
 
             // Implement tree changes:
             disconnectBranchFromRoot(srcNode);
-            connectBranch(srcNode, destNode, newTime);
-
-            sister.setParent(null);
-            tree.setRoot(sister);
+            connectBranch(srcNode, destNode, newTime);			
+			Node srcNodeSister = getOtherChild(srcNode.getParent(), srcNode);
+            srcNodeSister.setParent(null);
+            tree.setRoot(srcNodeSister);
 
             if (m_tree.get().getRoot().getNodeCount() != nCount)
                 throw new RuntimeException("Error: Lost a child during iP-root move!!!");
 
+            // Recolour new branch, rejecting outright if inconsistent:
+			if (!recolourBranch(srcNode, nCount))
+				return Double.NEGATIVE_INFINITY;
 
-            // Recolour new branch:
-            recolourBranch(srcNode);
 
-
-            // Reject if colours inconsistent:
-            if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(srcNodeP))
-                return Double.NEGATIVE_INFINITY;
-
-            // Calculate probability of new configuration
-            double probNewConfig = getPathProb(srcNode)/
-                    (t_jP - Math.max(t_destNode,t_srcNode));
-
-            // Calculate Hastings ratio:
-            double HR = probOldConfig/probNewConfig;
-
+            // Raise exception if colour change doesn't change anything
             Tree helper = cTree.getFlattenedTree();
+            if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))
+                throw new RuntimeException("Error: "
+						+ "CWBR operator proposing invalid moves. "
+						+ "This is a BUG!");
 
-            // reject if colour change doesn't change anything
-            if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))     // invalid tree
-                return Double.NEGATIVE_INFINITY;
-
-            return Math.log(HR);
+            return logHR;
         }
 
         else {
-
-
-            // Case where root is not involved:
+            // Root is not involved:
 
             double t_jP = destNodeP.getHeight();
 
