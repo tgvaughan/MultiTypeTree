@@ -54,11 +54,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
     public Input<RealParameter> muInput = new Input<RealParameter>("mu",
             "Migration rate for proposal distribution", Validate.REQUIRED);
 	
-	public Input<RealParameter> rootScaleInput = new Input<RealParameter>(
-			"rootSccale", "Scaling parameter for root height changes",
-			Validate.REQUIRED);
-	
-	private double mu, rootScale;
+	private double mu;
 
     @Override
     public void initAndValidate() {}
@@ -68,7 +64,6 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
         cTree = colouredTreeInput.get();
         Tree tree = m_tree.get(this);
 		mu = muInput.get().getValue();
-		rootScale = rootScaleInput.get().getValue();
 
 		// Select source node:
         Node srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
@@ -102,6 +97,8 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		// Initialise variable to keep track of HR:
 		double logHR = 0;
 
+		// Handle special cases involving root:
+		
         if (destNode.isRoot()) {
 			// Moving subtree to new tree root
 			
@@ -115,12 +112,13 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			int newChangeCount = PoissonRandomizer.nextInt(mu*L);
 			
 			// Include probability of chosen move in HR:
-			logHR -= getLogMoveProb(srcNode, destNode, newTime, newChangeCount);
+			logHR -= getLogMoveProb(srcNode, destNode, true,
+					newTime, newChangeCount);
 			
 			// Include probability of reverse move in HR:
 			Node reverseDestNode = getOtherChild(srcNodeP, srcNode);
-			logHR += getLogMoveProb(srcNode, reverseDestNode, t_srcNodeP,
-					cTree.getChangeCount(srcNodeP));
+			logHR += getLogMoveProb(srcNode, reverseDestNode, false,
+					t_srcNodeP,	cTree.getChangeCount(srcNodeP));
 
             // Implement tree changes:
             disconnectBranch(srcNode);
@@ -142,31 +140,37 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			*/
 
             return logHR;
-
-        } else if (srcNodeP.isRoot()) {
+        }
+		
+		if (srcNodeP.isRoot()) {
             // Moving subtree connected to root node.
 			
 			// Choose height of new attachement point:
+			double min_newTime = Math.max(t_srcNode, t_destNode);
             double t_destNodeP = destNodeP.getHeight();
-			double span = t_destNodeP - Math.max(t_srcNode,t_destNode);
-			double newTime = t_destNode + span*Randomizer.nextDouble();
+			double span = t_destNodeP - min_newTime;
+			double newTime = min_newTime + span*Randomizer.nextDouble();
 			
 			// Choose number of new colour changes to generate:
 			double L = newTime - t_srcNode;
 			int newChangeCount = PoissonRandomizer.nextInt(mu*L);
 			
 			// Include probability of chosen move in HR:
-			logHR -= getLogMoveProb(srcNode, destNode, newTime, newChangeCount);
+			logHR -= getLogMoveProb(srcNode, destNode, false,
+					newTime, newChangeCount);
 			
-			// Include probability of reverse move in HR:
+			// Include probability of reverse move in HR.
+			// Note: this can yield -infinity, which forces a reject.
+			// This automatically discards forward moves for which the reverse
+			// move is impossible.
 			Node reverseDestNode = getOtherChild(srcNodeP, srcNode);
-			logHR += getLogMoveProb(srcNode, reverseDestNode, t_srcNodeP,
-					cTree.getChangeCount(srcNode));
+			logHR += getLogMoveProb(srcNode, reverseDestNode, true,
+					t_srcNodeP,	cTree.getChangeCount(srcNode));
 
             // Implement tree changes:
+			Node srcNodeSister = getOtherChild(srcNode.getParent(), srcNode);
             disconnectBranchFromRoot(srcNode);
             connectBranch(srcNode, destNode, newTime);			
-			Node srcNodeSister = getOtherChild(srcNode.getParent(), srcNode);
             srcNodeSister.setParent(null);
             tree.setRoot(srcNodeSister);
 
@@ -188,61 +192,52 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             return logHR;
         }
 
-        else {
-            // Root is not involved:
+		// Root is not involved:
 
-            double t_jP = destNodeP.getHeight();
+		// Choose height of new attachment point:
+		double min_newTime = Math.max(t_destNode, t_srcNode);
+		double t_destNodeP = destNodeP.getHeight();
+		double span = t_destNodeP - min_newTime;
+		double newTime = min_newTime + span*Randomizer.nextDouble();
 
-            Node CiP = getOtherChild(srcNodeP, srcNode);
-            double t_CiP = CiP.getHeight();
+		// Choose number of new colour changes to generate:
+		double L = newTime - t_srcNode;
+		int newChangeCount = PoissonRandomizer.nextInt(mu*L);
 
-            Node PiP = srcNodeP.getParent();
-            double t_PiP = PiP.getHeight();
+		// Include probability of chosen move in HR:
+		logHR -= getLogMoveProb(srcNode, destNode, false,
+				newTime, newChangeCount);
 
-            // Record probability of old branch colouring (needed for HR):
-            double oldColourProb = getPathProb(srcNode);
+		// Include probability of reverse move in HR:
+		Node reverseDestNode = getOtherChild(srcNodeP, srcNode);
+		logHR += getLogMoveProb(srcNode, reverseDestNode, false,
+				t_srcNodeP,	cTree.getChangeCount(srcNode));
 
-            // Select height of new node:
-            double newTimeMin = Math.max(srcNode.getHeight(), destNode.getHeight());
-            double newTimeMax = destNodeP.getHeight();
-            double newTime = newTimeMin +
-                    Randomizer.nextDouble()*(newTimeMax-newTimeMin);
+		// Implement tree changes:
+		disconnectBranch(srcNode);
+		connectBranch(srcNode, destNode, newTime);
 
-            // Implement tree changes:
-            disconnectBranch(srcNode);
-            connectBranch(srcNode, destNode, newTime);
+		if (m_tree.get().getRoot().getNodeCount() != nCount)
+			throw new RuntimeException("Error: Lost a child during non-root move!!!");
 
-            if (m_tree.get().getRoot().getNodeCount() != nCount)
-                throw new RuntimeException("Error: Lost a child during non-root move!!!");
+		// Recolour new branch, rejecting outright if inconsistent:
+		if (!recolourBranch(srcNode, newChangeCount))
+			return Double.NEGATIVE_INFINITY;
 
-            // Recolour new branch:
-            recolourBranch(srcNode);
+		/*  What's this, Denise?
+		try{
+			cTree.setInputValue("tree", tree);
+		}catch(Exception e){System.out.println(e.getMessage());}
+		*/
 
-            // Reject if colours inconsistent:
-            if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(srcNodeP))
-                return Double.NEGATIVE_INFINITY;
+		// Raise exception if colour change doesn't change anything:
+		Tree helper = cTree.getFlattenedTree();
+		if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))
+			throw new RuntimeException("Error: "
+					+ "CWBR operator proposing invalid moves. "
+					+ "This is a BUG!");
 
-            // Calculate probability of new branch colouring:
-            double newColourProb = getPathProb(srcNode);
-
-            double HR = (oldColourProb/(t_PiP-Math.max(t_srcNode,t_CiP)))/
-                    (newColourProb/(t_jP-Math.max(t_srcNode,t_destNode)));
-
-            try{
-
-                cTree.setInputValue("tree", tree);
-
-            }catch(Exception e){System.out.println(e.getMessage());}
-
-
-            Tree helper = cTree.getFlattenedTree();
-
-            // reject if colour change doesn't change anything
-            if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))     // invalid tree
-                return Double.NEGATIVE_INFINITY;
-
-            return Math.log(HR);
-        }
+		return logHR;
     }
 	
 	/**
@@ -330,7 +325,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		// Set colours along branch between srcNode and root:
 		int endColFirst = cTree.getNodeColour(srcNode);
 		int i=0;
-		while (times[i]<Lfirst) {
+		while (i<nChanges && times[i]<Lfirst) {
 			addChange(srcNode, colours[i], times[i]+t_srcNode);
 			endColFirst = colours[i];
 			i += 1;
@@ -408,10 +403,12 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 	 * 
 	 * @param srcNode
 	 * @param destNode
+	 * @param destNodeIsRoot If true, destNode is assumed to be a root node.
 	 * @param t_srcNodePNew
 	 * @return 
 	 */
 	private double getLogMoveProb(Node srcNode, Node destNode,
+			boolean destNodeIsRoot,
 			double t_srcNodePNew, int nColourChangesNew) {
 		
 		double logP = 0;
@@ -421,13 +418,17 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		
 		double L, h;
 
-		if (destNode.isRoot()) {
+		if (destNodeIsRoot) {
 			
 			// Range over which root height was chosen:
 			double tMax_destNodeC = Math.max(
-					srcNode.getLeft().getHeight(),
-					srcNode.getRight().getHeight());
+					destNode.getLeft().getHeight(),
+					destNode.getRight().getHeight());
 			h = 2.0*(t_destNode - tMax_destNodeC);
+			
+			// Check for validity of chosen time:
+			if (t_srcNodePNew>t_destNode + h)
+				return Double.NEGATIVE_INFINITY;
 
 			// Length of new branch to recolour:
 			L = 2*t_srcNodePNew - t_srcNode - t_destNode;
