@@ -26,7 +26,7 @@
 
 		<init spec='beast.evolution.tree.ColouredTreeFromNewick'
 			id="colouredTree" tree="@tree" colouredNewick="@tree2" 
-   	     		colourLabel="state" nColours="2" maxBranchColours="20">
+   	     		colourLabel="state" nColours="2" maxBranchColours="100">
    	     	<changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
         	<changeTimes id="tree.times"  spec="RealParameter" value="0."/>
         	<changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
@@ -39,7 +39,7 @@
 			<stateNode idref="tree.counts"/>
 			<stateNode idref="tree.nodecols"/>
 			<stateNode spec="beast.evolution.tree.Tree" id="tree"/>
-			<stateNode spec="RealParameter" value="1.0" id="mu"/>
+			<stateNode spec="RealParameter" value="0.1" id="mu"/>
 		</state>
         
 		<distribution spec="CompoundDistribution" id="prior">
@@ -52,7 +52,10 @@
 		</distribution>
 
 		<operator spec='beast.evolution.operator.ColouredWilsonBaldingRandom' id="CWBR"
-			weight="1" tree="@tree" colouredTree='@colouredTree' mu="@mu"/>
+			weight="0.5" tree="@tree" colouredTree='@colouredTree' mu="@mu"/>
+		<operator spec='beast.evolution.operator.ColouredSubtreeSlide' id="STS"
+			weight="0.5" tree="@tree" colouredTree="@colouredTree"
+			mu="0.1" rootSlideParam="2.0" />
 
 		<logger logEvery="1000" fileName="colouredWBtest.log">
 			<model idref='prior'/>
