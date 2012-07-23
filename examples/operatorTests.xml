@@ -17,18 +17,16 @@
 	</tree>
 
 	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
-		<rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="1"/>
+		<rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
 		<popSizes spec="RealParameter" value="7.0 7.0"/>
 	</model>
 
-<!--
-	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
+<!--	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
 		<rateMatrix spec='RealParameter' value="0.0" minordimension="1"/>
 		<popSizes spec="RealParameter" value="7.0"/>
-	</model>
--->
+	</model>-->
 	    
-    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
+    <run spec="MCMC" id="mcmc" chainLength="20000000"> 
 
 		<init spec='beast.evolution.tree.ColouredTreeFromNewick'
 			id="colouredTree" tree="@tree" colouredNewick="@tree2" 
@@ -57,12 +55,12 @@
 		</distribution>
 
 		<operator spec='beast.evolution.operator.ColouredTreeScale' id="CTS"
-			weight="0.0" tree="@tree" colouredTree='@colouredTree'
-			scaleParam="2.0"/>
+				  weight="0.5" tree="@tree" colouredTree='@colouredTree'
+				  scaleParam="2.0"/>
 
 		<operator spec='beast.evolution.operator.ColouredSubtreeSlide' id="STS"
-			weight="1.0" tree="@tree" colouredTree="@colouredTree"
-			mu="0.1" rootSlideParam="2.0" />
+				  weight="0.5" tree="@tree" colouredTree="@colouredTree"
+				  mu="0.1" rootSlideParam="2.0" />
 
 		<logger logEvery="1000" fileName="operatorTests.log">
 			<model idref='P'/>
