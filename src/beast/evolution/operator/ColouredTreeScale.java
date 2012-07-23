@@ -42,15 +42,20 @@ public class ColouredTreeScale extends ColouredTreeOperator {
 		tree = cTree.getUncolouredTree();
 
 		// Record old tree height:
-		double h = tree.getRoot().getHeight();
+		double hOld = tree.getRoot().getHeight();
 
 		// Choose scale factor:
 		double u = Randomizer.nextDouble();
 		double f = u*m_scaleParam.get() + (1.0-u)/m_scaleParam.get();
 
+		// Count scaled elements:
+		int n = 0;
+		
 		// Scale internal node heights:
-		for (Node node : tree.getInternalNodes())
+		for (Node node : tree.getInternalNodes()) {
 			node.setHeight(node.getHeight()*f);
+			n += 1;
+		}
 
 		// Ensure new node heights make sense, force reject if not:
 		if (u<1.0 && !validateSubtreeNodeHeights(tree.getRoot()))
@@ -61,14 +66,15 @@ public class ColouredTreeScale extends ColouredTreeOperator {
 			for (int c=0; c<cTree.getChangeCount(node); c++) {
 				double oldTime = cTree.getChangeTime(node, c);
 				setChangeTime(node, c, f*oldTime);
+				n += 1;
 			}
 		}
 
 		// New tree height:
-		double hPrime = tree.getRoot().getHeight();
+		double hNew = tree.getRoot().getHeight();
 
 		// Return Hastings ratio:
-		return Math.log(h) - Math.log(hPrime);
+		return (n-2)*Math.log(f);
 	}
 
 	/**
