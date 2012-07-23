@@ -10,7 +10,7 @@
 
 	<input name='newick'>
 
-		(1[state='0']:1,2[state='1']:1)[state='0']:0;
+		(1[state='0']:1,2[state='0']:1)[state='0']:0;
 
 	</input>
 
@@ -57,11 +57,11 @@
 		</distribution>
 
 		<operator spec='beast.evolution.operator.ColouredTreeScale' id="CTS"
-			weight="0.5" tree="@tree" colouredTree='@colouredTree'
+			weight="0.0" tree="@tree" colouredTree='@colouredTree'
 			scaleParam="2.0"/>
 
 		<operator spec='beast.evolution.operator.ColouredSubtreeSlide' id="STS"
-			weight="0.5" tree="@tree" colouredTree="@colouredTree"
+			weight="1.0" tree="@tree" colouredTree="@colouredTree"
 			mu="0.1" rootSlideParam="2.0" />
 
 		<logger logEvery="1000" fileName="operatorTests.log">

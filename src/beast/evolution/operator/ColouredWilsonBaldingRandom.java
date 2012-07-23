@@ -25,15 +25,7 @@ import beast.evolution.tree.Tree;
 import beast.math.GammaFunction;
 import beast.util.PoissonRandomizer;
 import beast.util.Randomizer;
-import com.google.common.collect.Lists;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import org.apache.commons.math.distribution.PoissonDistribution;
-import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
 /**
  * Wilson-Balding branch swapping operator applied to coloured trees.
@@ -455,7 +447,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		
 		// Probability of a particular choice of the random numbers used
 		// to select the colour change times:
-		logP += -GammaFunction.lnGamma(nColourChangesNew+1);
+		logP += -(nColourChangesNew*Math.log(L) - GammaFunction.lnGamma(nColourChangesNew+1));
 		
 		return logP;
 	}

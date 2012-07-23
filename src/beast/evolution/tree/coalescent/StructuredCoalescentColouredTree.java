@@ -28,6 +28,10 @@ import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -413,7 +417,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		RealParameter popSizes = new RealParameter();
 		popSizes.initByName(
 				"dimension",2,
-				"value", "5.0 5.0");
+				"value", "7.0 7.0");
 		MigrationModel migrationModel = new MigrationModel();
 		migrationModel.initByName(
 				"rateMatrix", rateMatrix,
@@ -423,15 +427,18 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		IntegerParameter leafColours = new IntegerParameter();
 		leafColours.initByName(
 				"dimension",2,
-				"value", "0 0 0 0");
+				"value", "0 1");
 
 		// Generate ensemble:
-		int reps = 10000;
+		int reps = 50000;
 		double[] heights = new double[reps];
 		
 		long startTime = System.currentTimeMillis();
 		
 		for (int i=0; i<reps; i++) {
+			
+			if (i%1000 == 0)
+				System.out.format("%d reps done\n", i);
 
 			StructuredCoalescentColouredTree sctree;
 			sctree = new StructuredCoalescentColouredTree();
@@ -453,6 +460,11 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		
 		System.out.printf("Took %1.2f seconds\n", time/1000.0);
 		
+		PrintStream outStream = new PrintStream(new File("heights.txt"));
+		outStream.println("h");
+		for (int i=0; i<reps; i++)
+			outStream.println(heights[i]);
+		outStream.close();
 
 	}
 	
