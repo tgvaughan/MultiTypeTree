@@ -74,11 +74,13 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 		if (parent.isRoot()) {
 			
 			// Select new height of parent:
-			double tMinHard = Math.max(t_node, t_sister);
-			double tMin = (t_parentOld-tMinHard)/rootSlideParam + tMinHard;
-			double tMax = (t_parentOld-tMinHard)*rootSlideParam + tMinHard;
-			double t_parentNew = tMin + Randomizer.nextDouble()*(tMax-tMin);
-
+			double u = Randomizer.nextDouble();
+			double f = u*rootSlideParam + (1.0-u)/rootSlideParam;
+			double tMin = Math.max(t_node, t_sister);
+			double t_parentNew = tMin + f*(t_parentOld-tMin);
+			
+			logHR += -Math.log(f);
+			
 			if (t_parentNew>t_parentOld) {
 				// Root age INCREASE move
 
@@ -181,7 +183,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			return Double.NEGATIVE_INFINITY;
 		
 		// Probability of selecting new time:
-		logP += Math.log(1.0/(tMax-tMin));
+		//logP += Math.log(1.0/(tMax-tMin));
 		
 		// Probability of selecting nChanges colour change events:
 		double L;

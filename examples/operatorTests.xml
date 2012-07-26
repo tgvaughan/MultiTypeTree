@@ -30,12 +30,12 @@
 
 		<init spec='beast.evolution.tree.ColouredTreeFromNewick'
 			id="colouredTree" tree="@tree" colouredNewick="@tree2" 
-   	     		colourLabel="state" nColours="2" maxBranchColours="100">
+   	     		colourLabel="state" nColours="2" maxBranchColours="200">
    	     	<changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
         	<changeTimes id="tree.times"  spec="RealParameter" value="0."/>
         	<changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
         	<nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
-	</init>
+		</init>
       
 		<state>
 			<stateNode idref="tree.cols"/>
@@ -54,13 +54,13 @@
 
 		</distribution>
 
-		<!-- <operator spec='beast.evolution.operator.ColouredTreeScale' id="CTS"
-				  weight="0.5" tree="@tree" colouredTree='@colouredTree'
-				  scaleParam="2.0"/> -->
+		<!--<operator spec='beast.evolution.operator.ColouredTreeScale' id="CTS"
+				  weight="0.1" tree="@tree" colouredTree='@colouredTree'
+				  scaleParam="2.0"/>-->
 
 		<operator spec='beast.evolution.operator.ColouredSubtreeSlide' id="STS"
 				  weight="1.0" tree="@tree" colouredTree="@colouredTree"
-				  mu="0.1" rootSlideParam="2.0" />
+				  mu="0.2" rootSlideParam="2.0" />
 
 		<logger logEvery="1000" fileName="operatorTests.log">
 			<model idref='P'/>
