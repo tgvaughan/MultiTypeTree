@@ -79,8 +79,6 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			double tMin = Math.max(t_node, t_sister);
 			double t_parentNew = tMin + f*(t_parentOld-tMin);
 			
-			logHR += -Math.log(f);
-			
 			if (t_parentNew>t_parentOld) {
 				// Root age INCREASE move
 
@@ -183,7 +181,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			return Double.NEGATIVE_INFINITY;
 		
 		// Probability of selecting new time:
-		//logP += Math.log(1.0/(tMax-tMin));
+		logP += Math.log(1.0/(tMax-tMin));
 		
 		// Probability of selecting nChanges colour change events:
 		double L;
@@ -191,14 +189,14 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			L = (newParentTime-t_node) + (newParentTime-t_parentOld);
 		else
 			L = newParentTime-t_node;
-		logP += -mu*L + nChanges*Math.log(mu*L)
-				- GammaFunction.lnGamma(nChanges+1);
+		logP += -mu*L + nChanges*Math.log(mu*L);
+				//- GammaFunction.lnGamma(nChanges+1);
 		
 		// Probability of selecting a particular colour assignment:
 		logP += nChanges*Math.log(1.0/(cTree.getNColours()-1));
 		
 		// Probability of drawing a particular sequence of ordered change times:
-		logP += -(nChanges*Math.log(L) - GammaFunction.lnGamma(nChanges+1));
+		logP += -(nChanges*Math.log(L)); // - GammaFunction.lnGamma(nChanges+1));
 				
 		return logP;
 	}

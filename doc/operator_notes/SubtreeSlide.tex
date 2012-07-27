@@ -1,0 +1,26 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{intersections}
+
+\begin{document}
+
+\section{Root move acceptance probability}
+
+The root move acts on a state vector $x=\{T,\vec{t}_A,\vec{t}_B,n_A,n_B\}$
+where $T$ is the age of the root, $\vec{t}_A$ are the ages of
+$n_A$ migration events on root-connected-edge $A$ and $\vec{t}_B$ are the
+ages of $n_B$ events on root-connected-edge $B$.
+
+The subtree slide move draws a new state $x'=\{T',\vec{t}'_A,\vec{t}'_B\}$
+from the following proposal density:
+\begin{align}
+  q(x'|x) &= P(T',\vec{t}'_A,n'_A,\vec{t}'_B,n'_B|x) \nonumber \\
+& = P(T'|T)P(n'_A|T',T)P(n'_B|T',T)P(\vec{t}_A|n'_A)P(\vec{t}_B|n'_B)
+\end{align}
+where
+\begin{align}
+  P(T'|T) &= f
+\end{align}
+\end{document}

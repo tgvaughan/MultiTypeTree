@@ -31,4 +31,9 @@ public class MultitypeTree extends Tree {
 	protected List<Integer> [] changeColours;
 	protected List<Integer> [] nodeColours;
 	
+	@Override
+	public void initAndValidate() throws Exception {
+		super.initAndValidate();
+	}
+	
 }
