@@ -8,19 +8,65 @@
 
 \section{Root move acceptance probability}
 
-The root move acts on a state vector $x=\{T,\vec{t}_A,\vec{t}_B,n_A,n_B\}$
-where $T$ is the age of the root, $\vec{t}_A$ are the ages of
-$n_A$ migration events on root-connected-edge $A$ and $\vec{t}_B$ are the
-ages of $n_B$ events on root-connected-edge $B$.
+The root move acts on a state vector $x=\{T;n_A,t_A,c_A;n_B,t_B,c_B\}$
+where $T$ is the age of the root, $n_A$ and $n_B$ are the numbers of
+migration events along each of the two root-connected edges, the
+vectors $t_A$ and $t_B$ contain the times of these events and the
+vectors $c_A$ and $c_B$ similarly contain the destination colours of
+the events.
 
-The subtree slide move draws a new state $x'=\{T',\vec{t}'_A,\vec{t}'_B\}$
+The subtree slide move draws a new state $x'=\{T',t_A,t'_B\}$
 from the following proposal density:
 \begin{align}
   q(x'|x) &= P(T',\vec{t}'_A,n'_A,\vec{t}'_B,n'_B|x) \nonumber \\
 & = P(T'|T)P(n'_A|T',T)P(n'_B|T',T)P(\vec{t}_A|n'_A)P(\vec{t}_B|n'_B)
 \end{align}
-where
+
+\subsection{Tree height proposal}
+
+The new tree height is selected by drawing $f'\sim g_\gamma=U(1/\gamma,\gamma)$
+then setting $T'=fT$. We can then write
+\begin{equation}
+  P(T'|T)=\int df'\delta(T'-f'T)g_\gamma(f')
+\end{equation}
+
+\subsection{Migration count proposal}
+
+The new migration counts $n'_A$ and $n'_B$ are chosen from Poissonian
+distributions with means of $T'\mu$, where $\mu$ is a tuning
+parameter.  That is,
+\begin{equation}
+  P(n'_A|T',T)=e^{-T'\mu}\frac{(T'\mu)^{n'_A}}{n'_A!}
+\end{equation}
+and similarly for $P(n'_B|T',T)$.
+
+\subsection{Migration times proposal}
+
+Each of the new migration times in $t'_A$ is chosen by drawing $n'_A$
+values $\tau'_A$ independently from $U(0,T')$, then sorting them from smallest
+to largest.  If we denote the sorting function $t'_A=S(\tau'_A)$ we
+can write
 \begin{align}
-  P(T'|T) &= P(f|\gamma)
+  P(t'_A|n'_A) &= \int_{[0,T']^{n'_A}}
+  d^{n'_A}\tau'_A\delta(t'_A-S(\tau'_A))(T')^{-n'_A}\nonumber\\
+&= \frac{n'_A!}{(T')^{n'_A}}
 \end{align}
+The proposal $P(t'_B|n'_B)$ is defined similarly.
+
+\subsection{Migration colours proposal}
+
+Each migration event results in a change of colour at that point in
+the lineage. The new colour is selected at random from those remaining
+after the present colour is excluded. That is
+\begin{equation}
+  P(c'_A|n'_A) = \frac{1}{(N-1)^{n'_A}}
+\end{equation}
+where $N$ is the total number of available colours. $P(c'_A|n'_B)$ is
+defined similarly.
+
+
+
 \end{document}
+
+Reviewed-by: Tim Vaughan <tgvaughan@gmail.com>
+Tested-by: Tim Vaughan <tgvaughan@gmail.com>
