@@ -25,9 +25,17 @@ from the following proposal density:
 \subsection{Tree height proposal}
 
 The new tree height is selected by drawing $f'\sim g_\gamma=U(1/\gamma,\gamma)$
-then setting $T'=fT$. We can then write
+then setting $T'=f'T$. We can then write
 \begin{equation}
   P(T'|T)=\int df'\delta(T'-f'T)g_\gamma(f')
+\end{equation}
+Performing the change of variables $f'\rightarrow z$ where $z=Tf'$
+allows us to evaluate this and obtain
+\begin{equation}
+  P(T'|T)=\left\{\begin{array}{rl}
+\frac{1}{T} & \text{for } \frac{T}{\gamma}\leq T' \leq\gamma T\\
+0 & \text{otherwise}
+\end{array}\right.
 \end{equation}
 
 \subsection{Migration count proposal}
@@ -64,9 +72,33 @@ after the present colour is excluded. That is
 where $N$ is the total number of available colours. $P(c'_A|n'_B)$ is
 defined similarly.
 
+\subsection{Full proposal}
 
+Combining these partial proposals yields the following expression for
+the proposal distribution:
+\begin{align}
+  q(x'|x)&=
+  \frac{1}{T}I(\frac{T'}{T}\in[\frac{1}{\gamma},\gamma])\times
+  e^{-T'\mu}\frac{(T'\mu)^{n'_A}}{n'_A!}\times
+  \frac{n'_A!}{(T')^{n'_A}}\times \frac{1}{(N-1)^{n'_A}}\nonumber\\
+&\times e^{-T'\mu}\frac{(T'\mu)^{n'_B}}{n'_B!}\times
+  \frac{n'_B!}{(T')^{n'_B}}\times \frac{1}{(N-1)^{n'_B}}\nonumber\\
+&=\left\{\begin{array}{rl}
+\frac{1}{T}e^{-2T'\mu}\left(\frac{\mu}{N-1}\right)^{n'_A+n'_B} & \text{ for }
+\frac{T}{\gamma}\leq T' \leq T\gamma\\
+0 & \text{ otherwise}
+\end{array}\right.
+\end{align}
+
+\subsection{Acceptance probability}
+
+The acceptance probability $\alpha(x'|x)$ must be defined so that
+\begin{equation}
+  \int_Wdx'\int_Vdx\,q(x'|x)\alpha(x'|x)\pi(x)=\int_Wdx'\int_Vdx\,q(x|x')\alpha(x|x')\pi(x')
+\end{equation}
+Therefore we choose
+\begin{equation}
+  \alpha(x'|x)=\min\left[1,\frac{\pi(x')q(x|x')}{\pi(x)q(x'|x)}\right]
+\end{equation}
 
 \end{document}
-
-Reviewed-by: Tim Vaughan <tgvaughan@gmail.com>
-Tested-by: Tim Vaughan <tgvaughan@gmail.com>

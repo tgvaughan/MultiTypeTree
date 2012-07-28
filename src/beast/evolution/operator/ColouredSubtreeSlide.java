@@ -181,7 +181,7 @@ public class ColouredSubtreeSlide extends ColouredTreeOperator {
 			return Double.NEGATIVE_INFINITY;
 		
 		// Probability of selecting new time:
-		logP += Math.log(1.0/(tMax-tMin));
+		logP += Math.log(1.0/(t_parentOld - tMinHard));
 		
 		// Probability of selecting nChanges colour change events:
 		double L;

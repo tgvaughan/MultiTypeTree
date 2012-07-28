@@ -30,7 +30,7 @@
 
 		<init spec='beast.evolution.tree.ColouredTreeFromNewick'
 			id="colouredTree" tree="@tree" colouredNewick="@tree2" 
-   	     		colourLabel="state" nColours="2" maxBranchColours="200">
+   	     		colourLabel="state" nColours="2" maxBranchColours="100">
    	     	<changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
         	<changeTimes id="tree.times"  spec="RealParameter" value="0."/>
         	<changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
