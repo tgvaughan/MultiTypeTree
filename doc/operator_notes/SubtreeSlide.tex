@@ -1,8 +1,6 @@
 \documentclass[a4paper, 11pt]{article}
 
 \usepackage{amsmath}
-\usepackage{tikz}
-\usetikzlibrary{intersections}
 
 \begin{document}
 
@@ -19,21 +17,22 @@ The subtree slide move draws a new state $x'=\{T',t_A,t'_B\}$
 from the following proposal density:
 \begin{align}
   q(x'|x) &= P(T',\vec{t}'_A,n'_A,\vec{t}'_B,n'_B|x) \nonumber \\
-& = P(T'|T)P(n'_A|T',T)P(n'_B|T',T)P(\vec{t}_A|n'_A)P(\vec{t}_B|n'_B)
+& = P(T'|T)P(n'_A|T',T)P(n'_B|T',T)P(t_A|n'_A)P(\vec{t}_B|n'_B)
 \end{align}
 
 \subsection{Tree height proposal}
 
 The new tree height is selected by drawing $f'\sim g_\gamma=U(1/\gamma,\gamma)$
 then setting $T'=f'T$. We can then write
-\begin{equation}
-  P(T'|T)=\int df'\delta(T'-f'T)g_\gamma(f')
-\end{equation}
+\begin{align}
+  P(T'|T)&=\int df'\delta(T'-f'T)g_\gamma(f')\nonumber\\
+&=\int_{\gamma^{-1}}^{\gamma}df'\delta(T'-f'T)\frac{1}{\gamma-\gamma^{-1}}
+\end{align}
 Performing the change of variables $f'\rightarrow z$ where $z=Tf'$
 allows us to evaluate this and obtain
 \begin{equation}
   P(T'|T)=\left\{\begin{array}{rl}
-\frac{1}{T} & \text{for } \frac{T}{\gamma}\leq T' \leq\gamma T\\
+\frac{1}{T(\gamma-\gamma^{-1})} & \text{for } \frac{T}{\gamma}\leq T' \leq\gamma T\\
 0 & \text{otherwise}
 \end{array}\right.
 \end{equation}
@@ -78,13 +77,13 @@ Combining these partial proposals yields the following expression for
 the proposal distribution:
 \begin{align}
   q(x'|x)&=
-  \frac{1}{T}I(\frac{T'}{T}\in[\frac{1}{\gamma},\gamma])\times
+  \frac{1}{T(\gamma-\gamma^{-1})}I(\frac{T'}{T}\in[\frac{1}{\gamma},\gamma])\times
   e^{-T'\mu}\frac{(T'\mu)^{n'_A}}{n'_A!}\times
   \frac{n'_A!}{(T')^{n'_A}}\times \frac{1}{(N-1)^{n'_A}}\nonumber\\
 &\times e^{-T'\mu}\frac{(T'\mu)^{n'_B}}{n'_B!}\times
   \frac{n'_B!}{(T')^{n'_B}}\times \frac{1}{(N-1)^{n'_B}}\nonumber\\
 &=\left\{\begin{array}{rl}
-\frac{1}{T}e^{-2T'\mu}\left(\frac{\mu}{N-1}\right)^{n'_A+n'_B} & \text{ for }
+\frac{1}{T(\gamma-\gamma^{-1})}e^{-2T'\mu}\left(\frac{\mu}{N-1}\right)^{n'_A+n'_B} & \text{ for }
 \frac{T}{\gamma}\leq T' \leq T\gamma\\
 0 & \text{ otherwise}
 \end{array}\right.

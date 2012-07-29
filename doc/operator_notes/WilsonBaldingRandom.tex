@@ -1,0 +1,135 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+\usepackage{amsmath}
+
+\title{Coloured Wilson-Balding Random\\%
+acceptance probability calculations}
+
+\begin{document}
+
+\maketitle
+
+\section{Non-root move}
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\coordinate (leaf1) at (-4,0);
+\coordinate (leaf2) at (-1,0);
+\coordinate (leaf3) at (1,0);
+\coordinate (leaf4) at (4,0);
+\coordinate (internal) at (0,1);
+\coordinate (root) at (0,4);
+
+\draw (leaf2)--(internal) node[below]{$i$}--(leaf3);
+\draw (leaf1)--(root) node[right=3pt]{$j_p$}--(leaf4) node[right]{$j$};
+\fill (root) circle (0.05);
+\fill (internal) circle (0.05);
+\fill (leaf1) circle (0.05);
+\fill (leaf2) circle (0.05);
+\fill (leaf3) circle (0.05);
+\fill (leaf4) circle (0.05);
+
+% AUCTeX preview can't handle this:
+%\coordinate (source) at ($(leaf1)!0.6!(root)$);
+%\coordinate (dest) at ($(leaf4)!0.5!(root)$);
+%\draw (internal)--(source);
+%\draw [dashed] (internal)--(dest);
+%\fill (source) circle (0.05);
+%\fill (dest) circle (0.05);
+
+\end{tikzpicture}
+\end{center}
+\caption{Non-root move}
+\end{figure}
+
+The non-root move acts on a state vector $x=\{T,n,t,c\}$ where $T$ is
+the length of the branch between the chosen node $i$ and its parent,
+$n$ is the number of migration events along the length of the branch,
+$t$ is the vector containing the times of those events relative to the
+age of $i$ and $c$ is a vector containing the destination colours of
+these events.
+
+Note that here we identify a particular move by the nodes $i$ and $j$
+chosen to be the base of the source and destination branches
+respectively. As these nodes are always chosen uniformly at random from the
+nodes of the tree, the probabilities do not factor into the acceptance
+probability calculation.
+
+In the non-root case, the CWBR move draws a new state
+$x'=\{T',n',t',c'\}$ from the following proposal density:
+\begin{align}
+  q(x'|x,\bar{T}) &= P(T',n',t',c'|x)\nonumber\\
+&= P_{\bar{T}}(T')P(n'|T')P(t'|n')P(c|n')
+\end{align}
+Here $\bar{T}$ represents the age of the parent $j_p$ relative to the
+age of the chosen source node $i$.
+
+\subsection{Branch length proposal}
+
+The new branch length $T'$ is selected by drawing directly from
+$U(0,\bar{T})$. Thus,
+\begin{equation}
+  P_{\bar{T}}(T') = \left\{\begin{array}{rl}
+      \frac{1}{\bar{T} & \text{ for } T'\in[0,\bar{T}]\\
+      0 & \text{ otherwise}\end{array}\right.}
+\end{equation}
+
+\subsection{Migration count proposal}
+
+The new migration count $n'$ is chosen from a Poissonian distribution
+with a mean of $\mu T'$, where $\mu$ is a tuning parameter:
+\begin{equation}
+  P(n'|T') = e^{-\mu T'}\frac{(\mu T')^{n'}}{n'!}
+\end{equation}
+
+\subsection{Migration times proposal}
+
+The new migration times are chosen by drawing $n'$ values $\tau'$
+independently from $U(0,T')$, then sorting them from smallest to
+largest. Defining the sorting function $t'=S(\tau')$ we write
+\begin{equation}
+  P(t'|n') = \int_{[0,T']^{n'}}d^{n'}\tau'\delta^{n'}(t'-S(\tau'))(T')^{-n'}.
+\end{equation}
+We can rewrite the delta function term as
+\begin{equation}
+  \delta^{n'}(t'-S(\tau'))=\sum_{\alpha=1}^{n'!}\delta^{n'}(t'_{\alpha}-\tau')
+\end{equation}
+where $t'_{\alpha}$ are distinct permutations of $t'$. Therefore
+\begin{align}
+  P(t'|n')&=\sum_{\alpha=1}^{n'!}\int_{[0,T']^{n'}}d^{n'}\tau'\delta^{n'}(t'_{\alpha}-\tau')(T')^{-n'}\nonumber\\
+&=\frac{n'!}{(T')^{n'}}
+\end{align}
+
+\subsection{Migration colours proposal}
+
+Every migration event results in a change of colour at that point on
+the branch.  Each new colour is selected at random from those
+remaining after the present colour is excluded. That is,
+\begin{equation}
+  P(c'|n') = \frac{1}{(N-1)^{n'}}
+\end{equation}
+where $N$ is the total number of available colours.
+
+\subsection{Full proposal}
+
+The expression for the full proposal is then:
+\begin{align}
+  q(x'|x) &=\frac{1}{\bar{T}}I(T'\in[0,\bar{T}])
+  \times e^{-\mu T'}\frac{(\mu T')^{n'}}{n'!}
+  \times \frac{n'!}{(T')^{n'}}
+  \times \frac{1}{(N-1)^{n'}}\nonumber\\
+&=\left\{\begin{array}{rl}
+    \frac{1}{\bar{T}}e^{-\mu T'}\left(\frac{\mu}{N-1}\right)^{n'} &
+    \text{ for }T'\in[0,\bar{T}]\\
+    0 & \text{ otherwise}
+    \end{array}\right.
+\end{align}
+
+\section{Root move}
+
+
+\end{document}

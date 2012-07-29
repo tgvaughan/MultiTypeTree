@@ -124,13 +124,6 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             if (m_tree.get().getRoot().getNodeCount() != nCount)
                 throw new RuntimeException("Error: Lost a child during j-root move!!!");
 
-			/*
-            Tree helper = cTree.getFlattenedTree();
-            // reject if colour change doesn't change anything
-            if (cTree.hasSingleChildrenWithoutColourChange(helper.getRoot()))     // invalid tree
-                return Double.NEGATIVE_INFINITY;
-			*/
-
             return logHR;
         }
 		
@@ -215,12 +208,6 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		// Recolour new branch, rejecting outright if inconsistent:
 		if (!recolourBranch(srcNode, newChangeCount))
 			return Double.NEGATIVE_INFINITY;
-
-		/*  What's this, Denise?
-		try{
-			cTree.setInputValue("tree", tree);
-		}catch(Exception e){System.out.println(e.getMessage());}
-		*/
 
 		// Raise exception if colour change doesn't change anything:
 		Tree helper = cTree.getFlattenedTree();
