@@ -12,6 +12,7 @@ acceptance probability calculations}
 
 \maketitle
 
+
 \section{Non-root move}
 
 \begin{figure}
@@ -34,12 +35,12 @@ acceptance probability calculations}
 \fill (leaf4) circle (0.05);
 
 % AUCTeX preview can't handle this:
-%\coordinate (source) at ($(leaf1)!0.6!(root)$);
-%\coordinate (dest) at ($(leaf4)!0.5!(root)$);
-%\draw (internal)--(source);
-%\draw [dashed] (internal)--(dest);
-%\fill (source) circle (0.05);
-%\fill (dest) circle (0.05);
+% \coordinate (source) at ($(leaf1)!0.6!(root)$);
+% \coordinate (dest) at ($(leaf4)!0.5!(root)$);
+% \draw (internal)--(source);
+% \draw [dashed] (internal)--(dest);
+% \fill (source) circle (0.05);
+% \fill (dest) circle (0.05);
 
 \end{tikzpicture}
 \end{center}
@@ -47,52 +48,55 @@ acceptance probability calculations}
 \end{figure}
 
 The non-root move acts on a state vector $x=\{T,n,t,c\}$ where $T$ is
-the length of the branch between the chosen node $i$ and its parent,
-$n$ is the number of migration events along the length of the branch,
-$t$ is the vector containing the times of those events relative to the
-age of $i$ and $c$ is a vector containing the destination colours of
-these events.
+the age of $i_p$, $n$ is the number of migration events along the
+length of the branch, $t$ is the vector containing the times of those
+events relative to the age of $i$ and $c$ is a vector containing the
+destination colours of these events.
 
 Note that here we identify a particular move by the nodes $i$ and $j$
 chosen to be the base of the source and destination branches
-respectively. As these nodes are always chosen uniformly at random from the
-nodes of the tree, the probabilities do not factor into the acceptance
-probability calculation.
+respectively (i.e. the topology change to be implemented). As these
+nodes are always chosen uniformly at random from the nodes of the
+tree, the probabilities do not factor into the acceptance probability
+calculation.
 
 In the non-root case, the CWBR move draws a new state
 $x'=\{T',n',t',c'\}$ from the following proposal density:
 \begin{align}
-  q(x'|x,\bar{T}) &= P(T',n',t',c'|x)\nonumber\\
-&= P_{\bar{T}}(T')P(n'|T')P(t'|n')P(c|n')
+  q(x'|x) &= P(T',n',t',c'|x)\nonumber\\
+&= P(T')P(n'|T')P(t'|n')P(c|n')
 \end{align}
-Here $\bar{T}$ represents the age of the parent $j_p$ relative to the
-age of the chosen source node $i$.
 
-\subsection{Branch length proposal}
+\subsection{Proposal for $i'_p$ age}
 
-The new branch length $T'$ is selected by drawing directly from
-$U(0,\bar{T})$. Thus,
+The age $T'$ of the new attachment point $i'_p$ is selected by drawing directly from
+$U(T_{\min},T_{\max})$, where $T_{\min}=\max(T_i,T_{j_p})$ and
+$T_{\max}=T_{j_p}$ are defined in terms of the ages $T_i$ and
+$T_{j_p}$ of nodes $i$ and $j_p$ respectively. (As these node heights
+are not modified by the operator, we do not consider them part of the
+state here.) Thus,
 \begin{equation}
   P_{\bar{T}}(T') = \left\{\begin{array}{rl}
-      \frac{1}{\bar{T} & \text{ for } T'\in[0,\bar{T}]\\
-      0 & \text{ otherwise}\end{array}\right.}
+      \frac{1}{T_{\max}-T_{\min}} & \text{ for } T'\in[T_{\min},T_{\max}]\\
+      0 & \text{ otherwise}\end{array}\right.
 \end{equation}
 
 \subsection{Migration count proposal}
 
 The new migration count $n'$ is chosen from a Poissonian distribution
-with a mean of $\mu T'$, where $\mu$ is a tuning parameter:
+with a mean of $\mu (T'-T_i)$, where $\mu$ is a tuning parameter:
 \begin{equation}
-  P(n'|T') = e^{-\mu T'}\frac{(\mu T')^{n'}}{n'!}
+  P(n'|T') = e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
 \end{equation}
+where we have used $L'\equiv T'-T_i$.
 
 \subsection{Migration times proposal}
 
 The new migration times are chosen by drawing $n'$ values $\tau'$
-independently from $U(0,T')$, then sorting them from smallest to
+independently from $U(T_i,T')$, then sorting them from smallest to
 largest. Defining the sorting function $t'=S(\tau')$ we write
 \begin{equation}
-  P(t'|n') = \int_{[0,T']^{n'}}d^{n'}\tau'\delta^{n'}(t'-S(\tau'))(T')^{-n'}.
+  P(t'|n') = \int_{[T_i,T']^{n'}}d^{n'}\tau'\delta^{n'}(t'-S(\tau'))(L')^{-n'}.
 \end{equation}
 We can rewrite the delta function term as
 \begin{equation}
@@ -100,8 +104,8 @@ We can rewrite the delta function term as
 \end{equation}
 where $t'_{\alpha}$ are distinct permutations of $t'$. Therefore
 \begin{align}
-  P(t'|n')&=\sum_{\alpha=1}^{n'!}\int_{[0,T']^{n'}}d^{n'}\tau'\delta^{n'}(t'_{\alpha}-\tau')(T')^{-n'}\nonumber\\
-&=\frac{n'!}{(T')^{n'}}
+  P(t'|n')&=\sum_{\alpha=1}^{n'!}\int_{[T_i,T']^{n'}}d^{n'}\tau'\delta^{n'}(t'_{\alpha}-\tau')(L')^{-n'}\nonumber\\
+&=\frac{n'!}{(L')^{n'}}
 \end{align}
 
 \subsection{Migration colours proposal}
@@ -114,22 +118,236 @@ remaining after the present colour is excluded. That is,
 \end{equation}
 where $N$ is the total number of available colours.
 
-\subsection{Full proposal}
+\subsection{Full proposal density}
 
 The expression for the full proposal is then:
 \begin{align}
-  q(x'|x) &=\frac{1}{\bar{T}}I(T'\in[0,\bar{T}])
-  \times e^{-\mu T'}\frac{(\mu T')^{n'}}{n'!}
-  \times \frac{n'!}{(T')^{n'}}
+  q(x'|x) &=\frac{1}{T_{\max}-T_{\min}}I(T'\in[T_{\min},T_{\max}])
+  \times e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
+  \times \frac{n'!}{(L')^{n'}}
   \times \frac{1}{(N-1)^{n'}}\nonumber\\
 &=\left\{\begin{array}{rl}
-    \frac{1}{\bar{T}}e^{-\mu T'}\left(\frac{\mu}{N-1}\right)^{n'} &
-    \text{ for }T'\in[0,\bar{T}]\\
+    \frac{\exp[-\mu(T'-T_i)]}{T_{\max}-T_{\min}}\left(\frac{\mu}{N-1}\right)^{n'} &
+    \text{ for }T'\in[T_{\min},T_{\max}]\\
     0 & \text{ otherwise}
     \end{array}\right.
 \end{align}
 
-\section{Root move}
+\subsection{Acceptance probability}
+
+The acceptance probability for a move $x\rightarrow x'$ which doesn't
+involve the root node is therefore
+\begin{align}
+  \alpha(x'|x) &=
+  \min\left[1,\frac{q(x|x')\pi(x')}{q(x'|x)\pi(x)}\right]\nonumber\\
+&=
+\min\left[1,e^{-\mu(T-T')}\left(\frac{\mu}{N-1}\right)^{n-n'}\right],
+\end{align}
+provided $q(x'|x)$ is non-zero, as it must be if $x'$ has been sampled
+from $q(x'|x)$.
+
+\section{Forward root move}
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\coordinate (leaf1) at (-2,0);
+\coordinate (leaf2) at (-0,0);
+\coordinate (leaf3) at (4,0);
+\coordinate (oldRoot) at (2,3);
+\coordinate (newRoot) at (0,5);
+
+\draw (leaf2)--(oldRoot) node[right]{$j$}--(leaf3);
+\draw [dashed] (leaf1) node[left]{$i$}--(newRoot)--(oldRoot);
+
+% AUCTeX preview can't handle this:
+%\coordinate (source) at ($(leaf2)!0.6!(oldRoot)$);
+%\draw [color=gray](leaf1)--(source);
+%\fill (source) circle (0.05);
+
+\fill (oldRoot) circle (0.05);
+\fill (newRoot) circle (0.05);
+\fill (leaf1) circle (0.05);
+\fill (leaf2) circle (0.05);
+\fill (leaf3) circle (0.05);
+
+\end{tikzpicture}
+\end{center}
+\caption{The forward root move, with the dashed lines representing
+the new branches and the grey line representing the branch to be removed.}
+\end{figure}
+
+There are two distinct moves involving the root. The ``forward'' move,
+in which node $j$ is the root of the tree in the current state, and
+the ``backward'' move: in which $i$ is a daughter of the root in the
+current state.  We consider firstly the forward move.
+
+For the forward move, the relevant components of the starting state
+are contained in $x=\{T,n,t,c\}$, where these variables are defined as
+in the previous section.  Unlike in the case of the non-root move, the
+proposal state has the distinct form
+$x'=\{T';n',t',c';n'_s,t'_s,c'_s\}$, where the additional variables
+$n'_s$, $t'_s$ and $c'_s$  represent the number, times and colours
+of migration events along the new sister branch of $\langle
+i,i_p'\rangle$: $\langle j,i_p'\rangle$.
+
+The proposal density has the following form:
+\begin{align}
+  q(x'|x)&=P(T',n',t',c',n'_s,t'_s,c'_s|x)\\
+&=P(T')P(n',n'_s|T')P(t'|n',T')P(t'_s|n'_s,T')P(c',c'_s|n',n'_s)\nonumber
+\end{align}
+
+\subsection{Root height proposal}
+
+The height of the proposed new root, $T'$ is selected by drawing
+directly from $U(T_j,T_j+\Delta)$ where
+$\Delta=2(T_j-\min(T_{jc1},T_{jc2}))$ with $T_{jc1}$ and $T_{jc2}$
+being the ages of the daughters of $j$. That is,
+\begin{equation}
+  P(T')=\left\{\begin{array}{rl}
+\Delta^{-1} & \text{ for }T'\in[T_j,T_j+\Delta]\\
+0 & \text{ otherwise}\end{array}\right.
+\end{equation}
+
+\subsection{Migration count proposal}
+
+The numbers of new migration events along the new branches above $i$
+and its new sister are chosen from Poissonian distributions with means
+$\mu(T'-T_i)$ and $\mu(T'-T_j)$. Thus,
+\begin{equation}
+  P(n',n'_s)=e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
+  \times e^{-\mu L'_s}\frac{(\mu L'_s)^{n'_s}}{n'_s!}
+\end{equation}
+where we have defined $L'\equiv T'-T_i$ and $L'_s\equiv T'-T_j$.
+
+\subsection{Migration times proposal}
+
+The times of the new migration events along the new branch above $i$
+are chosen by independently selecting $n'$ times from $U(T_i,T')$ then
+sorting them from smallest to largest. The unsorted times are
+contained in the vector $\tau'$ and we again use the sorting function
+$S$ to write $t'=S(\tau')$. We therefore have
+\begin{equation}
+  P(\tau'|n',T')=\int_{[T_i,T']^{n'}}d^{n'}\tau\delta^{n'}(t'-S(\tau'))(L')^{-n'}.
+\end{equation}
+Again expanding the delta function in terms of permutations of $t'$,
+we find
+\begin{align}
+P(\tau'|n',T')&=\sum_{\alpha=1}^{n'!}\int_{[T_i,T']^{n'}}d^{n'}\tau\delta^{n'}(t'_\alpha-\tau')(L')^{-n'}\nonumber\\
+&=\frac{n'!}{(L')^{n'}}.
+\end{align}
+Similarly, we select $n'_s$ times from $U(T_j,T')$ and set
+$t'_s=S(\tau'_s)$, yielding
+\begin{equation}
+  P(\tau'_s|n'_s,T')=\frac{n'_s!}{(L'_s)^{n'_s}}.
+\end{equation}
+
+\subsection{Migration colours proposal}
+
+Each new migration results in the lineage shifting to a new colour,
+randomly chosen from a uniform distribution over the colours available
+after the previous colour of the lineage has been excluded. Thus,
+\begin{equation}
+  P(c',c'_s|n',n'_s)=\frac{1}{(N-1)^{n'+n'_s}}.
+\end{equation}
+
+\subsection{Full proposal density}
+
+Combining the conditional distributions and densities above yields
+\begin{align}
+  q(x'|x)=&\Delta^{-1}I(T'\in[T_j,T_j+\Delta])
+  \times e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
+  \times e^{-\mu L'_s}\frac{(\mu L'_s)^{n'_s}}{n'_s!}\nonumber\\
+  &\times \frac{n'!}{(L')^{n'}}
+  \times \frac{n'_s!}{(L'_s)^{n'_s}}
+  \times (N-1)^{-(n'+n'_s)}\nonumber\\
+=&\Delta^{-1}\exp[-\mu(L'+L'_s)]\left(\frac{\mu}{N-1}\right)^{n'+n'_s}
+I(T'\in[T_j,T_j+\Delta])
+\end{align}
+
+\section{Backward root move}
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\coordinate (leaf1) at (-2,0);
+\coordinate (leaf2) at (-0,0);
+\coordinate (leaf3) at (4,0);
+\coordinate (newRoot) at (2,3);
+\coordinate (oldRoot) at (0,5);
+
+\draw (leaf2) node[left]{$j$}--(newRoot)--(leaf3);
+\draw [color=gray] (leaf1) node[left,color=black]{$i$}--(oldRoot)--(newRoot);
+\fill (newRoot) circle (0.05);
+\fill (oldRoot) circle (0.05);
+\fill (leaf1) circle (0.05);
+\fill (leaf2) circle (0.05);
+\fill (leaf3) circle (0.05);
+
+% AUCTeX preview can't handle this:
+% \coordinate (source) at ($(leaf2)!0.6!(newRoot)$);
+% \draw [dashed] (leaf1)--(source);
+% \fill (source) circle (0.05);
+
+\end{tikzpicture}
+\end{center}
+\caption{The backward root move, with the dashed lines representing
+the new branches and the thin line representing the branch to be
+removed.}
+\end{figure}
+
+The starting and proposal states for the backward root move are simply
+the reverse of those in the forward root move. That is,
+$x=\{T;n,t,c;n_s,t_s,c_s\}$ and $x'=\{T';n',t',c'\}$. The proposal
+density has the following form:
+\begin{align}
+  q(x'|x) &= P(T',n',t',c'|x)\nonumber\\
+&= P(T')P(n'|T')P(t'|n',T')P(c'|n')
+\end{align}
+
+\subsection{Proposal for $i'_p$ age}
+
+The age $T'$ of the new node $i_p'$ is drawn from
+$U(T_{\min},T_{j_p})$, where $T_{\min}=\min(T_i,T_j)$. Thus,
+\begin{equation}
+  P(T')=\left\{\begin{array}{rl}
+\frac{1}{T_{j_p}-T_{\min}} & \text{ for }T'\in[T_{\min},T_{j_p}]\\
+0 & \text{ otherwise}\end{array}\right.
+\end{equation}
+
+\subsection{Proposal for migration count}
+
+The migration count along the new branch is drawn from
+\begin{equation}
+  P(n'|T')=e^{-\mu(T'-T_i)}\frac{(\mu(T'-T_i))^{n'}}{n'!}.
+\end{equation}
+
+\subsection{Proposal for migration times}
+
+The migration times are again distributed according to
+\begin{equation}
+  P(t'|n',T')=\frac{n'!}{(T'-T_i)^{n'}}.
+\end{equation}
+
+\subsection{Proposal for migration colours}
+The migration colours are distributed according to
+\begin{equation}
+  P(c'|n')=\frac{1}{(N-1)^{n'}}.
+\end{equation}
+
+\subsection{Full proposal density}
+
+The combined proposal density for the backwards move is
+\begin{align}
+  q(x'|x) &= \frac{1}{T_{j_p}-T_{\min}}I(T'\in[T_{\min},T_{j_p}])
+\times e^{-\mu(T'-T_i)}\frac{(\mu(T'-T_i))^{n'}}{n'!}
+\times \frac{n'!}{(T'-T_i)^{n'}}
+\times (N-1)^{-n'}\nonumber\\
+&=\frac{\exp[-\mu(T'-T_i)]}{T_{j_p}-\max(T_i,T_j)}\left(\frac{\mu}{N-1}\right)^{n'}
+I(T'\in[\max(T_i,T_j),T_{j_p})])
+\end{align}
+
+\section{Acceptance probability for root moves}
 
 
 \end{document}
