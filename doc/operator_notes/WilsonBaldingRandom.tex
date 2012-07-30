@@ -25,7 +25,7 @@ acceptance probability calculations}
 \coordinate (root) at (0,4);
 
 \draw (leaf2)--(internal) node[below]{$i$}--(leaf3);
-\draw (leaf1)--(root) node[right=3pt]{$j_p$}--(leaf4) node[right]{$j$};
+\draw (leaf1) node[right=3pt]{$i_s$}--(root) node[left=3pt]{$i_g$} node[right=3pt]{$j_p$}--(leaf4) node[right]{$j$};
 \fill (root) circle (0.05);
 \fill (internal) circle (0.05);
 \fill (leaf1) circle (0.05);
@@ -130,21 +130,19 @@ The expression for the full proposal is then:
     \text{ for }T'\in[T_{\min},T_{\max}]\\
     0 & \text{ otherwise}
     \end{array}\right.
+\label{eq:nonRootDensity}
 \end{align}
 where again $T_{\min}=\max(T_i,T_j)$ and $T_{\max}=T_{j_p}$.
 
 \subsection{Acceptance probability}
 
-As the nodes $i'$ and $j'$ which produce the reverse move
-$x'\rightarrow x$ are the same nodes used in $x\rightarrow x'$,
-the acceptance probability is simply
+For the purpose of determining the proposal density of the reverse
+move we must use $j\rightarrow i_s$ and $j_p\rightarrow i_g$ in
+eq.~(\ref{eq:nonRootDensity}). The acceptance probability is then
 \begin{align}
   \alpha(x'|x) &=
   \min\left[1,\frac{q(x|x')\pi(x')}{q(x'|x)\pi(x)}\right]\nonumber\\
-&=\left\{\begin{array}{cl}
-\min\left[1,e^{-\mu(T-T')}\left(\frac{\mu}{N-1}\right)^{n-n'}\right]&\text{
-  for }T\in[T_{\min},T_{\max}]\\
-0 & \text{ otherwise}\end{array}\right.
+&=\min\left[1,\frac{T_{j_p}-\max(T_i,T_j)}{T_{i_g}-\max(T_i,T_{i_s})}e^{-\mu(T-T')}\left(\frac{\mu}{N-1}\right)^{n-n'}\frac{\pi(x')}{\pi(x)}\right].
 \end{align}
 provided $q(x'|x)$ is non-zero, as it must be if $x'$ has been sampled
 from $q(x'|x)$.  The condition on $T$ ensures the move will never be
@@ -156,18 +154,18 @@ accepted unless the reverse move is possible.
 \begin{center}
 \begin{tikzpicture}
 \coordinate (leaf1) at (-2,0);
-\coordinate (leaf2) at (-0,0);
+\coordinate (leaf2) at (0,0);
 \coordinate (leaf3) at (4,0);
 \coordinate (oldRoot) at (2,3);
 \coordinate (newRoot) at (0,5);
 
-\draw (leaf2)--(oldRoot) node[right]{$j$}--(leaf3);
+\draw (leaf2) node[left]{$i_s$}--(oldRoot) node[right]{$j$}--(leaf3);
 \draw [dashed] (leaf1) node[left]{$i$}--(newRoot)--(oldRoot);
 
 % AUCTeX preview can't handle this:
-%\coordinate (source) at ($(leaf2)!0.6!(oldRoot)$);
-%\draw [color=gray](leaf1)--(source);
-%\fill (source) circle (0.05);
+% \coordinate (source) at ($(leaf2)!0.6!(oldRoot)$);
+% \draw [color=gray](leaf1)--(source);
+% \fill (source) circle (0.05);
 
 \fill (oldRoot) circle (0.05);
 \fill (newRoot) circle (0.05);
@@ -282,7 +280,8 @@ or $0$ if $T'<T_j$.
 \coordinate (oldRoot) at (0,5);
 
 \draw (leaf2) node[left]{$j$}--(newRoot)--(leaf3);
-\draw [color=gray] (leaf1) node[left,color=black]{$i$}--(oldRoot)--(newRoot);
+\draw [color=gray] (leaf1)
+node[left,color=black]{$i$}--(oldRoot)--(newRoot) node[right,color=black]{$i_s$};
 \fill (newRoot) circle (0.05);
 \fill (oldRoot) circle (0.05);
 \fill (leaf1) circle (0.05);
@@ -297,7 +296,7 @@ or $0$ if $T'<T_j$.
 \end{tikzpicture}
 \end{center}
 \caption{The backward root move, with the dashed lines representing
-the new branches and the thin line representing the branch to be
+the new branches and the grey line representing the branch to be
 removed.}
 \end{figure}
 
@@ -313,7 +312,7 @@ density has the following form:
 \subsection{Proposal for $i'_p$ age}
 
 The age $T'$ of the new node $i_p'$ is drawn from
-$U(T_{\min},T_{\max})$, where $T_{\min}=\min(T_i,T_j)$ and $T_{\max}=T_{j_p}$. Thus,
+$U(T_{\min},T_{\max})$, where $T_{\min}=\max(T_i,T_j)$ and $T_{\max}=T_{j_p}$. Thus,
 \begin{equation}
   P(T')=\left\{\begin{array}{rl}
 \frac{1}{T_{\max}-T_{\min}} & \text{ for }T'\in[T_{\min},T_{\max}]\\
@@ -370,19 +369,25 @@ $T\in[\max(T_i,T_{i_s}),T_{i_g}]$, the Hastings ratio is
   \frac{q(x|x')}{q(x'|x)}
 =& \frac{\exp[-\mu(T-T_i)]}{T_{i_g}-\max(T_i,T_{i_s})}\left(\frac{\mu}{N-1}\right)^n\\
 &\times
-\frac{T_j}{\alpha}\exp\left[\mu(2T'-T_i-T_j)-\alpha\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{-(n'+n'_s)}\nonumber\\
-=& \frac{T_j}{\alpha(T_{i_g}-\max(T_i,T_{i_s}))}\exp\left[-\mu(T+T_j-2T')-\alpha\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{n-(n'+n'_s)}.\nonumber
+\frac{T_j}{\alpha}\exp\left[\mu(2T'-T_i-T_j)+\alpha\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{-(n'+n'_s)}\nonumber\\
+=& \frac{T_j\exp\left[-\mu(T+T_j-2T')+\alpha\left(\frac{T'}{T_j}-1\right)\right]}{\alpha(T_{i_g}-\max(T_i,T_{i_s}))}\left(\frac{\mu}{N-1}\right)^{n-(n'+n'_s)}.\nonumber
 \end{align}
 
 \subsection{Backward root move}
 
 For the backward move, the current state is $x=\{T,n,t,c,n',t',c'\}$
 and the proposal state is $x'=\{T',n',t',c'\}$. The reverse move is
-the forward root move. For the reverse move $j\rightarrow
-i_s$.
+the forward root move. For the reverse move $j\rightarrow i_s$. Since
+by definition we will have always have $T>T_{i_s}$, the Hastings ratio
+will be
 \begin{align}
   \frac{q(x|x')}{q(x'|x)}
 =&
+\frac{\alpha}{T_{i_s}}\exp\left[-\mu(2T-T_i-T_{i_s})-\alpha\left(\frac{T}{T_{i_s}}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{n+n_{i_s}}\nonumber\\
+&\times
+\frac{T_{j_p}-\max(T_i,T_j)}{\exp[-\mu(T'-T_i)]}\left(\frac{\mu}{N-1}\right)^{-n'}\nonumber\\
+&=\frac{\alpha(T_{j_p}-\max(T_i,T_j))}{T_{i_s}}\left(\frac{\mu}{N-1}\right)^{(n+n_{i_s})-n'}\nonumber\\
+&\times\exp\left[-\mu(2T-T_{i_s}-T')-\alpha\left(\frac{T}{T_{i_s}}-1\right)\right].
 \end{align}
 
 
