@@ -427,7 +427,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		IntegerParameter leafColours = new IntegerParameter();
 		leafColours.initByName(
 				"dimension",2,
-				"value", "0 1");
+				"value", "0 0 0");
 
 		// Generate ensemble:
 		int reps = 50000;
@@ -449,7 +449,6 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 					"maxBranchColours", 50);
 
 			heights[i] = sctree.getUncolouredTree().getRoot().getHeight();
-			//mean += Randomizer.nextExponential(1/(5.0));
 		}
 		
 		long time = System.currentTimeMillis() - startTime;

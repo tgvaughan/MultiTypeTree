@@ -69,7 +69,7 @@
 			</log>
 		</logger>
 
-		<logger logEvery="100000">
+		<logger logEvery="1">
 			<model idref='P'/>
 			<log idref="P"/>
 			<log spec='beast.evolution.tree.TreeHeightLogger' >

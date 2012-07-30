@@ -59,6 +59,12 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
         tree = m_tree.get(this);
 		mu = muInput.get();
 		alpha = alphaInput.get();
+		
+		// Check that operator can be applied to tree:
+		if (tree.getLeafNodeCount()<3) {
+			throw new IllegalStateException("Tree too small for"
+					+ " ColouredWilsonBaldingRandom operator.");
+		}
 
 		// Select source node:
 		Node srcNode;
@@ -104,8 +110,9 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             double newTime = t_destNode + Randomizer.nextExponential(alpha/t_destNode);
 			
 			// Choose number of new colour changes to generate:
-			double L = (newTime - t_srcNode) + (newTime - t_destNode);
-			int newChangeCount = PoissonRandomizer.nextInt(mu*L);
+			int newCountNode = PoissonRandomizer.nextInt(mu*(newTime-t_srcNode));
+			int newCountSister = PoissonRandomizer.nextInt(mu*(newTime-t_destNode));
+			int newCountTotal = newCountNode + newCountSister;
 
             // Implement tree changes:
             disconnectBranch(srcNode);
@@ -113,7 +120,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             tree.setRoot(srcNodeP);
 			
 			// Recolour root branches, forcing reject if inconsistent:
-			if (!recolourRootBranches(srcNode, newChangeCount))
+			if (!recolourRootBranches(srcNode, newCountNode, newCountSister))
 				return Double.NEGATIVE_INFINITY;
 			
 			// Calculate HR:
@@ -121,7 +128,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 					- mu*(oldTime+t_destNode-2*newTime)
 					+ alpha*(newTime/t_destNode - 1.0)
 					- Math.log(alpha*(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS)))
-					+ (oldChangeCount-newChangeCount)*Math.log(mu/cTree.getNColours()-1);
+					+ (oldChangeCount-newCountTotal)*Math.log(mu/(cTree.getNColours()-1));
 					
             return logHR;
         }
@@ -164,7 +171,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			
 			logHR = Math.log(alpha*(t_destNodeP-Math.max(t_srcNode,t_destNode)))
 					- Math.log(t_srcNodeS)
-					+ (oldChangeCount-newChangeCount)*Math.log(mu/cTree.getNColours()-1)
+					+ (oldChangeCount-newChangeCount)*Math.log(mu/(cTree.getNColours()-1))
 					- mu*(2*oldTime - t_srcNodeS - newTime)
 					- alpha*(oldTime/t_srcNodeS - 1.0);
 
@@ -221,103 +228,49 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		double t_srcNode = srcNode.getHeight();
 		double t_srcNodeParent = srcNodeParent.getHeight();
 		
-		double L = t_srcNodeParent - t_srcNode;
+		int srcNodeCol = cTree.getNodeColour(srcNode);
+		int srcNodeParentCol = cTree.getNodeColour(srcNodeParent);
 		
-		// Obtain new colours and times:
-		double[] times = getTimes(L, nChanges);
-		int[] colours= getColours(cTree.getNodeColour(srcNode), nChanges);
-		
-		// Determine final colour on branch:
-		int endCol;
-		if (nChanges>0)
-			endCol = colours[colours.length-1];
-		else
-			endCol = cTree.getNodeColour(srcNode);
-		
-		// Reject outright if final colour doesn't match parent's node colour:
-		if (cTree.getNodeColour(srcNodeParent) != endCol)
-			return false;
-
 		// Clear existing changes in preparation for adding replacements:
 		setChangeCount(srcNode, 0);
 		
-		// Set colours along branch between srcNode and its parent:
-		for (int i=0; i<nChanges; i++) {
-			addChange(srcNode, colours[i], times[i]+t_srcNode);
-		}
+		// Early exit if no changes to implement:
+		if (nChanges==0)
+			return srcNodeCol == srcNodeParentCol;
 		
-		return true;
+		// Obtain new colours and times:
+		double[] times = getTimes(t_srcNodeParent-t_srcNode, nChanges);
+		int[] colours = getColours(cTree.getNodeColour(srcNode), nChanges);
+		
+		// Set colours along branch between srcNode and its parent:
+		for (int i=0; i<nChanges; i++)
+			addChange(srcNode, colours[i], times[i]+t_srcNode);
+		
+		// Notify caller of mismatch in final branch colour:
+		return colours[nChanges-1] == srcNodeParentCol;
 	}
 
 	/**
-	 * Recolour branches with nChanges between srcNode, the root
-	 * (srcNode's parent) and srcNode's sister.
+	 * Recolour branches with nChanges between srcNode and the root
+	 * (srcNode's parent) and nChangesSister between the root and
+	 * srcNode's sister.
 	 * 
 	 * @param srcNode
-	 * @param nChanges
+	 * @param nChangesNode
+	 * @param nChangesSister
 	 * @return True if recolour successful.
 	 */
-	private boolean recolourRootBranches(Node srcNode, int nChanges) {
+	private boolean recolourRootBranches(Node srcNode,
+			int nChangesNode, int nChangesSister) {
 		
 		Node root = srcNode.getParent();
 		Node srcNodeSister = getOtherChild(root, srcNode);
 		
-		double t_srcNode = srcNode.getHeight();
-		double t_srcNodeSister = srcNodeSister.getHeight();
-		double t_root = root.getHeight();
+		// Recolour first branch, adjusting root node colour if necessary.
+		if (!recolourBranch(srcNode, nChangesNode))
+			setNodeColour(root, cTree.getFinalBranchColour(srcNode));
 		
-		double Lfirst = t_root - t_srcNode;
-		double Lsecond = t_root - t_srcNodeSister;
-		double L = Lfirst + Lsecond;
-		
-		// Obtain new colours and times:
-		double[] times = getTimes(L, nChanges);
-		int[] colours = getColours(cTree.getNodeColour(srcNode), nChanges);
-		
-		// Determine final colour on two-branch path:
-		int endCol;
-		if (nChanges>0)
-			endCol = colours[nChanges-1];
-		else
-			endCol = cTree.getNodeColour(srcNode);
-		
-		// Direct operator to reject outright if final colour doesn't match
-		// colour on sister node:
-		if (endCol != cTree.getNodeColour(srcNodeSister))
-			return false;
-		
-		// Clear colour changes in preparation for adding replacements:
-		setChangeCount(srcNode, 0);
-		setChangeCount(srcNodeSister, 0);
-
-		// Set colours along branch between srcNode and root:
-		int endColFirst = cTree.getNodeColour(srcNode);
-		int i=0;
-		while (i<nChanges && times[i]<Lfirst) {
-			addChange(srcNode, colours[i], times[i]+t_srcNode);
-			endColFirst = colours[i];
-			i += 1;
-		}
-		
-		// Set root node colour on the way past:
-		cTree.setNodeColour(root, endColFirst);
-		
-		// Set colours along branch between srcNodeSister and root:
-		i=colours.length-1;
-		while (i>=0 && times[i]>Lfirst) {
-			double timeOnSister = Lsecond - (times[i]-Lfirst) + t_srcNodeSister;
-			int changeColour;
-			if (i>0)
-				changeColour = colours[i-1];
-			else
-				changeColour = cTree.getNodeColour(root);
-			
-			addChange(srcNodeSister, changeColour, timeOnSister);
-			i -= 1;
-		}
-		
-		// Report a successful recolour:
-		return true;
+		return recolourBranch(srcNodeSister, nChangesSister);
 	}
 
     /**
