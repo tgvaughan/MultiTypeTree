@@ -12,7 +12,6 @@ acceptance probability calculations}
 
 \maketitle
 
-
 \section{Non-root move}
 
 \begin{figure}
@@ -57,8 +56,8 @@ Note that here we identify a particular move by the nodes $i$ and $j$
 chosen to be the base of the source and destination branches
 respectively (i.e. the topology change to be implemented). As these
 nodes are always chosen uniformly at random from the nodes of the
-tree, the probabilities do not factor into the acceptance probability
-calculation.
+tree, the probabilities of their selection do not factor into the
+acceptance probability calculation.
 
 In the non-root case, the CWBR move draws a new state
 $x'=\{T',n',t',c'\}$ from the following proposal density:
@@ -132,19 +131,24 @@ The expression for the full proposal is then:
     0 & \text{ otherwise}
     \end{array}\right.
 \end{align}
+where again $T_{\min}=\max(T_i,T_j)$ and $T_{\max}=T_{j_p}$.
 
 \subsection{Acceptance probability}
 
-The acceptance probability for a move $x\rightarrow x'$ which doesn't
-involve the root node is therefore
+As the nodes $i'$ and $j'$ which produce the reverse move
+$x'\rightarrow x$ are the same nodes used in $x\rightarrow x'$,
+the acceptance probability is simply
 \begin{align}
   \alpha(x'|x) &=
   \min\left[1,\frac{q(x|x')\pi(x')}{q(x'|x)\pi(x)}\right]\nonumber\\
-&=
-\min\left[1,e^{-\mu(T-T')}\left(\frac{\mu}{N-1}\right)^{n-n'}\right],
+&=\left\{\begin{array}{cl}
+\min\left[1,e^{-\mu(T-T')}\left(\frac{\mu}{N-1}\right)^{n-n'}\right]&\text{
+  for }T\in[T_{\min},T_{\max}]\\
+0 & \text{ otherwise}\end{array}\right.
 \end{align}
 provided $q(x'|x)$ is non-zero, as it must be if $x'$ has been sampled
-from $q(x'|x)$.
+from $q(x'|x)$.  The condition on $T$ ensures the move will never be
+accepted unless the reverse move is possible.
 
 \section{Forward root move}
 
@@ -200,20 +204,21 @@ The proposal density has the following form:
 \subsection{Root height proposal}
 
 The height of the proposed new root, $T'$ is selected by drawing
-directly from $U(T_j,T_j+\Delta)$ where
-$\Delta=2(T_j-\min(T_{jc1},T_{jc2}))$ with $T_{jc1}$ and $T_{jc2}$
-being the ages of the daughters of $j$. That is,
+$a\sim g$ where
 \begin{equation}
-  P(T')=\left\{\begin{array}{rl}
-\Delta^{-1} & \text{ for }T'\in[T_j,T_j+\Delta]\\
-0 & \text{ otherwise}\end{array}\right.
+g(a)=\frac{\alpha}{T_j}e^{-\frac{\alpha}{T_j}a}
 \end{equation}
+then setting $T'=T_j+a$. Therefore
+\begin{align}
+  P(T')&=\int_0^\infty da\, \delta(T'-(T_j+a))g(a)\nonumber\\
+&=\frac{\alpha}{T_j}\exp[-\frac{\alpha}{T_j}(T'-T_j)]
+\end{align}
 
 \subsection{Migration count proposal}
 
 The numbers of new migration events along the new branches above $i$
 and its new sister are chosen from Poissonian distributions with means
-$\mu(T'-T_i)$ and $\mu(T'-T_j)$. Thus,
+$\mu(T'-T_i)$ and $\mu(T'-T_j)$.  Thus,
 \begin{equation}
   P(n',n'_s)=e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
   \times e^{-\mu L'_s}\frac{(\mu L'_s)^{n'_s}}{n'_s!}
@@ -224,9 +229,9 @@ where we have defined $L'\equiv T'-T_i$ and $L'_s\equiv T'-T_j$.
 
 The times of the new migration events along the new branch above $i$
 are chosen by independently selecting $n'$ times from $U(T_i,T')$ then
-sorting them from smallest to largest. The unsorted times are
+sorting them from smallest to largest.  The unsorted times are
 contained in the vector $\tau'$ and we again use the sorting function
-$S$ to write $t'=S(\tau')$. We therefore have
+$S$ to write $t'=S(\tau')$.  We therefore have
 \begin{equation}
   P(\tau'|n',T')=\int_{[T_i,T']^{n'}}d^{n'}\tau\delta^{n'}(t'-S(\tau'))(L')^{-n'}.
 \end{equation}
@@ -246,7 +251,7 @@ $t'_s=S(\tau'_s)$, yielding
 
 Each new migration results in the lineage shifting to a new colour,
 randomly chosen from a uniform distribution over the colours available
-after the previous colour of the lineage has been excluded. Thus,
+after the previous colour of the lineage has been excluded.  Thus,
 \begin{equation}
   P(c',c'_s|n',n'_s)=\frac{1}{(N-1)^{n'+n'_s}}.
 \end{equation}
@@ -255,15 +260,15 @@ after the previous colour of the lineage has been excluded. Thus,
 
 Combining the conditional distributions and densities above yields
 \begin{align}
-  q(x'|x)=&\Delta^{-1}I(T'\in[T_j,T_j+\Delta])
+  q(x'|x)=&\frac{\alpha}{T_j}\exp\left[-\frac{\alpha}{T_j}(T'-T_j)\right]
   \times e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
   \times e^{-\mu L'_s}\frac{(\mu L'_s)^{n'_s}}{n'_s!}\nonumber\\
   &\times \frac{n'!}{(L')^{n'}}
   \times \frac{n'_s!}{(L'_s)^{n'_s}}
   \times (N-1)^{-(n'+n'_s)}\nonumber\\
-=&\Delta^{-1}\exp[-\mu(L'+L'_s)]\left(\frac{\mu}{N-1}\right)^{n'+n'_s}
-I(T'\in[T_j,T_j+\Delta])
+=&\frac{\alpha}{T_j}\exp\left[-\mu(2T'-T_i-T_j)-\alpha\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{n'+n'_s},
 \end{align}
+or $0$ if $T'<T_j$.
 
 \section{Backward root move}
 
@@ -308,10 +313,10 @@ density has the following form:
 \subsection{Proposal for $i'_p$ age}
 
 The age $T'$ of the new node $i_p'$ is drawn from
-$U(T_{\min},T_{j_p})$, where $T_{\min}=\min(T_i,T_j)$. Thus,
+$U(T_{\min},T_{\max})$, where $T_{\min}=\min(T_i,T_j)$ and $T_{\max}=T_{j_p}$. Thus,
 \begin{equation}
   P(T')=\left\{\begin{array}{rl}
-\frac{1}{T_{j_p}-T_{\min}} & \text{ for }T'\in[T_{\min},T_{j_p}]\\
+\frac{1}{T_{\max}-T_{\min}} & \text{ for }T'\in[T_{\min},T_{\max}]\\
 0 & \text{ otherwise}\end{array}\right.
 \end{equation}
 
@@ -343,11 +348,42 @@ The combined proposal density for the backwards move is
 \times e^{-\mu(T'-T_i)}\frac{(\mu(T'-T_i))^{n'}}{n'!}
 \times \frac{n'!}{(T'-T_i)^{n'}}
 \times (N-1)^{-n'}\nonumber\\
-&=\frac{\exp[-\mu(T'-T_i)]}{T_{j_p}-\max(T_i,T_j)}\left(\frac{\mu}{N-1}\right)^{n'}
-I(T'\in[\max(T_i,T_j),T_{j_p})])
+&=\frac{\exp[-\mu(T'-T_i)]}{T_{\max}-T_{\min}}\left(\frac{\mu}{N-1}\right)^{n'}
+I(T'\in[T_{\min},T_{\max})])
 \end{align}
+where again $T_{\min}=\max(T_i,T_j)$ and $T_{\max}=T_{j_p}$.
 
 \section{Acceptance probability for root moves}
+
+The assymetry of the forward and backward root causes their acceptance
+probabilities to also differ.
+
+\subsection{Forward root move}
+
+For the forward move, the current state is $x=\{T,n,t,c\}$ and the
+proposal state $x'=\{T',n',t',c',n'_s,t'_s,c'_s\}$. The reverse move
+is the backward root move. Note that for the reverse move,
+$j\rightarrow i_s$ and $j_p\rightarrow i_g$ where $i_s$ and $i_g$ are
+the sister and grandparent nodes of $i$. Since we will always have
+$T\in[\max(T_i,T_{i_s}),T_{i_g}]$, the Hastings ratio is
+\begin{align}
+  \frac{q(x|x')}{q(x'|x)}
+=& \frac{\exp[-\mu(T-T_i)]}{T_{i_g}-\max(T_i,T_{i_s})}\left(\frac{\mu}{N-1}\right)^n\\
+&\times
+\frac{T_j}{\alpha}\exp\left[\mu(2T'-T_i-T_j)-\alpha\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{-(n'+n'_s)}\nonumber\\
+=& \frac{T_j}{\alpha(T_{i_g}-\max(T_i,T_{i_s}))}\exp\left[-\mu(T+T_j-2T')-\alpha\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{n-(n'+n'_s)}.\nonumber
+\end{align}
+
+\subsection{Backward root move}
+
+For the backward move, the current state is $x=\{T,n,t,c,n',t',c'\}$
+and the proposal state is $x'=\{T',n',t',c'\}$. The reverse move is
+the forward root move. For the reverse move $j\rightarrow
+i_s$.
+\begin{align}
+  \frac{q(x|x')}{q(x'|x)}
+=&
+\end{align}
 
 
 \end{document}
