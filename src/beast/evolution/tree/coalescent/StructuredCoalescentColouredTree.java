@@ -411,13 +411,13 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		// Set up migration model.
 		RealParameter rateMatrix = new RealParameter();
 		rateMatrix.initByName(
-				"dimension",4,
-				"minordimension",2,
-				"value","0.0 0.1 0.1 0.0");
+				"dimension",1,
+				"minordimension",1,
+				"value","0.0");
 		RealParameter popSizes = new RealParameter();
 		popSizes.initByName(
-				"dimension",2,
-				"value", "7.0 7.0");
+				"dimension",1,
+				"value", "7.0");
 		MigrationModel migrationModel = new MigrationModel();
 		migrationModel.initByName(
 				"rateMatrix", rateMatrix,
@@ -426,7 +426,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		// Specify leaf colours:
 		IntegerParameter leafColours = new IntegerParameter();
 		leafColours.initByName(
-				"dimension",2,
+				"dimension",3,
 				"value", "0 0 0");
 
 		// Generate ensemble:
@@ -445,7 +445,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 			sctree.initByName(
 					"migrationModel", migrationModel,
 					"leafColours", leafColours,
-					"nColours", 2,
+					"nColours", 1,
 					"maxBranchColours", 50);
 
 			heights[i] = sctree.getUncolouredTree().getRoot().getHeight();

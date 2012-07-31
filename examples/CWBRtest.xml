@@ -21,10 +21,12 @@
 		<popSizes spec="RealParameter" value="7.0 7.0"/>
 	</model>
 
-<!--	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
+<!--
+	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
 		<rateMatrix spec='RealParameter' value="0.0" minordimension="1"/>
 		<popSizes spec="RealParameter" value="7.0"/>
-	</model>-->
+	</model>
+-->
 	    
     <run spec="MCMC" id="mcmc" chainLength="20000000"> 
 
@@ -56,9 +58,9 @@
 
 		<operator spec='beast.evolution.operator.ColouredWilsonBaldingRandom' id="CWBR"
 				  weight="1.0" tree="@tree" colouredTree="@colouredTree"
-				  mu="0.1" alpha="10.0" />
+				  mu="0.2" alpha="0.1" />
 
-		<logger logEvery="1000" fileName="operatorTests.log">
+		<logger logEvery="1000" fileName="CWBRtest.log">
 			<model idref='P'/>
 			<log idref="P"/>
 			<log spec='beast.evolution.tree.TreeHeightLogger'>
@@ -69,7 +71,7 @@
 			</log>
 		</logger>
 
-		<logger logEvery="1">
+		<logger logEvery="100000">
 			<model idref='P'/>
 			<log idref="P"/>
 			<log spec='beast.evolution.tree.TreeHeightLogger' >
@@ -80,11 +82,11 @@
 			</log>
 		</logger>
 
-		<logger logEvery="10000" fileName="operatorTests.trees">
+		<logger logEvery="10000" fileName="CWBRtest.trees">
 			<log idref="tree"/>
 		</logger>  
 
-		<logger logEvery="10000" fileName="operatorTests_col.trees" mode="tree">
+		<logger logEvery="10000" fileName="CWBRtest_col.trees" mode="tree">
 			<log idref="colouredTree"/>
 		</logger>
 

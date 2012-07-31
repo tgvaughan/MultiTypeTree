@@ -36,8 +36,8 @@ acceptance probability calculations}
 % AUCTeX preview can't handle this:
 % \coordinate (source) at ($(leaf1)!0.6!(root)$);
 % \coordinate (dest) at ($(leaf4)!0.5!(root)$);
-% \draw (internal)--(source);
-% \draw [dashed] (internal)--(dest);
+% \draw (internal)--(source) node[left]{$i_p$};
+% \draw [dashed] (internal)--(dest) node[right]{$i_{p'}$};
 % \fill (source) circle (0.05);
 % \fill (dest) circle (0.05);
 
@@ -66,10 +66,10 @@ $x'=\{T',n',t',c'\}$ from the following proposal density:
 &= P(T')P(n'|T')P(t'|n')P(c|n')
 \end{align}
 
-\subsection{Proposal for $i'_p$ age}
+\subsection{Proposal for $i_{p'}$ age}
 
-The age $T'$ of the new attachment point $i'_p$ is selected by drawing directly from
-$U(T_{\min},T_{\max})$, where $T_{\min}=\max(T_i,T_{j_p})$ and
+The age $T'$ of the new attachment point $i_{p'}$ is selected by drawing directly from
+$U(T_{\min},T_{\max})$, where $T_{\min}=\max(T_i,T_j)$ and
 $T_{\max}=T_{j_p}$ are defined in terms of the ages $T_i$ and
 $T_{j_p}$ of nodes $i$ and $j_p$ respectively. (As these node heights
 are not modified by the operator, we do not consider them part of the
@@ -145,8 +145,9 @@ eq.~(\ref{eq:nonRootDensity}). The acceptance probability is then
 &=\min\left[1,\frac{T_{j_p}-\max(T_i,T_j)}{T_{i_g}-\max(T_i,T_{i_s})}e^{-\mu(T-T')}\left(\frac{\mu}{N-1}\right)^{n-n'}\frac{\pi(x')}{\pi(x)}\right].
 \end{align}
 provided $q(x'|x)$ is non-zero, as it must be if $x'$ has been sampled
-from $q(x'|x)$.  The condition on $T$ ensures the move will never be
-accepted unless the reverse move is possible.
+from $q(x'|x)$. Note that $q(x|x')$ will always be non-zero in
+practice, as $T=T_{i_p}$ and thus will always satisfy
+$T\in[\max(T_i,T_{i_s}),T_{i_g}]$.
 
 \section{Forward root move}
 
@@ -191,7 +192,7 @@ proposal state has the distinct form
 $x'=\{T';n',t',c';n'_s,t'_s,c'_s\}$, where the additional variables
 $n'_s$, $t'_s$ and $c'_s$  represent the number, times and colours
 of migration events along the new sister branch of $\langle
-i,i_p'\rangle$: $\langle j,i_p'\rangle$.
+i,i_{p'}\rangle$: $\langle j,i_{p'}\rangle$.
 
 The proposal density has the following form:
 \begin{align}
@@ -204,12 +205,12 @@ The proposal density has the following form:
 The height of the proposed new root, $T'$ is selected by drawing
 $a\sim g$ where
 \begin{equation}
-g(a)=\frac{\alpha}{T_j}e^{-\frac{\alpha}{T_j}a}
+g(a)=\frac{1}{\alpha T_j}e^{-\frac{a}{\alpha T_j}}
 \end{equation}
 then setting $T'=T_j+a$. Therefore
 \begin{align}
   P(T')&=\int_0^\infty da\, \delta(T'-(T_j+a))g(a)\nonumber\\
-&=\frac{\alpha}{T_j}\exp[-\frac{\alpha}{T_j}(T'-T_j)]
+&=\frac{1}{\alpha T_j}\exp\left[-\frac{T'-T_j}{\alpha T_j}\right]
 \end{align}
 
 \subsection{Migration count proposal}
@@ -218,7 +219,7 @@ The numbers of new migration events along the new branches above $i$
 and its new sister are chosen from Poissonian distributions with means
 $\mu(T'-T_i)$ and $\mu(T'-T_j)$.  Thus,
 \begin{equation}
-  P(n',n'_s)=e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
+  P(n',n'_s|T')=e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
   \times e^{-\mu L'_s}\frac{(\mu L'_s)^{n'_s}}{n'_s!}
 \end{equation}
 where we have defined $L'\equiv T'-T_i$ and $L'_s\equiv T'-T_j$.
@@ -258,13 +259,13 @@ after the previous colour of the lineage has been excluded.  Thus,
 
 Combining the conditional distributions and densities above yields
 \begin{align}
-  q(x'|x)=&\frac{\alpha}{T_j}\exp\left[-\frac{\alpha}{T_j}(T'-T_j)\right]
+  q(x'|x)=&\frac{1}{\alpha T_j}\exp\left[-\frac{T'-T_j}{\alpha T_j}\right]
   \times e^{-\mu L'}\frac{(\mu L')^{n'}}{n'!}
   \times e^{-\mu L'_s}\frac{(\mu L'_s)^{n'_s}}{n'_s!}\nonumber\\
   &\times \frac{n'!}{(L')^{n'}}
   \times \frac{n'_s!}{(L'_s)^{n'_s}}
   \times (N-1)^{-(n'+n'_s)}\nonumber\\
-=&\frac{\alpha}{T_j}\exp\left[-\mu(2T'-T_i-T_j)-\alpha\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{n'+n'_s},
+=&\frac{1}{\alpha T_j}\exp\left[-\mu(2T'-T_i-T_j)-\frac{1}{\alpha}\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{n'+n'_s},
 \end{align}
 or $0$ if $T'<T_j$.
 
@@ -343,14 +344,13 @@ The migration colours are distributed according to
 
 The combined proposal density for the backwards move is
 \begin{align}
-  q(x'|x) &= \frac{1}{T_{j_p}-T_{\min}}I(T'\in[T_{\min},T_{j_p}])
+  q(x'|x) &= \frac{1}{T_{j_p}-\max(T_i,T_j)}
 \times e^{-\mu(T'-T_i)}\frac{(\mu(T'-T_i))^{n'}}{n'!}
 \times \frac{n'!}{(T'-T_i)^{n'}}
 \times (N-1)^{-n'}\nonumber\\
-&=\frac{\exp[-\mu(T'-T_i)]}{T_{\max}-T_{\min}}\left(\frac{\mu}{N-1}\right)^{n'}
-I(T'\in[T_{\min},T_{\max})])
+&=\frac{\exp[-\mu(T'-T_i)]}{T_{j_p}-\max(T_i,T_j)}\left(\frac{\mu}{N-1}\right)^{n'}
 \end{align}
-where again $T_{\min}=\max(T_i,T_j)$ and $T_{\max}=T_{j_p}$.
+or 0 in the case that $T'\notin [\max(T_i,T_j),T_{j_p}]$.
 
 \section{Acceptance probability for root moves}
 
@@ -369,8 +369,8 @@ $T\in[\max(T_i,T_{i_s}),T_{i_g}]$, the Hastings ratio is
   \frac{q(x|x')}{q(x'|x)}
 =& \frac{\exp[-\mu(T-T_i)]}{T_{i_g}-\max(T_i,T_{i_s})}\left(\frac{\mu}{N-1}\right)^n\\
 &\times
-\frac{T_j}{\alpha}\exp\left[\mu(2T'-T_i-T_j)+\alpha\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{-(n'+n'_s)}\nonumber\\
-=& \frac{T_j\exp\left[-\mu(T+T_j-2T')+\alpha\left(\frac{T'}{T_j}-1\right)\right]}{\alpha(T_{i_g}-\max(T_i,T_{i_s}))}\left(\frac{\mu}{N-1}\right)^{n-(n'+n'_s)}.\nonumber
+\alpha T_j\exp\left[\mu(2T'-T_i-T_j)+\frac{1}{\alpha}\left(\frac{T'}{T_j}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{-(n'+n'_s)}\nonumber\\
+=& \frac{\alpha T_j\exp\left[-\mu(T+T_j-2T')+\frac{1}{\alpha}\left(\frac{T'}{T_j}-1\right)\right]}{T_{i_g}-\max(T_i,T_{i_s})}\left(\frac{\mu}{N-1}\right)^{n-(n'+n'_s)}.\nonumber
 \end{align}
 
 \subsection{Backward root move}
@@ -383,12 +383,14 @@ will be
 \begin{align}
   \frac{q(x|x')}{q(x'|x)}
 =&
-\frac{\alpha}{T_{i_s}}\exp\left[-\mu(2T-T_i-T_{i_s})-\alpha\left(\frac{T}{T_{i_s}}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{n+n_{i_s}}\nonumber\\
+\frac{1}{\alpha T_{i_s}}\exp\left[-\mu(2T-T_i-T_{i_s})-\frac{1}{\alpha}\left(\frac{T}{T_{i_s}}-1\right)\right]\left(\frac{\mu}{N-1}\right)^{n+n_{i_s}}\nonumber\\
 &\times
-\frac{T_{j_p}-\max(T_i,T_j)}{\exp[-\mu(T'-T_i)]}\left(\frac{\mu}{N-1}\right)^{-n'}\nonumber\\
-&=\frac{\alpha(T_{j_p}-\max(T_i,T_j))}{T_{i_s}}\left(\frac{\mu}{N-1}\right)^{(n+n_{i_s})-n'}\nonumber\\
-&\times\exp\left[-\mu(2T-T_{i_s}-T')-\alpha\left(\frac{T}{T_{i_s}}-1\right)\right].
+(T_{j_p}-\max(T_i,T_j))\exp\left[\mu(T'-T_i)\right]\left(\frac{\mu}{N-1}\right)^{-n'}\nonumber\\
+&=\frac{T_{j_p}-\max(T_i,T_j)}{\alpha T_{i_s}}\left(\frac{\mu}{N-1}\right)^{(n+n_{i_s})-n'}\nonumber\\
+&\times\exp\left[-\mu(2T-T_{i_s}-T')-\frac{1}{\alpha}\left(\frac{T}{T_{i_s}}-1\right)\right].
 \end{align}
+Here $n_{i_s}$ represents the number of migration events on the branch
+above $i_s$ in the current state.
 
 
 \end{document}

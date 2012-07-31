@@ -59,7 +59,7 @@ abstract public class ColouredTreeOperator extends TreeOperator {
 
         // Add colour changes originally attached to parent to those attached
         // to node's sister:
-        for (int idx = 0; idx<cTree.getChangeCount(parent) && cTree.getChangeCount(sister)<cTree.getMaxBranchColours() ; idx++) {
+        for (int idx = 0; idx<cTree.getChangeCount(parent); idx++) {
             int colour = cTree.getChangeColour(parent, idx);
             double time = cTree.getChangeTime(parent, idx);
             addChange(sister, colour, time);
@@ -87,6 +87,11 @@ abstract public class ColouredTreeOperator extends TreeOperator {
         Node sister = getOtherChild(parent, node);
         sister.setParent(null);
         parent.getChildren().remove(sister);
+		
+		// Ensure BEAST knows to update affected likelihoods:
+		parent.makeDirty(Tree.IS_FILTHY);
+		sister.makeDirty(Tree.IS_FILTHY);
+		node.makeDirty(Tree.IS_FILTHY);
 
     }
 
@@ -130,6 +135,7 @@ abstract public class ColouredTreeOperator extends TreeOperator {
         setNodeColour(parent, cTree.getFinalBranchColour(destBranchBase));
 
         // Implement topology changes:
+		
         replace(destBranchBase.getParent(), destBranchBase, parent);
         destBranchBase.setParent(parent);
 
@@ -137,8 +143,21 @@ abstract public class ColouredTreeOperator extends TreeOperator {
             parent.setRight(destBranchBase);
         else if (parent.getRight() == node)
             parent.setLeft(destBranchBase);
+		
+		// Ensure BEAST knows to update affected likelihoods:
+		node.makeDirty(Tree.IS_FILTHY);
+		parent.makeDirty(Tree.IS_FILTHY);
+		destBranchBase.makeDirty(Tree.IS_FILTHY);
     }
 
+	/**
+	 * Set up node's parent as the new root with a height of destTime,
+	 * with oldRoot as node's new sister.
+	 * 
+	 * @param node
+	 * @param oldRoot
+	 * @param destTime 
+	 */
     public void connectBranchToRoot(Node node, Node oldRoot, double destTime) {
 
         // Check argument validity:
@@ -149,9 +168,12 @@ abstract public class ColouredTreeOperator extends TreeOperator {
         // Obtain existing parent of node and set new time:
         Node newRoot = node.getParent();
         newRoot.setHeight(destTime);
-        newRoot.setParent(null);
+		
+		// Implement topology changes:
+        
+		newRoot.setParent(null);
 
-        if (newRoot.getLeft() == node) {
+		if (newRoot.getLeft() == node) {
             newRoot.setRight(oldRoot);
         }
         else if (newRoot.getRight() == node)
@@ -159,6 +181,8 @@ abstract public class ColouredTreeOperator extends TreeOperator {
 
         oldRoot.setParent(newRoot);
         
+		// Ensure BEAST knows to recalculate affected likelihood:
+		
         newRoot.makeDirty(Tree.IS_FILTHY);
         oldRoot.makeDirty(Tree.IS_FILTHY);
         node.makeDirty(Tree.IS_FILTHY);

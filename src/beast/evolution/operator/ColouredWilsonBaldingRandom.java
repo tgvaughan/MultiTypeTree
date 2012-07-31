@@ -65,33 +65,27 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			throw new IllegalStateException("Tree too small for"
 					+ " ColouredWilsonBaldingRandom operator.");
 		}
+		
+		// Force migration proposal rate to zero if tree is single-coloured:
+		if (cTree.getNColours()<2)
+			mu = 0.0;
 
 		// Select source node:
 		Node srcNode;
 		do {
 			srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-		} while (srcNode.isRoot());
+		} while (invalidSrcNode(srcNode));
+		Node srcNodeP = srcNode.getParent();
         double t_srcNode = srcNode.getHeight();
-
-		// Record source node details:
-        Node srcNodeP = srcNode.getParent();
         double t_srcNodeP = srcNodeP.getHeight();
 
 		// Select destination branch node:
-        Node destNode, destNodeP;
+		Node destNode;
         do {
             destNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-			destNodeP = destNode.getParent();
-        } while (destNode==srcNode
-				|| srcNodeP == destNode
-				|| srcNodeP == destNodeP
-				|| (destNodeP != null && destNodeP.getHeight()<=t_srcNode));
-		
-		// Record destination node details:
+        } while (invalidDestNode(srcNode, destNode));
+		Node destNodeP = destNode.getParent();
         double t_destNode = destNode.getHeight();
-		
-		// Initialise variable to keep track of HR:
-		double logHR = 0;
 
 		// Handle special cases involving root:
 		
@@ -107,7 +101,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			double t_srcNodeS = getOtherChild(srcNodeP, srcNode).getHeight();
 			
 			// Choose new root height:
-            double newTime = t_destNode + Randomizer.nextExponential(alpha/t_destNode);
+            double newTime = t_destNode + Randomizer.nextExponential(1.0/(alpha*t_destNode));
 			
 			// Choose number of new colour changes to generate:
 			int newCountNode = PoissonRandomizer.nextInt(mu*(newTime-t_srcNode));
@@ -123,14 +117,17 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			if (!recolourRootBranches(srcNode, newCountNode, newCountSister))
 				return Double.NEGATIVE_INFINITY;
 			
-			// Calculate HR:
-			logHR = Math.log(t_destNode)
-					- mu*(oldTime+t_destNode-2*newTime)
-					+ alpha*(newTime/t_destNode - 1.0)
-					- Math.log(alpha*(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS)))
-					+ (oldChangeCount-newCountTotal)*Math.log(mu/(cTree.getNColours()-1));
-					
-            return logHR;
+			// Return HR:
+			
+			double logHR = Math.log(alpha*t_destNode)
+					+ (1.0/alpha)*(newTime/t_destNode - 1.0)
+					- Math.log(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS));
+			
+			if(cTree.getNColours()>1)
+				logHR += -mu*(oldTime+t_destNode-2*newTime)
+						+ (oldChangeCount-newCountTotal)*Math.log(mu/(cTree.getNColours()-1));
+
+			return logHR;
         }
 		
 		if (srcNodeP.isRoot()) {
@@ -153,29 +150,28 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			double newTime = min_newTime + span*Randomizer.nextDouble();
 			
 			// Choose number of new colour changes to generate:
-			double L = newTime - t_srcNode;
-			int newChangeCount = PoissonRandomizer.nextInt(mu*L);
+			int newChangeCount = PoissonRandomizer.nextInt(mu*(newTime-t_srcNode));
 
             // Implement tree changes:
-			Node srcNodeSister = getOtherChild(srcNode.getParent(), srcNode);
             disconnectBranchFromRoot(srcNode);
             connectBranch(srcNode, destNode, newTime);			
-            srcNodeSister.setParent(null);
-            tree.setRoot(srcNodeSister);
+            srcNodeS.setParent(null);
+            tree.setRoot(srcNodeS);
 
             // Recolour new branch, rejecting outright if inconsistent:
 			if (!recolourBranch(srcNode, newChangeCount))
 				return Double.NEGATIVE_INFINITY;
 			
-			// Calculate HR:
+			// Return HR:
+			double logHR = Math.log(t_destNodeP-Math.max(t_srcNode,t_destNode))
+					- Math.log(alpha*t_srcNodeS)
+					- (1.0/alpha)*(oldTime/t_srcNodeS - 1.0);
 			
-			logHR = Math.log(alpha*(t_destNodeP-Math.max(t_srcNode,t_destNode)))
-					- Math.log(t_srcNodeS)
-					+ (oldChangeCount-newChangeCount)*Math.log(mu/(cTree.getNColours()-1))
-					- mu*(2*oldTime - t_srcNodeS - newTime)
-					- alpha*(oldTime/t_srcNodeS - 1.0);
-
-            return logHR;
+			if (cTree.getNColours()>1)
+				logHR += - mu*(2*oldTime - t_srcNodeS - newTime)
+						+ (oldChangeCount-newChangeCount)*Math.log(mu/(cTree.getNColours()-1));
+			
+			return logHR;
         }
 
 		// NON-ROOT MOVE
@@ -206,14 +202,69 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		if (!recolourBranch(srcNode, newChangeCount))
 			return Double.NEGATIVE_INFINITY;
 		
-		// Calculate HR:
-		logHR = Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
-				- Math.log(t_srcNodeG-Math.max(t_srcNode, t_srcNodeS))
-				- mu*(oldTime - newTime)
-				+ (oldChangeCount-newChangeCount)*Math.log(mu/(cTree.getNColours()-1));
-
+		// Return HR:
+		double logHR = Math.log(t_destNodeP - Math.max(t_srcNode, t_destNode))
+				- Math.log(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS));
+				
+		if (cTree.getNColours()>1)
+			logHR += -mu*(oldTime - newTime)
+					+ (oldChangeCount - newChangeCount)*Math.log(mu/(cTree.getNColours()-1));
+		
 		return logHR;
     }
+	
+	/**
+	 * Returns true if srcNode CANNOT be used for the CWBR move.
+	 * 
+	 * @param srcNode
+	 * @return True if srcNode invalid.
+	 */
+	private boolean invalidSrcNode(Node srcNode) {
+		
+		if (srcNode.isRoot())
+			return true;
+		
+		Node parent = srcNode.getParent();
+
+		// This check is important in avoiding situations where it is
+		// impossible to choose a valid destNode:
+		if (parent.isRoot()) {
+			
+			Node sister = getOtherChild(parent, srcNode);
+			
+			if (sister.isLeaf())
+				return true;
+		
+			if (srcNode.getHeight()>=sister.getHeight())
+				return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Returns true if destNode CANNOT be used for the CWBR move in conjunction
+	 * with srcNode.
+	 * 
+	 * @param srcNode
+	 * @param destNode
+	 * @return True if destNode invalid.
+	 */
+	private boolean invalidDestNode(Node srcNode, Node destNode) {
+		
+		if (destNode==srcNode
+				|| destNode == srcNode.getParent()
+				|| destNode.getParent() == srcNode.getParent())
+			return true;
+
+		Node srcNodeP = srcNode.getParent();
+		Node destNodeP = destNode.getParent();
+		
+		if (destNodeP != null && (destNodeP.getHeight()<= srcNode.getHeight()))
+			return true;
+		
+		return false;
+	}
 	
 	/**
 	 * Recolour branch between srcNode and its parent with nChanges.
