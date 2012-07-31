@@ -67,6 +67,9 @@ abstract public class ColouredTreeOperator extends TreeOperator {
 
         // Implement topology change.
         replace(parent.getParent(), parent, sister);
+		
+		// Clear colour changes from parent:
+		setChangeCount(parent, 0);
     }
 
     /**
@@ -87,6 +90,9 @@ abstract public class ColouredTreeOperator extends TreeOperator {
         Node sister = getOtherChild(parent, node);
         sister.setParent(null);
         parent.getChildren().remove(sister);
+		
+		// Clear colour changes on new root:
+		setChangeCount(sister, 0);
 		
 		// Ensure BEAST knows to update affected likelihoods:
 		parent.makeDirty(Tree.IS_FILTHY);

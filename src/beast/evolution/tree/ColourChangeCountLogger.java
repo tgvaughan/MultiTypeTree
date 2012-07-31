@@ -57,8 +57,10 @@ public class ColourChangeCountLogger extends Plugin implements Loggable {
 		ColouredTree cTree = colouredTreeInput.get();
 		
 		int count = 0;
-		for (Node node : cTree.getUncolouredTree().getNodesAsArray())
-			count += cTree.getChangeCount(node);
+		for (Node node : cTree.getUncolouredTree().getNodesAsArray()) {
+			if (!node.isRoot())
+				count += cTree.getChangeCount(node);
+		}
 		
 		out.print(count + "\t");
 	}

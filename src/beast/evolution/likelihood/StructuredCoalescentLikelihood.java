@@ -42,7 +42,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 			Validate.REQUIRED);
 
 	protected MigrationModel migrationModel;
-	protected ColouredTree ctree;
+	protected ColouredTree cTree;
 	protected Tree tree;
 
 	private enum SCEventType { COALESCE, MIGRATE, SAMPLE };
@@ -62,8 +62,8 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 	@Override
 	public void initAndValidate() {
 		migrationModel = m_migrationModel.get();
-		ctree = m_ctree.get();
-		tree = ctree.getUncolouredTree();
+		cTree = m_ctree.get();
+		tree = cTree.getUncolouredTree();
 
 		eventList = new ArrayList<SCEvent>();
 		lineageCountList = new ArrayList<Integer[]>();
@@ -141,15 +141,15 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 
 		// Initialise map of active nodes to active change indices:
 		Map<Node,Integer> changeIdx = new HashMap<Node,Integer>();
-		changeIdx.put(rootNode, ctree.getChangeCount(rootNode)-1);
+		changeIdx.put(rootNode, -1);
 
 		// Initialise lineage count per colour array:
-		Integer[] lineageCount = new Integer[ctree.getNColours()];
-		for (int c=0; c<ctree.getNColours(); c++) {
-			if (c != ctree.getNodeColour(rootNode))
-				lineageCount[c] = 0;
-			else
+		Integer[] lineageCount = new Integer[cTree.getNColours()];
+		for (int c=0; c<cTree.getNColours(); c++) {
+			if (c == cTree.getNodeColour(rootNode))
 				lineageCount[c] = 1;
+			else
+				lineageCount[c] = 0;
 		}
 
 		// Calculate event sequence:
@@ -168,7 +168,7 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 						if (node.getHeight()>nextEvent.time) {
 							nextEvent.time = node.getHeight();
 							nextEvent.type = SCEventType.SAMPLE;
-							nextEvent.colour = ctree.getNodeColour(node);
+							nextEvent.colour = cTree.getNodeColour(node);
 							nextEvent.node = node;
 						}
 					} else {
@@ -176,22 +176,22 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 						if (node.getHeight()>nextEvent.time) {
 							nextEvent.time = node.getHeight();
 							nextEvent.type = SCEventType.COALESCE;
-							nextEvent.colour = ctree.getNodeColour(node);
+							nextEvent.colour = cTree.getNodeColour(node);
 							nextEvent.node = node;
 						}
 					}
 				} else {
 					// Next event is a migration
-					double thisChangeTime = ctree.getChangeTime(node,changeIdx.get(node));
+					double thisChangeTime = cTree.getChangeTime(node,changeIdx.get(node));
 					if (thisChangeTime>nextEvent.time) {
 						nextEvent.time = thisChangeTime;
 						nextEvent.type = SCEventType.MIGRATE;
-						nextEvent.destColour = ctree.getChangeColour(node, changeIdx.get(node));
+						nextEvent.destColour = cTree.getChangeColour(node, changeIdx.get(node));
 						if (changeIdx.get(node)>0)
-							nextEvent.colour = ctree.getChangeColour(node,
+							nextEvent.colour = cTree.getChangeColour(node,
 									changeIdx.get(node)-1);
 						else
-							nextEvent.colour = ctree.getNodeColour(node);
+							nextEvent.colour = cTree.getNodeColour(node);
 						nextEvent.node = node;
 					}
 				}
@@ -204,8 +204,8 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 					Node rightChild = nextEvent.node.getRight();
 
 					changeIdx.remove(nextEvent.node);
-					changeIdx.put(leftChild, ctree.getChangeCount(leftChild)-1);
-					changeIdx.put(rightChild, ctree.getChangeCount(rightChild)-1);
+					changeIdx.put(leftChild, cTree.getChangeCount(leftChild)-1);
+					changeIdx.put(rightChild, cTree.getChangeCount(rightChild)-1);
 					lineageCount[nextEvent.colour]++;
 					break;
 
