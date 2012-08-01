@@ -20,11 +20,7 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.evolution.tree.Node;
-import beast.evolution.tree.Tree;
-import beast.math.GammaFunction;
-import beast.util.PoissonRandomizer;
 import beast.util.Randomizer;
-import java.util.Arrays;
 
 /**
  * Wilson-Balding branch swapping operator applied to coloured trees.
@@ -76,8 +72,10 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
 		} while (invalidSrcNode(srcNode));
 		Node srcNodeP = srcNode.getParent();
+		Node srcNodeS = getOtherChild(srcNodeP, srcNode);
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeP = srcNodeP.getHeight();
+		double t_srcNodeS = srcNodeS.getHeight();
 
 		// Select destination branch node:
 		Node destNode;
@@ -96,45 +94,38 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			double oldTime = t_srcNodeP;
 			int oldChangeCount = cTree.getChangeCount(srcNode);
 			
-			// Record srcNode sister and grandmother heights:
+			// Record srcNode grandmother height:
 			double t_srcNodeG = srcNodeP.getParent().getHeight();
-			double t_srcNodeS = getOtherChild(srcNodeP, srcNode).getHeight();
 			
 			// Choose new root height:
             double newTime = t_destNode + Randomizer.nextExponential(1.0/(alpha*t_destNode));
 			
-			// Choose number of new colour changes to generate:
-			int newCountNode = PoissonRandomizer.nextInt(mu*(newTime-t_srcNode));
-			int newCountSister = PoissonRandomizer.nextInt(mu*(newTime-t_destNode));
-			int newCountTotal = newCountNode + newCountSister;
-
             // Implement tree changes:
             disconnectBranch(srcNode);
             connectBranchToRoot(srcNode, destNode, newTime);
             tree.setRoot(srcNodeP);
 			
 			// Recolour root branches:
-			while (!recolourRootBranches(srcNode, newCountNode, newCountSister));
+			if (!recolourRootBranches(srcNode))
+				return Double.NEGATIVE_INFINITY;
+			
+			int newChangeCount = cTree.getChangeCount(srcNode)
+					+ cTree.getChangeCount(destNode);
 			
 			// Return HR:
-			
 			double logHR = Math.log(alpha*t_destNode)
 					+ (1.0/alpha)*(newTime/t_destNode - 1.0)
 					- Math.log(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS));
 			
 			if(cTree.getNColours()>1)
 				logHR += -mu*(oldTime+t_destNode-2*newTime)
-						+ (oldChangeCount-newCountTotal)*Math.log(mu/(cTree.getNColours()-1));
+						+ (oldChangeCount-newChangeCount)*Math.log(mu/(cTree.getNColours()-1));
 
 			return logHR;
         }
 		
 		if (srcNodeP.isRoot()) {
             // BACKWARD ROOT MOVE
-			
-			// Record details of srcNode's sister:
-			Node srcNodeS = getOtherChild(srcNodeP, srcNode);
-			double t_srcNodeS = srcNodeS.getHeight();
 			
 			// Record old srcNode parent height and combined change count
 			// for srcNode and her sister:
@@ -148,9 +139,6 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 			double span = t_destNodeP - min_newTime;
 			double newTime = min_newTime + span*Randomizer.nextDouble();
 			
-			// Choose number of new colour changes to generate:
-			int newChangeCount = PoissonRandomizer.nextInt(mu*(newTime-t_srcNode));
-
             // Implement tree changes:
             disconnectBranchFromRoot(srcNode);
             connectBranch(srcNode, destNode, newTime);			
@@ -158,7 +146,10 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             tree.setRoot(srcNodeS);
 
             // Recolour new branch:
-			while (!recolourBranch(srcNode, newChangeCount));
+			if (!recolourBranch(srcNode))
+				return Double.NEGATIVE_INFINITY;
+			
+			int newChangeCount = cTree.getChangeCount(srcNode);
 			
 			// Return HR:
 			double logHR = Math.log(t_destNodeP-Math.max(t_srcNode,t_destNode))
@@ -178,8 +169,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		double oldTime = t_srcNodeP;
 		int oldChangeCount = cTree.getChangeCount(srcNode);
 		
-		// Record srcNode sister and grandmother heights:
-		double t_srcNodeS = getOtherChild(srcNodeP, srcNode).getHeight();
+		// Record srcNode grandmother height:
 		double t_srcNodeG = srcNodeP.getParent().getHeight();
 		
 		// Choose height of new attachment point:
@@ -188,16 +178,15 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		double span = t_destNodeP - min_newTime;
 		double newTime = min_newTime + span*Randomizer.nextDouble();
 
-		// Choose number of new colour changes to generate:
-		double L = newTime - t_srcNode;
-		int newChangeCount = PoissonRandomizer.nextInt(mu*L);
-
 		// Implement tree changes:
 		disconnectBranch(srcNode);
 		connectBranch(srcNode, destNode, newTime);
 
 		// Recolour new branch:
-		if (!recolourBranch(srcNode, newChangeCount));
+		if (!recolourBranch(srcNode))
+			return Double.NEGATIVE_INFINITY;
+		
+		int newChangeCount = cTree.getChangeCount(srcNode);
 		
 		// Return HR:
 		double logHR = Math.log(t_destNodeP - Math.max(t_srcNode, t_destNode))
@@ -281,21 +270,28 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		
 		// Clear existing changes in preparation for adding replacements:
 		setChangeCount(srcNode, 0);
-		
-		// Early exit if no changes to implement:
-		if (nChanges==0)
-			return srcNodeCol == srcNodeParentCol;
-		
-		// Obtain new colours and times:
-		double[] times = getTimes(t_srcNodeParent-t_srcNode, nChanges);
-		int[] colours = getColours(cTree.getNodeColour(srcNode), nChanges);
-		
-		// Set colours along branch between srcNode and its parent:
-		for (int i=0; i<nChanges; i++)
-			addChange(srcNode, colours[i], times[i]+t_srcNode);
+
+		double t = t_srcNode;
+		int lastCol = srcNodeCol;
+		while (t<t_srcNodeParent) {
+			
+			// Determine time to next migration event:
+			t += Randomizer.nextExponential(mu);
+			
+			if (t<t_srcNodeParent) {
+				
+				// Select new colour:
+				int newCol = Randomizer.nextInt(cTree.getNColours()-1);
+				if (newCol>=lastCol)
+					newCol += 1;
+				addChange(srcNode, newCol, t);
+				
+				lastCol = newCol;
+			}
+		}
 		
 		// Notify caller of mismatch in final branch colour:
-		return colours[nChanges-1] == srcNodeParentCol;
+		return lastCol == srcNodeParentCol;
 	}
 
 	/**
@@ -308,72 +304,16 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 	 * @param nChangesSister
 	 * @return True if recolour successful.
 	 */
-	private boolean recolourRootBranches(Node srcNode,
-			int nChangesNode, int nChangesSister) {
+	private boolean recolourRootBranches(Node srcNode) {
 		
 		Node root = srcNode.getParent();
 		Node srcNodeSister = getOtherChild(root, srcNode);
 		
 		// Recolour first branch, adjusting root node colour if necessary.
-		if (!recolourBranch(srcNode, nChangesNode))
+		if (!recolourBranch(srcNode))
 			setNodeColour(root, cTree.getFinalBranchColour(srcNode));
-		
-		return recolourBranch(srcNodeSister, nChangesSister);
+
+		return recolourBranch(srcNodeSister);
 	}
-
-    /**
-     * Randomly select colour change times uniformly along branch.
-     *
-     * @param initialTime
-     * @param finalTime
-     * @return Array of colour change times.
-     */
-    private double[] getTimes(double L, int nChanges) {
-
-        // Assign random times between initialTime and finalTime:
-        double[] times = new double[nChanges];
-        for (int i=0; i<nChanges; i++)
-            times[i] = L*Randomizer.nextDouble();
-        Arrays.sort(times);
-
-        return times;
-    }
-
-    /**
-     * Randomly assign nChanges colour changes to branch.
-     *
-     * @param nChanges
-     * @return Array of colours.
-     */
-    private int[] getColours(int startColour, int nChanges) {
-
-        int[] colours = new int[nChanges];
-        int nColours = cTree.getNColours();
-
-		int lastCol = startColour;
-        for (int i=0; i<nChanges; i++) {
-			int newCol;
-			do {
-	            newCol = Randomizer.nextInt(nColours);
-			} while (newCol == lastCol);
-            colours[i] = newCol;
-			lastCol = newCol;
-        }
-
-        return colours;
-    }
-	
-    /**
-     * Main method for debugging.
-     *
-     * @param args
-     */
-    public static void main (String[] args) {
-
-        ColouredWilsonBaldingRandom wb = new ColouredWilsonBaldingRandom();
-
-		for (int i=0; i<10000; i++)
-	        System.out.println(PoissonRandomizer.nextInt(10));
-    }
 
 }
