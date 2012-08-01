@@ -57,8 +57,12 @@
 		</distribution>
 
 		<operator spec='beast.evolution.operator.ColouredWilsonBaldingRandom' id="CWBR"
-				  weight="1.0" tree="@tree" colouredTree="@colouredTree"
-				  mu="0.2" alpha="0.1" />
+				  weight="0.5" tree="@tree" colouredTree="@colouredTree"
+				  mu="0.2" alpha="0.2" />
+
+		<operator spec='beast.evolution.operator.ColouredTreeScale' id="CTS"
+				  weight="0.5" tree="@tree" colouredTree='@colouredTree'
+				  scaleParam="1.5"/>
 
 		<logger logEvery="1000" fileName="CWBRtest.log">
 			<model idref='P'/>
