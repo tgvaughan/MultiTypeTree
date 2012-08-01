@@ -113,9 +113,8 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             connectBranchToRoot(srcNode, destNode, newTime);
             tree.setRoot(srcNodeP);
 			
-			// Recolour root branches, forcing reject if inconsistent:
-			if (!recolourRootBranches(srcNode, newCountNode, newCountSister))
-				return Double.NEGATIVE_INFINITY;
+			// Recolour root branches:
+			while (!recolourRootBranches(srcNode, newCountNode, newCountSister));
 			
 			// Return HR:
 			
@@ -158,9 +157,8 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             srcNodeS.setParent(null);
             tree.setRoot(srcNodeS);
 
-            // Recolour new branch, rejecting outright if inconsistent:
-			if (!recolourBranch(srcNode, newChangeCount))
-				return Double.NEGATIVE_INFINITY;
+            // Recolour new branch:
+			while (!recolourBranch(srcNode, newChangeCount));
 			
 			// Return HR:
 			double logHR = Math.log(t_destNodeP-Math.max(t_srcNode,t_destNode))
@@ -198,9 +196,8 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 		disconnectBranch(srcNode);
 		connectBranch(srcNode, destNode, newTime);
 
-		// Recolour new branch, rejecting outright if inconsistent:
-		if (!recolourBranch(srcNode, newChangeCount))
-			return Double.NEGATIVE_INFINITY;
+		// Recolour new branch:
+		if (!recolourBranch(srcNode, newChangeCount));
 		
 		// Return HR:
 		double logHR = Math.log(t_destNodeP - Math.max(t_srcNode, t_destNode))
@@ -267,13 +264,13 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
 	}
 	
 	/**
-	 * Recolour branch between srcNode and its parent with nChanges.
+	 * Recolour branch between srcNode and its parent with rate fixed by
+	 * the tuning parameter mu.
 	 * 
 	 * @param srcNode
-	 * @param nChanges
 	 * @return True if new colouring consistent with parent's node colour.
 	 */
-	private boolean recolourBranch(Node srcNode, int nChanges) {
+	private boolean recolourBranch(Node srcNode) {
 		
 		Node srcNodeParent = srcNode.getParent();
 		double t_srcNode = srcNode.getHeight();
