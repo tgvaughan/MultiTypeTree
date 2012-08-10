@@ -64,8 +64,6 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 	 */
 
 	protected MigrationModel migrationModel; 
-	protected RealParameter rateMatrix;
-	protected RealParameter popSizes;
 
 	/*
 	 * Other private fields and classes:
@@ -110,8 +108,6 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		colourLabel = colourLabelInput.get();
 		maxBranchColours = maxBranchColoursInput.get();
 		migrationModel = migrationModelInput.get();
-		rateMatrix = migrationModel.getRateMatrix();
-		popSizes = migrationModel.getPopSizes();
 
 		// Obtain leaf colours:
 		leafColours = leafColoursInput.get();
@@ -185,10 +181,10 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 		// Allocate propensity lists:
 		List<List<Double>> migrationProp = new ArrayList<List<Double>>();
 		List<Double> coalesceProp = new ArrayList<Double>();
-		for (int i=0; i<rateMatrix.getMinorDimension1(); i++) {
+		for (int i=0; i<migrationModel.getNDemes(); i++) {
 			coalesceProp.add(0.0);
 			migrationProp.add(new ArrayList<Double>());
-			for (int j=0; j<rateMatrix.getMinorDimension1(); j++)
+			for (int j=0; j<migrationModel.getNDemes(); j++)
 				migrationProp.get(i).add(0.0);
 		}
 
@@ -238,7 +234,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 
 		for (int i=0; i<migrationProp.size(); i++) {
 
-			double N = popSizes.getArrayValue(i);
+			double N = migrationModel.getPopSize(i);
 			int k = activeNodes.get(i).size();
 
 			coalesceProp.set(i, k*(k-1)/(2.0*N));
@@ -249,7 +245,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 				if (j==i)
 					continue;
 
-				double m = rateMatrix.getMatrixValue(i, j);
+				double m = migrationModel.getBackwardRate(j, i);
 
 				migrationProp.get(i).set(j, k*m);
 				totalProp += migrationProp.get(i).get(j);

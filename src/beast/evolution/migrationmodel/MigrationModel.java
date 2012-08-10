@@ -24,6 +24,10 @@ import beast.core.parameter.RealParameter;
 import beast.evolution.substitutionmodel.DefaultEigenSystem;
 import beast.evolution.substitutionmodel.EigenDecomposition;
 import beast.evolution.substitutionmodel.EigenSystem;
+import cern.colt.matrix.DoubleMatrix1D;
+import cern.colt.matrix.DoubleMatrix2D;
+import cern.colt.matrix.impl.DenseDoubleMatrix2D;
+import cern.colt.matrix.linalg.EigenvalueDecomposition;
 
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
@@ -45,59 +49,69 @@ public class MigrationModel extends Plugin {
 			Validate.REQUIRED);
 
 	private RealParameter rateMatrix, popSizes;
-	private double[][] Q, unifQ;
 	private double mu;
-	private EigenDecomposition Qdecomp, unifQdecomp;
+	private DoubleMatrix2D Q, R;
+	private EigenvalueDecomposition Qdecomp, Rdecomp;
 
 	public MigrationModel() { }
 
 	@Override
-	public void initAndValidate() {
+	public void initAndValidate() throws Exception {
+		updateMatrices();
+	}
+	
+	public void updateMatrices() throws Exception {
 		rateMatrix = rateMatrixInput.get();
 		popSizes = popSizesInput.get();
+		
+		if (rateMatrix.getMinorDimension1() != rateMatrix.getMinorDimension2())
+			throw new Exception("Migration matrix must be square!");
+		
+		if (rateMatrix.getMinorDimension1() != popSizes.getDimension())
+			throw new Exception("Side of migration matrix not equal length of"
+					+ " population size vector.");
 
-		int nColours = rateMatrix.getMinorDimension1();
-		Q = new double[nColours][nColours];
+		int nColours = getNDemes();
 
-		mu = 0;
+		mu = 0.0;
+		Q = new DenseDoubleMatrix2D(nColours, nColours);
+		
+		// Set up backward transition rate matrix:
 		for (int i=0; i<nColours; i++) {
-			double qi = 0.0;
+			Q.set(i, i, 0.0);
 			for (int j=0; j<nColours; j++) {
 				if (i != j) {
-					double Qij = rateMatrix.getMatrixValue(i,j);
-					Q[i][j] = Qij;
-					qi += Qij;
+					Q.set(j,i, getBackwardRate(j, i));
+					Q.set(i, i, Q.get(i, i)-Q.get(j, i));
 				}
 			}
-			Q[i][i] = -qi;
 
-			if (qi>mu)
-				mu = qi;
+			if (Q.get(i,i)>mu)
+				mu = Q.get(i,i);
 		}
-
-		EigenSystem eig = new DefaultEigenSystem(nColours);
-		Qdecomp = eig.decomposeMatrix(Q);
-
-		unifQ = new double[nColours][nColours];
+		
+		// Set up uniformised backward transition rate matrix:
+		R = new DenseDoubleMatrix2D(nColours, nColours);
 		for (int i=0; i<nColours; i++) {
 			for (int j=0; j<nColours; j++) {
-				unifQ[i][j] = Q[i][j]/mu;
-				if (i==j)
-					unifQ[i][i] += 1.0;
+				R.set(j, i, Q.get(j, i)/mu);
+				if (j==i)
+					R.set(j, i, R.get(j,i)+1.0);
 			}
 		}
-
-		unifQdecomp = eig.decomposeMatrix(unifQ);
-
+		
+		// Construct eigenvalue decompositions:
+		Qdecomp = new EigenvalueDecomposition(Q);
+		Rdecomp = new EigenvalueDecomposition(R);
 	}
 
 	/**
-	 * Obtain rate matrix for migration model.
+	 * Obtain the number of demes in the migration model.
 	 * 
-	 * @return Rate matrix (RealParameter).
+	 * @return Length of side of migration matrix.
 	 */
-	public RealParameter getRateMatrix() {
-		return rateMatrix;
+	public int getNDemes() {
+		return rateMatrix.getMinorDimension1();
 	}
 
 	/**
@@ -110,23 +124,17 @@ public class MigrationModel extends Plugin {
 	}
 
 	/**
-	 * Obtain element of backward-time migration matrix.
+	 * Obtain element of backward-time migration matrix corresponding to
+	 * the backward-time transition rate from deme j to deme i.
 	 * 
+	 * @param i Destination deme
+	 * @param j Source deme
 	 * @return Rate matrix element.
 	 */
 	public double getBackwardRate(int i, int j) {
 		return rateMatrix.getMatrixValue(j, i)
 				*popSizes.getArrayValue(i)
 				/popSizes.getArrayValue(j);
-	}
-
-	/**
-	 * Obtain array of effective population sizes, indexed by colour.
-	 * 
-	 * @return Population size array.
-	 */
-	public RealParameter getPopSizes() {
-		return popSizes;
 	}
 
 	/**
@@ -138,50 +146,48 @@ public class MigrationModel extends Plugin {
 	public double getPopSize(int i) {
 		return popSizes.getArrayValue(i);
 	}
-
+	
 	/**
-	 * Obtain rate matrix as a plain array matrix.
+	 * Return element (i,j) of the A^power, where A is the matrix represented
+	 * by the eigenvalue decomposition ed.  Assumes real eigenvectors.
 	 * 
-	 * @return Rate matrix(double[][])
+	 * @param ed
+	 * @param power
+	 * @param i
+	 * @param j
+	 * @return [A^power]_ij
 	 */
-	public double[][] getQ() {
-		return Q;
+	private double matrixPower(EigenvalueDecomposition ed,
+			double power, int i, int j) {
+		double result = 0.0;
+
+		DoubleMatrix2D V = ed.getV();
+		DoubleMatrix1D lambda = ed.getRealEigenvalues();
+		
+		for (int k=0; k<lambda.size(); k++)
+			result += V.get(i, k)*V.get(j,k)*Math.pow(lambda.get(k), power);
+
+		return result;
 	}
-
-	/**
-	 * Obtain uniformized rate matrix as a plain array matrix.
-	 * 
-	 * @return Rate matrix(double[][])
-	 */
-	public double[][] getUnifQ() {
-		return unifQ;
-	}
-
-	/**
-	 * Obtain eigenvector decomposition of rate matrix.
-	 * 
-	 * @return EigenSystem object.
-	 */
-	public EigenDecomposition getQdecomp() {
-		return Qdecomp;
-	}
-
-	/**
-	 * Obtain eigenvector decomposition of "uniformized" rate matrix.
-	 * 
-	 * @return EigenSystem object.
-	 */
-	public EigenDecomposition getUnifQdecomp() {
-		return unifQdecomp;
-	}
-
-	/**
-	 * Obtain virtual transition rate for uniformized process.
-	 * 
-	 * @return Rate of occurrence virtual events.
-	 */
-	public double getVirtTransRate() {
+	
+	public double getMu() {
 		return mu;
+	}
+	
+	public double getQelement(int i, int j) {
+		return Q.get(i, j);
+	}
+	
+	public double getRelement(int i, int j) {
+		return R.get(i, j);
+	}
+	
+	public double getQpower(double power, int i, int j) {
+		return matrixPower(Qdecomp, power, i, j);
+	}
+	
+	public double getRpower(double power, int i, int j) {
+		return matrixPower(Rdecomp, power, i, j);
 	}
 
 }

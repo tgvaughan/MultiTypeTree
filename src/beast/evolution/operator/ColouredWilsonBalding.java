@@ -20,379 +20,298 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.evolution.migrationmodel.MigrationModel;
-import beast.evolution.substitutionmodel.DefaultEigenSystem;
-import beast.evolution.substitutionmodel.EigenDecomposition;
-import beast.evolution.substitutionmodel.EigenSystem;
-import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
-import beast.evolution.tree.Tree;
+import beast.util.PoissonRandomizer;
 import beast.util.Randomizer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
- * Wilson-Balding branch swapping operator applied to coloured trees,
- * modified so that only those moves which preserve the validity of
- * the colouring are proposed.
+ * Wilson-Balding branch swapping operator applied to coloured trees.
  *
  * @author Tim Vaughan
  */
 @Description("Implements the unweighted Wilson-Balding branch"
-		+ "swapping move.  This move is similar to one proposed by WILSON"
-		+ "and BALDING 1998 and involves removing a subtree and"
-		+ "re-attaching it on a new parent branch. " +
+        + "swapping move.  This move is similar to one proposed by WILSON"
+        + "and BALDING 1998 and involves removing a subtree and"
+        + "re-attaching it on a new parent branch. " +
         "See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
-		+ "This version generates new colouring along branches altered by"
-		+ "the operator.")
+		+ "This version recolours each newly generated branch by drawing a"
+		+ "path from the migration model conditional on the colours at the"
+		+ "branch ends.")
 public class ColouredWilsonBalding extends ColouredTreeOperator {
 
 	public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
 			"migrationModel",
-			"Migration model to use as prior for colouring branches",
-			Validate.REQUIRED);
+			"Migration model for proposal distribution", Validate.REQUIRED);
+	
+	public Input<Double> alphaInput = new Input<Double>("alpha",
+			"Root height proposal parameter", Validate.REQUIRED); 
+	
+	private MigrationModel migrationModel;
+	private double alpha;
 
-	@Override
-	public void initAndValidate() {};
+    @Override
+    public void initAndValidate() {}
 
-	@Override
-	public double proposal() {
-		cTree = colouredTreeInput.get();
-		tree = cTree.getUncolouredTree();
-
-		Node i = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-
-		if (i.isRoot())
-			return Double.NEGATIVE_INFINITY;
-
-		Node iP = i.getParent();
-
-		Node j;
+    @Override
+    public double proposal() {
+        cTree = colouredTreeInput.get();
+        tree = m_tree.get(this);
+		migrationModel = migrationModelInput.get();
+		alpha = alphaInput.get();
+		
+		// Check that operator can be applied to tree:
+		if (tree.getLeafNodeCount()<3) {
+			throw new IllegalStateException("Tree too small for"
+					+ " ColouredWilsonBaldingRandom operator.");
+		}
+		
+		// Select source node:
+		Node srcNode;
 		do {
-			j = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
-		} while (j==i);
+			srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+		} while (invalidSrcNode(srcNode));
+		Node srcNodeP = srcNode.getParent();
+		Node srcNodeS = getOtherChild(srcNodeP, srcNode);
+        double t_srcNode = srcNode.getHeight();
+        double t_srcNodeP = srcNodeP.getHeight();
+		double t_srcNodeS = srcNodeS.getHeight();
 
-		Node jP = j.getParent(); // may be null
+		// Select destination branch node:
+		Node destNode;
+        do {
+            destNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+        } while (invalidDestNode(srcNode, destNode));
+		Node destNodeP = destNode.getParent();
+        double t_destNode = destNode.getHeight();
 
-		if (iP == jP || iP == j || (jP != null && jP.getHeight()<i.getHeight()))
-			return Double.NEGATIVE_INFINITY;
+		// Handle special cases involving root:
+		
+        if (destNode.isRoot()) {
+			// FORWARD ROOT MOVE
+			
+			// Record old srcNode parent height and change count:
+			double oldTime = t_srcNodeP;
+			int oldChangeCount = cTree.getChangeCount(srcNode);
+			
+			// Record srcNode grandmother height:
+			double t_srcNodeG = srcNodeP.getParent().getHeight();
+			
+			// Choose new root height:
+            double newTime = t_destNode + Randomizer.nextExponential(1.0/(alpha*t_destNode));
+			
+            // Implement tree changes:
+            disconnectBranch(srcNode);
+            connectBranchToRoot(srcNode, destNode, newTime);
+            tree.setRoot(srcNodeP);
+			
+			// Recolour root branches:
+			recolourRootBranches(srcNode);
+			
+			int newChangeCount = cTree.getChangeCount(srcNode)
+					+ cTree.getChangeCount(destNode);
+			
+			// Return HR:
+			double logHR = Math.log(alpha*t_destNode)
+					+ (1.0/alpha)*(newTime/t_destNode - 1.0)
+					- Math.log(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS));
+			
+			return logHR;
+        }
+		
+		if (srcNodeP.isRoot()) {
+            // BACKWARD ROOT MOVE
+			
+			// Record old srcNode parent height and combined change count
+			// for srcNode and her sister:
+			double oldTime = t_srcNodeP;
+			int oldChangeCount = cTree.getChangeCount(srcNode)
+					+ cTree.getChangeCount(srcNodeS);
+			
+			// Choose height of new attachement point:
+			double min_newTime = Math.max(t_srcNode, t_destNode);
+            double t_destNodeP = destNodeP.getHeight();
+			double span = t_destNodeP - min_newTime;
+			double newTime = min_newTime + span*Randomizer.nextDouble();
+			
+            // Implement tree changes:
+            disconnectBranchFromRoot(srcNode);
+            connectBranch(srcNode, destNode, newTime);			
+            srcNodeS.setParent(null);
+            tree.setRoot(srcNodeS);
 
-		if (iP.isRoot()) {
+            // Recolour new branch:
+			recolourBranch(srcNode);
+			
+			int newChangeCount = cTree.getChangeCount(srcNode);
+			
+			// Return HR:
+			double logHR = Math.log(t_destNodeP-Math.max(t_srcNode,t_destNode))
+					- Math.log(alpha*t_srcNodeS)
+					- (1.0/alpha)*(oldTime/t_srcNodeS - 1.0);
+			
+			return logHR;
+        }
 
-			return Double.NEGATIVE_INFINITY;
-		}
-
-		if (j.isRoot()) {
-
-			return Double.NEGATIVE_INFINITY;
-		}
-
-		// Simple case where root is not involved:
-
-		// Record probability of old branch colouring (needed for HR):
-		double oldColourProb = getPathProb(i);
-
-		// Select height of new node:
-		double newTimeMin = Math.max(i.getHeight(), j.getHeight());
-		double newTimeMax = jP.getHeight();
-		double newTime = newTimeMin +
-				Randomizer.nextDouble()*(newTimeMax-newTimeMin);
+		// NON-ROOT MOVE
+		
+		// Record old srcNodeP height and change count:
+		double oldTime = t_srcNodeP;
+		int oldChangeCount = cTree.getChangeCount(srcNode);
+		
+		// Record srcNode grandmother height:
+		double t_srcNodeG = srcNodeP.getParent().getHeight();
+		
+		// Choose height of new attachment point:
+		double min_newTime = Math.max(t_destNode, t_srcNode);
+		double t_destNodeP = destNodeP.getHeight();
+		double span = t_destNodeP - min_newTime;
+		double newTime = min_newTime + span*Randomizer.nextDouble();
 
 		// Implement tree changes:
-		disconnectBranch(i);
-		connectBranch(i, j, newTime);
-		Node iP_prime = i.getParent();
+		disconnectBranch(srcNode);
+		connectBranch(srcNode, destNode, newTime);
 
 		// Recolour new branch:
-		recolourBranch(i);
-
-		// Calculate probability of new branch colouring:
-		double newColourProb = getPathProb(i);
-
-		// Calculate Hastings ratio:
-		Node CiP = getOtherChild(iP, i);
-		Node PiP = iP.getParent();
-
-		double HR = (jP.getHeight()-Math.max(i.getHeight(),j.getHeight()))
-				/(PiP.getHeight()-Math.max(i.getHeight(),CiP.getHeight()))
-				*oldColourProb/newColourProb;
-
-		return HR;
-	}
-
+		recolourBranch(srcNode);
+		
+		int newChangeCount = cTree.getChangeCount(srcNode);
+		
+		// Return HR:
+		double logHR = Math.log(t_destNodeP - Math.max(t_srcNode, t_destNode))
+				- Math.log(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS));
+				
+		return logHR;
+    }
+	
 	/**
-	 * Recolour branch between node and its parent conditional on the
-	 * starting initial and final colours of the branch.
+	 * Returns true if srcNode CANNOT be used for the CWBR move.
 	 * 
-	 * @param node
+	 * @param srcNode
+	 * @return True if srcNode invalid.
 	 */
-	private void recolourBranch(Node node) {
+	private boolean invalidSrcNode(Node srcNode) {
+		
+		if (srcNode.isRoot())
+			return true;
+		
+		Node parent = srcNode.getParent();
 
-		// Obtain initial and final conditions:
-
-		int initialColour = cTree.getNodeColour(node);
-		double initialTime = node.getHeight();
-
-		Node parent = node.getParent();
-		int finalColour = cTree.getNodeColour(parent);
-		double finalTime = parent.getHeight();
-
-		// Uniformize birth-death process and create sequence of virtual events:
-
-		double[] times = getTimes(initialTime, finalTime,
-				initialColour, finalColour);
-
-		// Use forward-backward algorithm to determine colour changes:
-		int[] colours = getColours(initialTime, finalTime,
-				initialColour, finalColour, times);
-
-
-		// Remove events which don't actually change colours:
-		// (Would love to put this in a private method, but Java's mysterious
-		// pass-by-VALUE semantics have me stumped.)
-
-		List<Double> newTimesList = new ArrayList<Double>(); 
-		List<Integer> newColoursList = new ArrayList<Integer>();
-
-		int lastColour = initialColour;
-		for (int i=0; i<times.length; i++) {
-			if (colours[i] != lastColour) {
-				newTimesList.add(times[i]);
-				newColoursList.add(colours[i]);
-				lastColour = colours[i];
-			}
+		// This check is important in avoiding situations where it is
+		// impossible to choose a valid destNode:
+		if (parent.isRoot()) {
+			
+			Node sister = getOtherChild(parent, srcNode);
+			
+			if (sister.isLeaf())
+				return true;
+		
+			if (srcNode.getHeight()>=sister.getHeight())
+				return true;
 		}
-
-		times = new double[newTimesList.size()];
-		colours = new int[newColoursList.size()];
-
-		for (int i=0; i<newTimesList.size(); i++) {
-			times[i] = newTimesList.get(i);
-			colours[i] = newColoursList.get(i);
-		}
-
-		// Record new colour change events:
-		cTree.setChangeCount(node, times.length);
-		cTree.setChangeColours(node, colours);
-		cTree.setChangeTimes(node, times);
-
+		
+		return false;
 	}
-
+	
 	/**
-	 * Apply "Uniformization" algorithm to determine colour change times.
-	 * See Fearnhead and Sherlock, J. R. Statist. Soc. B (2006).
+	 * Returns true if destNode CANNOT be used for the CWBR move in conjunction
+	 * with srcNode.
 	 * 
-	 * @param initialTime
-	 * @param finalTime
-	 * @param initialColour
-	 * @param finalColour
-	 * @return Array of colour change times.
+	 * @param srcNode
+	 * @param destNode
+	 * @return True if destNode invalid.
 	 */
-	private double[] getTimes(double initialTime, double finalTime,
-			int initialColour, int finalColour) {
+	private boolean invalidDestNode(Node srcNode, Node destNode) {
+		
+		if (destNode==srcNode
+				|| destNode == srcNode.getParent()
+				|| destNode.getParent() == srcNode.getParent())
+			return true;
 
-		MigrationModel model = migrationModelInput.get();
-
-		int nColours = cTree.getNColours();
-
-
-		// Obtain number of events:
-
-		double T = finalTime - initialTime;
-
-		EigenDecomposition eig = model.getQdecomp();
-		double expTQ = getMatrixExp(eig, initialColour, finalColour, T);
-		double g = expTQ*Randomizer.nextDouble();
-
-		double mu = model.getVirtTransRate();
-		double poissonFactor = Math.exp(-mu*T);
-
-		EigenDecomposition eigUnif = model.getUnifQdecomp();
-
-		int n=0;
-		double cumulant = 0;
-		do {
-			double likelihood;
-			if (n>0) {
-				poissonFactor *= mu*T/(double)n;
-				likelihood = getMatrixPower(eigUnif, initialColour, finalColour, n);
-			} else {
-				likelihood = 1.0;
-			}
-
-			cumulant += likelihood*poissonFactor;
-			n++;
-
-		} while (cumulant<g);
-		n--;
-
-		double[] eventTimes = new double[n];
-
-
-		// Position events randomly along branch:
-
-		for (int i=0; i<n; i++)
-			eventTimes[i] = Randomizer.nextDouble()*T + initialTime;
-		Arrays.sort(eventTimes);
-
-		return eventTimes;
+		Node srcNodeP = srcNode.getParent();
+		Node destNodeP = destNode.getParent();
+		
+		if (destNodeP != null && (destNodeP.getHeight()<= srcNode.getHeight()))
+			return true;
+		
+		return false;
 	}
-
+	
 	/**
-	 * Apply forward-backward algorithm to determine colour changes conditional
-	 * on initial and final colours.
-	 * See Fearnhead and Sherlock, J. R. Statist. Soc. B (2006).
+	 * Recolour branch between srcNode and its parent with rate fixed by
+	 * the tuning parameter mu.
 	 * 
-	 * @param initialTime
-	 * @param finalTime
-	 * @param initialColour
-	 * @param finalColour
-	 * @param times
-	 * @return Array containing colours following each change.
+	 * @param srcNode
+	 * @return True if new colouring consistent with parent's node colour.
 	 */
-	private int[] getColours(double initialTime, double finalTime,
-			int initialColour, int finalColour, double[] times) {
+	private double recolourBranch(Node srcNode) {
 
-		MigrationModel model = migrationModelInput.get();
-
-		int n = times.length;
-		int [] colours = new int[n];
-		int nColours = cTree.getNColours();
-
-		EigenDecomposition eigUnif = model.getUnifQdecomp();
-
-		int s = initialColour;
-		for (int i=0; i<n; i++) {
-
-			double denom = getMatrixPower(eigUnif, s, finalColour, n-i+2);
-			double g = denom*Randomizer.nextDouble();
-
-			int sPrime;
-			double acc = 0.0;
-			for (sPrime = 0; sPrime<nColours; sPrime++) {
-				acc += model.getQ()[s][sPrime]*getMatrixPower(eigUnif,
-						s, finalColour, n-i+1);
-
-				if (acc>g)
+		Node srcNodeP = srcNode.getParent();
+		double t_srcNode = srcNode.getHeight();
+		double t_srcNodeP = srcNodeP.getHeight();
+		
+		double L = t_srcNodeP - t_srcNode;
+		
+		int col_srcNode = cTree.getNodeColour(srcNode);
+		int col_srcNodeP = cTree.getNodeColour(srcNodeP);
+		
+		// Select number of virtual events:
+		double mu = migrationModel.getMu();
+		int nVirt = PoissonRandomizer.nextInt(mu*L);
+		
+		// Select times of virtual events:
+		double[] times = new double[nVirt];
+		for (int i=0; i<nVirt; i++)
+			times[i] = Randomizer.nextDouble()*L + t_srcNode;
+		Arrays.sort(times);
+		
+		// Sample colour changes from top to bottom of branch:
+		int[] colours = new int[nVirt];
+		int lastCol = col_srcNodeP;
+		for (int i=nVirt; i>=1; i--) {
+			double u = Randomizer.nextDouble()*
+					migrationModel.getRpower(i, lastCol, col_srcNode);
+			int c;
+			for (c=0; c<cTree.getNColours(); c++) {
+				u -= migrationModel.getRelement(lastCol, c)*
+						migrationModel.getRpower(i-1, c, col_srcNode);
+				if (u<0.0)
 					break;
 			}
-
-			s = sPrime;
-			colours[i] = s;
-		}
-
-		return colours;
-	}
-
-	/**
-	 * Use eigenvector decomposition of a matrix to evaluate elements
-	 * of its powers.
-	 * 
-	 * @param decomp
-	 * @param i Row index
-	 * @param j Column index
-	 * @param exponent Exponent to raise matrix to.
-	 * @return Element (i,j) of A^n.
-	 */
-	private double getMatrixPower(EigenDecomposition decomp,
-			int i, int j, double exponent) {
-
-		int nColours = cTree.getNColours();
-
-		double res = 0.0;
-		for (int l=0; l<decomp.getEigenValues().length; l++) {
-			res += decomp.getEigenVectors()[l*nColours+i]
-					*decomp.getEigenVectors()[l*nColours+j]
-					*Math.pow(decomp.getEigenValues()[l], exponent);
-		}
-
-		return res;
-	}
-
-	/**
-	 * Use eigenvector decomposition of a matrix to evaluate elements
-	 * an exponentiated matrix.
-	 * 
-	 * @param decomp Eigenvector decomposition of matrix A.
-	 * @param i Row index
-	 * @param j Column index
-	 * @param c Constant factor to appear before matrix.
-	 * @return Element (i,j) of exp(c*A).
-	 */
-	private double getMatrixExp(EigenDecomposition decomp,
-			int i, int j, double c) {
-
-		int nColours = cTree.getNColours();
-
-		double res = 0.0;
-		for (int l=0; l<decomp.getEigenValues().length; l++) {
-			res += decomp.getEigenVectors()[l*nColours+i]
-					*decomp.getEigenVectors()[l*nColours+j]
-					*Math.exp(c*decomp.getEigenValues()[l]);
-		}
-
-		return res;
-	}
-
-	/**
-	 * Calculate probability of the colouration (migratory path) along the
-	 * branch starting at node, given the initial and final colours of the
-	 * branch.
-	 * 
-	 * @param node
-	 * @return 
-	 */
-	private double getPathProb(Node node) {
-		double[][] Q = migrationModelInput.get().getQ();
-
-		double initialTime = node.getHeight();
-		double finalTime = node.getParent().getHeight();
-		double T = finalTime - initialTime;
-
-		// Use the inverse maximum overall transition rate to fix the interval
-		// size:
-		int nIntervals = 10*(int)(T/(migrationModelInput.get().getVirtTransRate()));
-		double deltaT = T/(double)nIntervals;
-
-		int thisChange = -1;
-		int thisColour = cTree.getNodeColour(node);
-		int lastColour = thisColour;
-
-		double prob = 1.0;
-		for (int i=0; i<nIntervals; i++) {
-
-			double thisTime = initialTime + deltaT*i;
-
-			// If thisTime > nextChangeTime, update colour.
-			while (thisChange+1<cTree.getChangeCount(node)
-					&& thisTime>cTree.getChangeTime(node,thisChange+1)) {
-				thisChange++;
-			}
-
-			if (thisChange>=0) {
-				lastColour = thisColour;
-				thisColour = cTree.getChangeColour(node, thisChange);
-			}
 			
-			if (thisColour == lastColour)
-				prob *= 1+deltaT*Q[thisColour][thisColour];
-			else
-				prob *= deltaT*Q[thisColour][lastColour];
-
+			colours[i-1] = c;
+			lastCol = c;
 		}
-
-		return prob;
+		
+		// Add non-virtual colour changes to branch:
+		setChangeCount(srcNode, 0);
+		lastCol = col_srcNode;
+		for (int i=0; i<nVirt; i++) {
+			if (colours[i] != lastCol) {
+				addChange(srcNode, colours[i], times[i]);
+				lastCol = colours[i];
+			}
+		}
+		
+		// TODO Calculate probability of path.
+		
+		// Return probability of path given boundary conditions:
+		return 0.0;
 	}
 
 	/**
-	 * Main method for debugging.
+	 * Recolour branches with nChanges between srcNode and the root
+	 * (srcNode's parent) and nChangesSister between the root and
+	 * srcNode's sister.
 	 * 
-	 * @param args 
+	 * @param srcNode
+	 * @param nChangesNode
+	 * @param nChangesSister
+	 * @return True if recolour successful.
 	 */
-	public static void main (String[] args) {
-
-		// TODO: Test branch recolouring algorithm.
-
+	private double recolourRootBranches(Node srcNode) {
+		
+		return 0.0;
 	}
 
 }
