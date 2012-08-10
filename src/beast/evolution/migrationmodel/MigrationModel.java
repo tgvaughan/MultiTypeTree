@@ -21,9 +21,6 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Plugin;
 import beast.core.parameter.RealParameter;
-import beast.evolution.substitutionmodel.DefaultEigenSystem;
-import beast.evolution.substitutionmodel.EigenDecomposition;
-import beast.evolution.substitutionmodel.EigenSystem;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
@@ -49,6 +46,7 @@ public class MigrationModel extends Plugin {
 			Validate.REQUIRED);
 
 	private RealParameter rateMatrix, popSizes;
+	private double totalPopSize;
 	private double mu;
 	private DoubleMatrix2D Q, R;
 	private EigenvalueDecomposition Qdecomp, Rdecomp;
@@ -63,6 +61,11 @@ public class MigrationModel extends Plugin {
 	public void updateMatrices() throws Exception {
 		rateMatrix = rateMatrixInput.get();
 		popSizes = popSizesInput.get();
+
+		totalPopSize = 0.0;
+		for (int i=0; i<popSizes.getDimension(); i++) {
+			totalPopSize += popSizes.getArrayValue(i);
+		}
 		
 		if (rateMatrix.getMinorDimension1() != rateMatrix.getMinorDimension2())
 			throw new Exception("Migration matrix must be square!");
@@ -146,6 +149,15 @@ public class MigrationModel extends Plugin {
 	public double getPopSize(int i) {
 		return popSizes.getArrayValue(i);
 	}
+
+	/**
+	 * Obtain total effective population size across all demes.
+	 * 
+	 * @return Effective population size.
+	 */
+	public double getTotalPopSize() {
+		return totalPopSize;
+	}
 	
 	/**
 	 * Return element (i,j) of the A^power, where A is the matrix represented
@@ -170,6 +182,29 @@ public class MigrationModel extends Plugin {
 		return result;
 	}
 	
+	/**
+	 * Return element (i,j) of exp(factor*A), where A is the matrix represented
+	 * by the eigenvalue decomposition ed. Assumes real eigenvectors.
+	 * 
+	 * @param ed
+	 * @param factor
+	 * @param i
+	 * @param j
+	 * @return [exp(A)]_ij
+	 */
+	private double matrixExp(EigenvalueDecomposition ed,
+			double factor, int i, int j) {
+		double result = 0.0;
+		
+		DoubleMatrix2D V = ed.getV();
+		DoubleMatrix1D lambda = ed.getRealEigenvalues();
+		
+		for (int k=0; k<lambda.size(); k++)
+			result += V.get(i,k)*V.get(j, k)*Math.exp(factor*lambda.get(k));
+		
+		return result;
+	}
+	
 	public double getMu() {
 		return mu;
 	}
@@ -188,6 +223,10 @@ public class MigrationModel extends Plugin {
 	
 	public double getRpower(double power, int i, int j) {
 		return matrixPower(Rdecomp, power, i, j);
+	}
+	
+	public double getQexp(double factor, int i, int j) {
+		return matrixExp(Qdecomp, factor, i, j);
 	}
 
 }

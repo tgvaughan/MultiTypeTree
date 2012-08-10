@@ -90,6 +90,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
         if (destNode.isRoot()) {
 			// FORWARD ROOT MOVE
 			
+			double logHR = 0.0;
+			
 			// Record old srcNode parent height and change count:
 			double oldTime = t_srcNodeP;
 			int oldChangeCount = cTree.getChangeCount(srcNode);
@@ -106,13 +108,13 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
             tree.setRoot(srcNodeP);
 			
 			// Recolour root branches:
-			recolourRootBranches(srcNode);
+			logHR -= recolourRootBranches(srcNode);
 			
 			int newChangeCount = cTree.getChangeCount(srcNode)
 					+ cTree.getChangeCount(destNode);
 			
 			// Return HR:
-			double logHR = Math.log(alpha*t_destNode)
+			logHR += Math.log(alpha*t_destNode)
 					+ (1.0/alpha)*(newTime/t_destNode - 1.0)
 					- Math.log(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS));
 			
@@ -121,6 +123,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		
 		if (srcNodeP.isRoot()) {
             // BACKWARD ROOT MOVE
+			
+			double logHR = 0.0;
 			
 			// Record old srcNode parent height and combined change count
 			// for srcNode and her sister:
@@ -141,12 +145,12 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
             tree.setRoot(srcNodeS);
 
             // Recolour new branch:
-			recolourBranch(srcNode);
+			logHR -= recolourBranch(srcNode);
 			
 			int newChangeCount = cTree.getChangeCount(srcNode);
 			
 			// Return HR:
-			double logHR = Math.log(t_destNodeP-Math.max(t_srcNode,t_destNode))
+			logHR += Math.log(t_destNodeP-Math.max(t_srcNode,t_destNode))
 					- Math.log(alpha*t_srcNodeS)
 					- (1.0/alpha)*(oldTime/t_srcNodeS - 1.0);
 			
@@ -154,6 +158,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
         }
 
 		// NON-ROOT MOVE
+		
+		double logHR = 0.0;
 		
 		// Record old srcNodeP height and change count:
 		double oldTime = t_srcNodeP;
@@ -173,12 +179,12 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		connectBranch(srcNode, destNode, newTime);
 
 		// Recolour new branch:
-		recolourBranch(srcNode);
+		logHR -= recolourBranch(srcNode);
 		
 		int newChangeCount = cTree.getChangeCount(srcNode);
 		
 		// Return HR:
-		double logHR = Math.log(t_destNodeP - Math.max(t_srcNode, t_destNode))
+		logHR += Math.log(t_destNodeP - Math.max(t_srcNode, t_destNode))
 				- Math.log(t_srcNodeG - Math.max(t_srcNode, t_srcNodeS));
 				
 		return logHR;
@@ -242,7 +248,7 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 	 * the tuning parameter mu.
 	 * 
 	 * @param srcNode
-	 * @return True if new colouring consistent with parent's node colour.
+	 * @return Probability of new state.
 	 */
 	private double recolourBranch(Node srcNode) {
 
@@ -283,20 +289,34 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 			lastCol = c;
 		}
 		
-		// Add non-virtual colour changes to branch:
+		double logProb = 0.0;
+		
+		// Add non-virtual colour changes to branch, calculating probability
+		// of path conditional on start colour:
 		setChangeCount(srcNode, 0);
 		lastCol = col_srcNode;
+		double lastTime = t_srcNode;
 		for (int i=0; i<nVirt; i++) {
 			if (colours[i] != lastCol) {
+				
+				// Add change to branch:
 				addChange(srcNode, colours[i], times[i]);
+				
+				// Add probability contribution:
+				logProb += migrationModel.getQelement(lastCol, lastCol)*(times[i]-lastTime)
+						+ Math.log(migrationModel.getQelement(colours[i], lastCol));
+				
 				lastCol = colours[i];
+				lastTime = times[i];
 			}
 		}
+		logProb += migrationModel.getQelement(lastCol,lastCol)*(t_srcNodeP-lastTime);
 		
-		// TODO Calculate probability of path.
+		// Adjust probability to account for end condition:
+		logProb -= Math.log(migrationModel.getQexp(L, col_srcNodeP, col_srcNode));
 		
 		// Return probability of path given boundary conditions:
-		return 0.0;
+		return logProb;
 	}
 
 	/**
@@ -305,13 +325,92 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 	 * srcNode's sister.
 	 * 
 	 * @param srcNode
-	 * @param nChangesNode
-	 * @param nChangesSister
-	 * @return True if recolour successful.
+	 * @return Probability of new state.
 	 */
 	private double recolourRootBranches(Node srcNode) {
 		
-		return 0.0;
+		double logProb = 0.0;
+		
+		Node srcNodeP = srcNode.getParent();
+		Node srcNodeS = getOtherChild(srcNodeP, srcNode);
+		
+		// Select new root colour:
+		double u = Randomizer.nextDouble()*migrationModel.getTotalPopSize();
+		int rootCol;
+		for (rootCol=0; rootCol<cTree.getNColours(); rootCol++) {
+			u -= migrationModel.getPopSize(rootCol);
+			if (u<0)
+				break;
+		}
+		setNodeColour(srcNodeP, rootCol);
+		
+		// Incorporate probability of choosing new root colour:
+		logProb += Math.log(migrationModel.getPopSize(rootCol)
+				/migrationModel.getTotalPopSize());
+		
+		// Recolour branches conditional on root colour:
+		logProb += recolourBranch(srcNode);
+		logProb += recolourBranch(srcNodeS);
+		
+		// Return probability of new colouring given boundary conditions:
+		return logProb;
+	}
+	
+	/**
+	 * Obtain probability of the current migratory path above srcNode.
+	 * 
+	 * @param srcNode
+	 * @return Path probability.
+	 */
+	private double getBranchColourProb(Node srcNode) {
+		
+		double logProb = 0.0;
+		
+		Node srcNodeP = srcNode.getParent();
+		double t_srcNode = srcNode.getHeight();
+		double t_srcNodeP = srcNodeP.getHeight();
+		double L = t_srcNodeP - t_srcNode;
+		int col_srcNode = cTree.getNodeColour(srcNode);
+		int col_srcNodeP = cTree.getNodeColour(srcNodeP);
+		
+		// Probability of branch conditional on start colour:
+		double lastTime = t_srcNode;
+		int lastCol = col_srcNode;
+		for (int i=0; i<cTree.getChangeCount(srcNode); i++) {
+			double thisTime = cTree.getChangeTime(srcNode, i);
+			int thisCol = cTree.getChangeColour(srcNode, i);
+			
+			logProb += (thisTime-lastTime)*migrationModel.getQelement(lastCol, lastCol)
+					+ Math.log(migrationModel.getQelement(thisCol, lastCol));
+
+			lastTime = thisTime;
+			lastCol = thisCol;
+		}
+		logProb += (t_srcNodeP-lastTime)*migrationModel.getQelement(lastCol, lastCol);
+		
+		// Adjust to account for end condition of path:
+		logProb -= Math.log(migrationModel.getQexp(L, col_srcNodeP, col_srcNode));
+		
+		return logProb;
+	}
+	
+	private double getRootBranchColourProb(Node srcNode) {
+
+		double logProb = 0.0;
+		
+		Node srcNodeP = srcNode.getParent();
+		Node srcNodeS = getOtherChild(srcNodeP, srcNode);
+		int col_srcNodeP = cTree.getNodeColour(srcNodeP);
+		
+		// Probability of choosing root colour:
+		logProb += Math.log(migrationModel.getPopSize(col_srcNodeP)
+				/migrationModel.getTotalPopSize());
+		
+		// Probability of branch colours conditional on node colours:
+		logProb += getBranchColourProb(srcNode);
+		logProb += getBranchColourProb(srcNodeS);
+		
+		return logProb;
 	}
 
 }
