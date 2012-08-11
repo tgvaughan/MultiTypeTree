@@ -272,7 +272,18 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		
 		// Select number of virtual events:
 		double muL = migrationModel.getMu()*L;
-		int nVirt = PoissonRandomizer.nextInt(muL);
+		int trunc = 5 + (int)Math.round(muL + 2.0*Math.sqrt(muL));
+		double Pba = migrationModel.getRexpElement(muL, trunc,
+				col_srcNodeP, col_srcNode)*Math.exp(-muL);
+		double u1 = Randomizer.nextDouble()*Pba;
+		int nVirt = 0;
+		double poisAcc = Math.exp(-muL);
+		double acc = poisAcc*migrationModel.getRpowerElement(0, col_srcNodeP, col_srcNode);
+		while (acc < u1) {
+			nVirt += 1;
+			poisAcc *= muL/nVirt;
+			acc += poisAcc*migrationModel.getRpowerElement(nVirt, col_srcNodeP, col_srcNode);
+		}
 		
 		// Select times of virtual events:
 		double[] times = new double[nVirt];
@@ -284,13 +295,13 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		int[] colours = new int[nVirt];
 		int lastCol = col_srcNodeP;
 		for (int i=nVirt; i>=1; i--) {
-			double u = Randomizer.nextDouble()*
+			double u2 = Randomizer.nextDouble()*
 					migrationModel.getRpowerElement(i, lastCol, col_srcNode);
 			int c;
 			for (c=0; c<cTree.getNColours(); c++) {
-				u -= migrationModel.getRelement(lastCol, c)*
+				u2 -= migrationModel.getRelement(lastCol, c)*
 						migrationModel.getRpowerElement(i-1, c, col_srcNode);
-				if (u<0.0)
+				if (u2<0.0)
 					break;
 			}
 			
@@ -322,13 +333,7 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		logProb += migrationModel.getQelement(lastCol,lastCol)*(t_srcNodeP-lastTime);
 		
 		// Adjust probability to account for end condition:
-		// Note: this involves a matrix exponential.  We approximate using
-		// a Taylor expansion truncated at a number of terms fixed at two
-		// standard deviations above the mean number of virtual events that
-		// will occur along this branch.
-		int trunc = (int)Math.round(muL + 2.0*Math.sqrt(muL));
-		logProb -= Math.log(migrationModel.getRexpElement(muL, trunc,
-				col_srcNodeP, col_srcNode)) - muL;
+		logProb -= Math.log(Pba);
 		
 		// Return probability of path given boundary conditions:
 		return logProb;
@@ -409,7 +414,7 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		// standard deviations above the mean number of virtual events that
 		// will occur along this branch.
 		double muL = migrationModel.getMu()*L;
-		int trunc = (int)Math.round(muL + 2.0*Math.sqrt(muL));
+		int trunc = 5 + (int)Math.round(muL + 2.0*Math.sqrt(muL));
 		logProb -= Math.log(migrationModel.getRexpElement(muL, trunc,
 				col_srcNodeP, col_srcNode)) - muL;
 		

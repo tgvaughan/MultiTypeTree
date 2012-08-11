@@ -185,6 +185,9 @@ public class MigrationModel extends Plugin {
 	public DoubleMatrix2D getRpower(int power) {
 
 		if (power>Rpowers.size()-1) {
+			if (power>10000) {
+				System.out.println(power);
+			}
 			for (int n=Rpowers.size()-1; n<power; n++) {
 				if (n<0)
 					Rpowers.add(DoubleFactory2D.dense.identity(getNDemes()));
