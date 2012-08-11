@@ -1,0 +1,101 @@
+<beast version='2.0'
+       namespace='beast.core:beast.evolution.tree.coalescent:beast.core.util:
+       beast.evolution.nuc:beast.evolution.operators:beast.evolution.sitemodel:
+       beast.evolution.substitutionmodel:beast.evolution.likelihood:
+       beast.evolution.speciation:beast.core.parameter'>
+
+
+	<tree spec='beast.util.TreeParser' id='tree2' IsLabelledNewick='true'
+		singlechild="true" adjustTipHeights="false"> 
+
+	<input name='newick'>
+
+		((1[state='0']:1,2[state='0']:1)[state='0']:1,3[state='0']:2)[state='0']:0;
+
+	</input>
+
+	</tree>
+
+	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
+		<rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
+		<popSizes spec="RealParameter" value="7.0 7.0"/>
+	</model>
+
+<!--
+	<model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
+		<rateMatrix spec='RealParameter' value="0.0" minordimension="1"/>
+		<popSizes spec="RealParameter" value="7.0"/>
+	</model>
+-->
+	    
+    <run spec="MCMC" id="mcmc" chainLength="1000000"> 
+
+		<init spec='beast.evolution.tree.ColouredTreeFromNewick'
+			id="colouredTree" tree="@tree" colouredNewick="@tree2" 
+   	     		colourLabel="state" nColours="2" maxBranchColours="100">
+   	     	<changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
+        	<changeTimes id="tree.times"  spec="RealParameter" value="0."/>
+        	<changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
+        	<nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
+		</init>
+      
+		<state>
+			<stateNode idref="tree.cols"/>
+   			<stateNode idref="tree.times"/>
+			<stateNode idref="tree.counts"/>
+			<stateNode idref="tree.nodecols"/>
+			<stateNode spec="beast.evolution.tree.Tree" id="tree"/>
+		</state>
+        
+		<distribution spec="CompoundDistribution" id="P">
+
+			<distribution id='scLikelihood' spec="StructuredCoalescentLikelihood">
+				<migrationModel idref="migmodel"/>
+				<colouredTree idref="colouredTree"/>
+			</distribution>
+
+		</distribution>
+
+		<operator spec='beast.evolution.operator.ColouredWilsonBalding' id="CWB"
+				  weight="1.0" tree="@tree" colouredTree="@colouredTree"
+				  migrationModel="@migmodel" alpha="0.2" />
+
+		<logger logEvery="1000" fileName="CWBRtest.log">
+			<model idref='P'/>
+			<log idref="P"/>
+			<log spec='beast.evolution.tree.TreeHeightLogger'>
+				<tree idref="tree"/>
+			</log>
+			<log spec='beast.evolution.tree.ColourChangeCountLogger'>
+				<colouredTree idref="colouredTree"/>
+			</log>
+		</logger>
+
+		<logger logEvery="100000">
+			<model idref='P'/>
+			<log idref="P"/>
+			<log spec='beast.evolution.tree.TreeHeightLogger' >
+				<tree idref="tree"/>
+			</log>
+			<log spec='beast.evolution.tree.ColourChangeCountLogger'>
+				<colouredTree idref="colouredTree"/>
+			</log>
+		</logger>
+
+		<logger logEvery="10000" fileName="CWBRtest.trees">
+			<log idref="tree"/>
+		</logger>  
+
+		<logger logEvery="10000" fileName="CWBRtest_col.trees" mode="tree">
+			<log idref="colouredTree"/>
+		</logger>
+
+<!--
+		<logger spec="beast.evolution.tree.TreeReport" id="treeReporter" >
+			<log idref="tree"/>
+		</logger>
+-->
+
+	</run>
+
+</beast>

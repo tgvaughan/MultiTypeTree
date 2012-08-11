@@ -21,10 +21,16 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Plugin;
 import beast.core.parameter.RealParameter;
-import cern.colt.matrix.DoubleMatrix1D;
+import cern.colt.function.DoubleFunction;
+import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
-import cern.colt.matrix.linalg.EigenvalueDecomposition;
+import cern.colt.matrix.linalg.Algebra;
+import cern.colt.matrix.linalg.Blas;
+import cern.colt.matrix.linalg.SeqBlas;
+import cern.jet.math.Functions;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
@@ -49,7 +55,7 @@ public class MigrationModel extends Plugin {
 	private double totalPopSize;
 	private double mu;
 	private DoubleMatrix2D Q, R;
-	private EigenvalueDecomposition Qdecomp, Rdecomp;
+	private List<DoubleMatrix2D> Rpowers;
 
 	public MigrationModel() { }
 
@@ -89,8 +95,8 @@ public class MigrationModel extends Plugin {
 				}
 			}
 
-			if (Q.get(i,i)>mu)
-				mu = Q.get(i,i);
+			if (-Q.get(i,i)>mu)
+				mu = -Q.get(i,i);
 		}
 		
 		// Set up uniformised backward transition rate matrix:
@@ -102,10 +108,9 @@ public class MigrationModel extends Plugin {
 					R.set(j, i, R.get(j,i)+1.0);
 			}
 		}
-		
-		// Construct eigenvalue decompositions:
-		Qdecomp = new EigenvalueDecomposition(Q);
-		Rdecomp = new EigenvalueDecomposition(R);
+
+		// Clear cache for powers of R:
+		Rpowers = new ArrayList<DoubleMatrix2D>();
 	}
 
 	/**
@@ -158,53 +163,7 @@ public class MigrationModel extends Plugin {
 	public double getTotalPopSize() {
 		return totalPopSize;
 	}
-	
-	/**
-	 * Return element (i,j) of the A^power, where A is the matrix represented
-	 * by the eigenvalue decomposition ed.  Assumes real eigenvectors.
-	 * 
-	 * @param ed
-	 * @param power
-	 * @param i
-	 * @param j
-	 * @return [A^power]_ij
-	 */
-	private double matrixPower(EigenvalueDecomposition ed,
-			double power, int i, int j) {
-		double result = 0.0;
-
-		DoubleMatrix2D V = ed.getV();
-		DoubleMatrix1D lambda = ed.getRealEigenvalues();
 		
-		for (int k=0; k<lambda.size(); k++)
-			result += V.get(i, k)*V.get(j,k)*Math.pow(lambda.get(k), power);
-
-		return result;
-	}
-	
-	/**
-	 * Return element (i,j) of exp(factor*A), where A is the matrix represented
-	 * by the eigenvalue decomposition ed. Assumes real eigenvectors.
-	 * 
-	 * @param ed
-	 * @param factor
-	 * @param i
-	 * @param j
-	 * @return [exp(A)]_ij
-	 */
-	private double matrixExp(EigenvalueDecomposition ed,
-			double factor, int i, int j) {
-		double result = 0.0;
-		
-		DoubleMatrix2D V = ed.getV();
-		DoubleMatrix1D lambda = ed.getRealEigenvalues();
-		
-		for (int k=0; k<lambda.size(); k++)
-			result += V.get(i,k)*V.get(j, k)*Math.exp(factor*lambda.get(k));
-		
-		return result;
-	}
-	
 	public double getMu() {
 		return mu;
 	}
@@ -217,16 +176,95 @@ public class MigrationModel extends Plugin {
 		return R.get(i, j);
 	}
 	
-	public double getQpower(double power, int i, int j) {
-		return matrixPower(Qdecomp, power, i, j);
-	}
-	
-	public double getRpower(double power, int i, int j) {
-		return matrixPower(Rdecomp, power, i, j);
-	}
-	
-	public double getQexp(double factor, int i, int j) {
-		return matrixExp(Qdecomp, factor, i, j);
-	}
+	/**
+	 * Return A^power.  Implements a caching mechanism.
+	 * 
+	 * @param power
+	 * @return A^power
+	 */
+	public DoubleMatrix2D getRpower(int power) {
 
+		if (power>Rpowers.size()-1) {
+			for (int n=Rpowers.size()-1; n<power; n++) {
+				if (n<0)
+					Rpowers.add(DoubleFactory2D.dense.identity(getNDemes()));
+				else
+					Rpowers.add(Algebra.DEFAULT.mult(Rpowers.get(n), R));
+			}
+		}
+		
+		return Rpowers.get(power);
+	}
+	
+	/**
+	 * Return element (i,j) of R^power.
+	 * 
+	 * @param power
+	 * @param i
+	 * @param j
+	 * @return [R^power]_ij
+	 */
+	public double getRpowerElement(int power, int i, int j) {
+		return getRpower(power).get(i,j);
+	}
+	
+	/**
+	 * Calculate exponential of the product factor*R, truncating at term trunc.
+	 * 
+	 * @param factor
+	 * @param trunc
+	 * @return exp(factor*R)
+	 */
+	public DoubleMatrix2D getRexp(double factor, int trunc) {
+		
+		DoubleMatrix2D res = DoubleFactory2D.dense.identity(getNDemes());
+		double scalar = 1.0;
+		
+		for (int n=1; n<trunc; n++) {
+			DoubleMatrix2D Rn = getRpower(n).copy();
+			scalar *= factor/n;
+			Rn.assign(Functions.mult(scalar));
+			res.assign(Rn, Functions.plus);
+		}
+		
+		return res;
+	}
+	
+	/**
+	 * Obtain element (i,j) of exp(factor*R), truncating at term trunc.
+	 * 
+	 * @param factor
+	 * @param trunc
+	 * @param i
+	 * @param j
+	 * @return [exp(factor*R)]_ij
+	 */
+	public double getRexpElement(double factor, int trunc, int i, int j) {
+		return getRexp(factor, trunc).get(i, j);
+	}
+	
+	public static void main (String[] args) throws Exception {
+		
+		RealParameter pops = new RealParameter();
+		pops.initByName(
+				"dimension", 2,
+				"value", "7.0 7.0");
+		RealParameter migmatrix = new RealParameter();
+		migmatrix.initByName(
+				"dimension", 4,
+				"minordimension", 2,
+				"value", "0.0 1 2 0.0");
+		MigrationModel mig = new MigrationModel();
+		mig.initByName(
+				"popSizes", pops,
+				"rateMatrix", migmatrix);
+		
+		System.out.println("Q=" + mig.Q);
+		System.out.println("mu=" + mig.mu);
+		System.out.println("R=" + mig.R);
+		
+		System.out.println("R^3=" + mig.getRpower(3));
+		
+		System.out.println("exp(R)=" + mig.getRexp(1.0, 10));
+	}
 }
