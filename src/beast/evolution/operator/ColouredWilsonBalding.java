@@ -271,18 +271,16 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		int col_srcNodeP = cTree.getNodeColour(srcNodeP);
 		
 		// Select number of virtual events:
+		double Pba = migrationModel.getQexpElement(L, col_srcNodeP, col_srcNode);
 		double muL = migrationModel.getMu()*L;
-		int trunc = 5 + (int)Math.round(muL + 2.0*Math.sqrt(muL));
-		double Pba = migrationModel.getRexpElement(muL, trunc,
-				col_srcNodeP, col_srcNode)*Math.exp(-muL);
 		double u1 = Randomizer.nextDouble()*Pba;
 		int nVirt = 0;
 		double poisAcc = Math.exp(-muL);
-		double acc = poisAcc*migrationModel.getRpowerElement(0, col_srcNodeP, col_srcNode);
-		while (acc < u1) {
+		u1 -= poisAcc*migrationModel.getRpowElement(0, 1.0, col_srcNodeP, col_srcNode);
+		while (u1 > 0) {
 			nVirt += 1;
 			poisAcc *= muL/nVirt;
-			acc += poisAcc*migrationModel.getRpowerElement(nVirt, col_srcNodeP, col_srcNode);
+			u1 -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, col_srcNodeP, col_srcNode);
 		}
 		
 		// Select times of virtual events:
@@ -296,11 +294,11 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		int lastCol = col_srcNodeP;
 		for (int i=nVirt; i>=1; i--) {
 			double u2 = Randomizer.nextDouble()*
-					migrationModel.getRpowerElement(i, lastCol, col_srcNode);
+					migrationModel.getRpowElement(i, 1.0, lastCol, col_srcNode);
 			int c;
 			for (c=0; c<cTree.getNColours(); c++) {
 				u2 -= migrationModel.getRelement(lastCol, c)*
-						migrationModel.getRpowerElement(i-1, c, col_srcNode);
+						migrationModel.getRpowElement(i-1, 1.0, c, col_srcNode);
 				if (u2<0.0)
 					break;
 			}
@@ -317,16 +315,23 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		lastCol = col_srcNode;
 		double lastTime = t_srcNode;
 		for (int i=0; i<nVirt; i++) {
-			if (colours[i] != lastCol) {
+			
+			int nextCol;
+			if (i != nVirt-1)
+				nextCol = colours[i+1];
+			else
+				nextCol = col_srcNodeP;
+			
+			if (nextCol != lastCol) {
 				
 				// Add change to branch:
-				addChange(srcNode, colours[i], times[i]);
+				addChange(srcNode, nextCol, times[i]);
 				
 				// Add probability contribution:
 				logProb += migrationModel.getQelement(lastCol, lastCol)*(times[i]-lastTime)
-						+ Math.log(migrationModel.getQelement(colours[i], lastCol));
+						+ Math.log(migrationModel.getQelement(nextCol, lastCol));
 				
-				lastCol = colours[i];
+				lastCol = nextCol;
 				lastTime = times[i];
 			}
 		}
@@ -409,14 +414,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 		logProb += (t_srcNodeP-lastTime)*migrationModel.getQelement(lastCol, lastCol);
 		
 		// Adjust to account for end condition of path:
-		// Note: this involves a matrix exponential.  We approximate using
-		// a Taylor expansion truncated at a number of terms fixed at two
-		// standard deviations above the mean number of virtual events that
-		// will occur along this branch.
-		double muL = migrationModel.getMu()*L;
-		int trunc = 5 + (int)Math.round(muL + 2.0*Math.sqrt(muL));
-		logProb -= Math.log(migrationModel.getRexpElement(muL, trunc,
-				col_srcNodeP, col_srcNode)) - muL;
+		logProb -= Math.log(
+				migrationModel.getQexpElement(L, col_srcNodeP, col_srcNode));
 		
 		return logProb;
 	}

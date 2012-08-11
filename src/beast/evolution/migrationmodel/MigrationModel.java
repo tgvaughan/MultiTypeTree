@@ -21,16 +21,10 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Plugin;
 import beast.core.parameter.RealParameter;
-import cern.colt.function.DoubleFunction;
-import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
-import cern.colt.matrix.linalg.Blas;
-import cern.colt.matrix.linalg.SeqBlas;
-import cern.jet.math.Functions;
-import java.util.ArrayList;
-import java.util.List;
+import cern.colt.matrix.linalg.EigenvalueDecomposition;
 
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
@@ -55,7 +49,8 @@ public class MigrationModel extends Plugin {
 	private double totalPopSize;
 	private double mu;
 	private DoubleMatrix2D Q, R;
-	private List<DoubleMatrix2D> Rpowers;
+	private EigenvalueDecomposition Qdecomp, Rdecomp;
+	private DoubleMatrix2D QVinv, RVinv;
 
 	public MigrationModel() { }
 
@@ -109,8 +104,12 @@ public class MigrationModel extends Plugin {
 			}
 		}
 
-		// Clear cache for powers of R:
-		Rpowers = new ArrayList<DoubleMatrix2D>();
+		// Calculate eigenvalue decomps:
+		Qdecomp = new EigenvalueDecomposition(Q);
+		Rdecomp = new EigenvalueDecomposition(R);
+		QVinv = Algebra.DEFAULT.inverse(Qdecomp.getV());
+		RVinv = Algebra.DEFAULT.inverse(Rdecomp.getV());
+		
 	}
 
 	/**
@@ -177,73 +176,127 @@ public class MigrationModel extends Plugin {
 	}
 	
 	/**
-	 * Return A^power.  Implements a caching mechanism.
+	 * Calculate exponential of the product factor*A, where A is the
+	 * matrix with eigendecomp decomp and eigenvector matrix inverse Vinv.
 	 * 
-	 * @param power
-	 * @return A^power
+	 * @param decomp 
+	 * @param Vinv
+	 * @param factor
+	 * @return exp(factor*A)
 	 */
-	public DoubleMatrix2D getRpower(int power) {
+	public DoubleMatrix2D getMatrixExp(EigenvalueDecomposition decomp,
+			DoubleMatrix2D Vinv, double factor) {
+		DoubleMatrix2D V = decomp.getV();
+		DoubleMatrix2D D = decomp.getD().copy();
 
-		if (power>Rpowers.size()-1) {
-			if (power>10000) {
-				System.out.println(power);
-			}
-			for (int n=Rpowers.size()-1; n<power; n++) {
-				if (n<0)
-					Rpowers.add(DoubleFactory2D.dense.identity(getNDemes()));
-				else
-					Rpowers.add(Algebra.DEFAULT.mult(Rpowers.get(n), R));
-			}
-		}
+		for (int i=0; i<D.rows(); i++)
+			D.set(i, i, Math.exp(factor*D.get(i, i)));
+
+		// V*exp(factor*D)*Vinv:
+		return Algebra.DEFAULT.mult(Algebra.DEFAULT.mult(V, D), Vinv);
+	}
+	
+	public DoubleMatrix2D getMatrixPow(EigenvalueDecomposition decomp,
+			DoubleMatrix2D Vinv, double power, double factor) {
+		DoubleMatrix2D V = decomp.getV();
+		DoubleMatrix2D D = decomp.getD().copy();
 		
-		return Rpowers.get(power);
+		for (int i=0; i<D.rows(); i++)
+			D.set(i, i, Math.pow(factor*D.get(i, i), power));
+		
+		return Algebra.DEFAULT.mult(Algebra.DEFAULT.mult(V, D), Vinv);
 	}
 	
 	/**
-	 * Return element (i,j) of R^power.
-	 * 
-	 * @param power
-	 * @param i
-	 * @param j
-	 * @return [R^power]_ij
-	 */
-	public double getRpowerElement(int power, int i, int j) {
-		return getRpower(power).get(i,j);
-	}
-	
-	/**
-	 * Calculate exponential of the product factor*R, truncating at term trunc.
+	 * Calculate exp(factor*Q)
 	 * 
 	 * @param factor
-	 * @param trunc
+	 * @return exp(factor*Q)
+	 */
+	public DoubleMatrix2D getQexp(double factor) {
+		return getMatrixExp(Qdecomp, QVinv, factor);
+	}
+	
+	/**
+	 * Calculate (factor*Q)^power
+	 * 
+	 * @param power
+	 * @param factor
+	 * @return (factor*Q)^power
+	 */
+	public DoubleMatrix2D getQpow(double power, double factor) {
+		return getMatrixPow(Qdecomp, QVinv, power, factor);
+	}
+	
+	/**
+	 * Obtain element (i,j) of exp(factor*Q).
+	 * 
+	 * @param factor
+	 * @param i
+	 * @param j
+	 * @return [exp(factor*Q)]_ij
+	 */
+	public double getQexpElement(double factor, int i, int j) {
+		return getQexp(factor).get(i, j);
+	}
+	
+	/**
+	 * Obtain element (i,j) of (factor*Q)^power.
+	 * 
+	 * @param power
+	 * @param factor
+	 * @param i
+	 * @param j
+	 * @return [(factor*Q)^power]_ij
+	 */
+	public double getQpowElement(double power, double factor, int i, int j) {
+		return getQpow(power, factor).get(i,j);
+	}
+	
+	/**
+	 * Calculate exp(factor*R).
+	 * 
+	 * @param factor
 	 * @return exp(factor*R)
 	 */
-	public DoubleMatrix2D getRexp(double factor, int trunc) {
-		
-		DoubleMatrix2D res = DoubleFactory2D.dense.identity(getNDemes());
-		double scalar = 1.0;
-		
-		for (int n=1; n<trunc; n++) {
-			DoubleMatrix2D Rn = getRpower(n).copy();
-			scalar *= factor/n;
-			Rn.assign(Functions.mult(scalar));
-			res.assign(Rn, Functions.plus);
-		}
-		
-		return res;
+	public DoubleMatrix2D getRexp(double factor) {
+		return getMatrixExp(Rdecomp, RVinv, factor);
 	}
 	
 	/**
-	 * Obtain element (i,j) of exp(factor*R), truncating at term trunc.
+	 * Calculate (factor*R)^power.
+	 * 
+	 * @param power
+	 * @param factor
+	 * @return (factor*R)^power
+	 */
+	public DoubleMatrix2D getRpow(double power, double factor) {
+		return getMatrixPow(Rdecomp, RVinv, power, factor);
+	}
+	
+	/**
+	 * Calculate element (i,j) of exp(factor*R).
 	 * 
 	 * @param factor
-	 * @param trunc
 	 * @param i
 	 * @param j
-	 * @return [exp(factor*R)]_ij
+	 * @return [exp(factor*R)_ij
 	 */
-	public double getRexpElement(double factor, int trunc, int i, int j) {
-		return getRexp(factor, trunc).get(i, j);
+	public double getRexpElement(double factor, int i, int j) {
+		return getRexp(factor).get(i,j);
+	}
+	
+	/**
+	 * Calculate element (i,j) of (factor*R)^power.
+	 * 
+	 * @param power
+	 * @param factor
+	 * @param i
+	 * @param j
+	 * @return [(factor*R)^power]_ij
+	 */
+	public double getRpowElement(double power, double factor, int i, int j) {
+		return getRpow(power, factor).get(i,j);
 	}
 	
 	public static void main (String[] args) throws Exception {
@@ -266,8 +319,6 @@ public class MigrationModel extends Plugin {
 		System.out.println("mu=" + mig.mu);
 		System.out.println("R=" + mig.R);
 		
-		System.out.println("R^3=" + mig.getRpower(3));
-		
-		System.out.println("exp(R)=" + mig.getRexp(1.0, 10));
+		System.out.println("Q^0=" + mig.getQpow(0.0, 1.0));
 	}
 }
