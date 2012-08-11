@@ -299,6 +299,12 @@ public class MigrationModel extends Plugin {
 		return getRpow(power, factor).get(i,j);
 	}
 	
+	/**
+	 * Main method for debugging only.
+	 * 
+	 * @param args
+	 * @throws Exception 
+	 */
 	public static void main (String[] args) throws Exception {
 		
 		RealParameter pops = new RealParameter();
