@@ -42,7 +42,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
             "Migration rate for proposal distribution", Validate.REQUIRED);
 	
 	public Input<Double> alphaInput = new Input<Double>("alpha",
-			"Root height proposal parameter", Validate.REQUIRED); 
+			"Root height proposal parameter", .1); 
 	
 	private double mu, alpha;
 

@@ -20,6 +20,8 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Operator;
+import beast.core.parameter.IntegerParameter;
+import beast.core.parameter.RealParameter;
 import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
@@ -35,6 +37,19 @@ abstract public class ColouredTreeOperator extends TreeOperator {
     public Input<ColouredTree> colouredTreeInput = new Input<ColouredTree>(
             "colouredTree", "Coloured tree on which to operate.",
             Validate.REQUIRED);
+
+    public Input<IntegerParameter> changeColoursInput = new Input<IntegerParameter>(
+            "changeColours", "Changes in colour along branches");
+
+    public Input<RealParameter> changeTimesInput = new Input<RealParameter>(
+            "changeTimes", "Times of colour changes.");
+
+    public Input<IntegerParameter> changeCountsInput = new Input<IntegerParameter>(
+            "changeCounts", "Number of colour changes on each branch.");
+
+	public Input<IntegerParameter> nodeColoursInput = new Input<IntegerParameter>(
+			"nodeColours", "Colour at each node (including internal nodes).");
+
 
     protected Tree tree;
     protected ColouredTree cTree;
@@ -209,7 +224,8 @@ abstract public class ColouredTreeOperator extends TreeOperator {
                     "Attempted to alter non-existent change colour.");
 
         int offset = node.getNr()*cTree.getMaxBranchColours();
-        cTree.changeColoursInput.get().setValue(offset+idx, colour);
+//        cTree.changeColoursInput.get().setValue(offset+idx, colour);
+        changeColoursInput.get().setValue(offset+idx, colour);
 
     }
 
@@ -227,7 +243,8 @@ abstract public class ColouredTreeOperator extends TreeOperator {
 
         int offset = node.getNr()*cTree.getMaxBranchColours();
         for (int i=0; i<colours.length; i++)
-            cTree.changeColoursInput.get().setValue(offset+i, colours[i]);
+//            cTree.changeColoursInput.get().setValue(offset+i, colours[i]);
+            changeColoursInput.get().setValue(offset+i, colours[i]);
 
     }
 
@@ -245,7 +262,8 @@ abstract public class ColouredTreeOperator extends TreeOperator {
                     "Attempted to alter non-existent change time.");
 
         int offset = node.getNr()*cTree.getMaxBranchColours();
-        cTree.changeTimesInput.get().setValue(offset+idx, time);
+//         cTree.changeTimesInput.get().setValue(offset+idx, time);
+         changeTimesInput.get().setValue(offset+idx, time);
     }
 
     /**
@@ -262,7 +280,8 @@ abstract public class ColouredTreeOperator extends TreeOperator {
 
         int offset = cTree.getBranchOffset(node);
         for (int i=0; i<times.length; i++)
-            cTree.changeTimesInput.get().setValue(offset+i, times[i]);
+//            cTree.changeTimesInput.get().setValue(offset+i, times[i]);
+            changeTimesInput.get().setValue(offset+i, times[i]);
     }
 	
     /**
@@ -272,7 +291,8 @@ abstract public class ColouredTreeOperator extends TreeOperator {
      * @param count Number of colours on branch. (>=1)
      */
     public void setChangeCount(Node node, int count) {
-        cTree.changeCountsInput.get().setValue(node.getNr(), count);
+//        cTree.changeCountsInput.get().setValue(node.getNr(), count);
+        changeCountsInput.get().setValue(node.getNr(), count);
     }
 
     /**
@@ -304,7 +324,8 @@ abstract public class ColouredTreeOperator extends TreeOperator {
 	 * @param colour New colour for node.
 	 */
 	public void setNodeColour(Node node, int colour) {
-		cTree.nodeColoursInput.get().setValue(node.getNr(), colour);
+//        cTree.nodeColoursInput.get().setValue(node.getNr(), colour);
+        nodeColoursInput.get().setValue(node.getNr(), colour);
 	}
 
 }

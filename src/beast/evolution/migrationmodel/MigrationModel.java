@@ -26,6 +26,8 @@ import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
 
+import java.util.Arrays;
+
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
  * ColouredTree operators and likelihoods.  Note that this class and package
@@ -60,8 +62,18 @@ public class MigrationModel extends Plugin {
 	}
 	
 	public void updateMatrices() throws Exception {
-		rateMatrix = rateMatrixInput.get();
-		popSizes = popSizesInput.get();
+
+        popSizes = popSizesInput.get();
+
+        if (rateMatrixInput.get().getDimension() == popSizes.getDimension()*popSizes.getDimension())
+
+            rateMatrix = rateMatrixInput.get();
+
+        else if (rateMatrixInput.get().getDimension() == popSizes.getDimension()*(popSizes.getDimension()-1)){
+
+            addDiagonal(rateMatrixInput.get().getValues(), popSizes.getDimension());
+        }
+
 
 		totalPopSize = 0.0;
 		for (int i=0; i<popSizes.getDimension(); i++) {
@@ -111,6 +123,36 @@ public class MigrationModel extends Plugin {
 		RVinv = Algebra.DEFAULT.inverse(Rdecomp.getV());
 		
 	}
+
+
+
+    /**
+     * Add zeros to the diagonal - @Tim: I think we should parametrize the rate matrix as a n*(n-1) matrix
+     *
+     * @param dim*(dim-1) rate matrix
+     * @author Denise
+     */
+    void addDiagonal(Double[] matrix, int dim) throws Exception{
+
+        Double[] squareMatrix = new Double[dim*dim];
+
+        int count=0;
+        for (int i=0; i<dim; i++){
+            for (int j=0; j<dim; j++){
+
+                if (i==j) squareMatrix[i*dim+j] = 0.;
+                else{
+                    squareMatrix[i*dim+j] = matrix[count];
+                    count++;
+                }
+            }
+        }
+
+        rateMatrix = new RealParameter();
+        rateMatrix.initByName("value", Arrays.toString(squareMatrix).replaceAll("[\\[\\],]", " "),
+                "minordimension", 2);
+    }
+
 
 	/**
 	 * Obtain the number of demes in the migration model.
@@ -307,24 +349,30 @@ public class MigrationModel extends Plugin {
 	 */
 	public static void main (String[] args) throws Exception {
 		
-		RealParameter pops = new RealParameter();
-		pops.initByName(
-				"dimension", 2,
-				"value", "7.0 7.0");
-		RealParameter migmatrix = new RealParameter();
-		migmatrix.initByName(
-				"dimension", 4,
-				"minordimension", 2,
-				"value", "0.0 1 2 0.0");
+//		RealParameter pops = new RealParameter();
+//		pops.initByName(
+//				"dimension", 2,
+//				"value", "7.0 7.0");
+//		RealParameter migmatrix = new RealParameter();
+//		migmatrix.initByName(
+//				"dimension", 4,
+//				"minordimension", 2,
+//				"value", "0.0 1 2 0.0");
+//		MigrationModel mig = new MigrationModel();
+//		mig.initByName(
+//				"popSizes", pops,
+//				"rateMatrix", migmatrix);
+//
+//		System.out.println("Q=" + mig.Q);
+//		System.out.println("mu=" + mig.mu);
+//		System.out.println("R=" + mig.R);
+//
+//		System.out.println("Q^0=" + mig.getQpow(0.0, 1.0));
+
 		MigrationModel mig = new MigrationModel();
-		mig.initByName(
-				"popSizes", pops,
-				"rateMatrix", migmatrix);
-		
-		System.out.println("Q=" + mig.Q);
-		System.out.println("mu=" + mig.mu);
-		System.out.println("R=" + mig.R);
-		
-		System.out.println("Q^0=" + mig.getQpow(0.0, 1.0));
+        Double[] matrix = new Double[]{1.,2.,3.,4.,5.,6., 1.,2.,3.,4.,5.,6.};
+        int dim = 4;
+        mig.addDiagonal(matrix, dim);
+
 	}
 }
