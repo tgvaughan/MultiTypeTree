@@ -23,6 +23,8 @@ import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import beast.evolution.operators.TreeOperator;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -45,8 +47,34 @@ abstract public class ColouredTreeOperator extends TreeOperator {
      * @param nodeB 
      */
     public void swapNodes(Node nodeA, Node nodeB) {
+
+        // Store old contents of nodeB:
         
-        // TODO: Implement!
+        int oldChangeCount = cTree.getChangeCount(nodeB);
+        int oldNodeColour = cTree.getNodeColour(nodeB);
+        List<Integer> changeList = new ArrayList<Integer>();
+        List<Double> changeTimeList = new ArrayList<Double>();
+        
+        for (int i=0; i<oldChangeCount; i++) {
+            changeList.add(cTree.getChangeColour(nodeB, i));
+            changeTimeList.add(cTree.getChangeTime(nodeB, i));
+        }
+        
+        // Copy contents of nodeA to nodeB:
+        
+        setChangeCount(nodeB, 0);
+        for (int i=0; i<cTree.getChangeCount(nodeA); i++) {
+            addChange(nodeB, cTree.getChangeColour(nodeA, i),
+                    cTree.getChangeTime(nodeA, i));
+        }
+        setNodeColour(nodeB, cTree.getNodeColour(nodeA));
+        
+        // Copy original contents of nodeB to nodeA:
+
+        setChangeCount(nodeA, 0);
+        for (int i=0; i<oldChangeCount; i++)
+            addChange(nodeA, changeList.get(i), changeTimeList.get(i));
+        setNodeColour(nodeA, oldNodeColour);
         
     }
     
