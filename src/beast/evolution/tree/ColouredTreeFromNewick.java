@@ -25,7 +25,7 @@ public class ColouredTreeFromNewick extends ColouredTree implements StateNodeIni
 
     protected ColouredTree ctree;
 
-    public void initAndValidate() throws Exception{
+    public void initAndValidate() throws Exception {
 
         ctree = new ColouredTree(treeInput.get(), colouredNewick.get(), colourLabelInput.get(), nColoursInput.get(),maxBranchColoursInput.get());
 

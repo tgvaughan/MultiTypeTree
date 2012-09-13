@@ -28,77 +28,73 @@ import beast.util.Randomizer;
 @Description("Scale operator for coloured trees.")
 public class ColouredTreeScale extends ColouredTreeOperator {
 
-	public Input<Double> m_scaleParam = new Input<Double>("scaleParam",
-			"Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
+    public Input<Double> m_scaleParam = new Input<Double>("scaleParam",
+            "Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
 
-	@Override
-	public void initAndValidate() { }
+    @Override
+    public void initAndValidate() {
+    }
 
-	@Override
-	public double proposal() {
+    @Override
+    public double proposal() {
 
-		// Is there a better way to do this?
-		cTree = colouredTreeInput.get();
-		tree = cTree.getUncolouredTree();
+        // Is there a better way to do this?
+        cTree = colouredTreeInput.get();
+        tree = cTree.getUncolouredTree();
 
-		// Record old tree height:
-		double hOld = tree.getRoot().getHeight();
+        // Record old tree height:
+        double hOld = tree.getRoot().getHeight();
 
-		// Choose scale factor:
-		double u = Randomizer.nextDouble();
-		double f = u*m_scaleParam.get() + (1.0-u)/m_scaleParam.get();
+        // Choose scale factor:
+        double u = Randomizer.nextDouble();
+        double f = u*m_scaleParam.get()+(1.0-u)/m_scaleParam.get();
 
-		// Count scaled elements:
-		int n = 0;
-		
-		// Scale internal node heights:
-		for (Node node : tree.getInternalNodes()) {
-			node.setHeight(node.getHeight()*f);
-			n += 1;
-		}
+        // Count scaled elements:
+        int n = 0;
 
-		// Ensure new node heights make sense, force reject if not:
-		if (u<1.0 && !validateSubtreeNodeHeights(tree.getRoot()))
-				return Double.NEGATIVE_INFINITY;
+        // Scale internal node heights:
+        for (Node node : tree.getInternalNodes()) {
+            node.setHeight(node.getHeight()*f);
+            n += 1;
+        }
 
-		// Scale colour change times:
-		for (Node node : tree.getNodesAsArray()) {
-			for (int c=0; c<cTree.getChangeCount(node); c++) {
-				double oldTime = cTree.getChangeTime(node, c);
-				setChangeTime(node, c, f*oldTime);
-				n += 1;
-			}
-		}
+        // Ensure new node heights make sense, force reject if not:
+        if (u<1.0&&!validateSubtreeNodeHeights(tree.getRoot()))
+            return Double.NEGATIVE_INFINITY;
 
-		// New tree height:
-		double hNew = tree.getRoot().getHeight();
+        // Scale colour change times:
+        for (Node node : tree.getNodesAsArray())
+            for (int c = 0; c<cTree.getChangeCount(node); c++) {
+                double oldTime = cTree.getChangeTime(node, c);
+                setChangeTime(node, c, f*oldTime);
+                n += 1;
+            }
 
-		// Return Hastings ratio:
-		return (n-2)*Math.log(f);
-	}
+        // New tree height:
+        double hNew = tree.getRoot().getHeight();
 
-	/**
-	 * Check whether the heights of all nodes in the subtree of node
-	 * are smaller than those of their parents.
-	 * 
-	 * @param node
-	 * @return True if heights satisfy the condition.
-	 */
-	public boolean validateSubtreeNodeHeights(Node node) {
+        // Return Hastings ratio:
+        return (n-2)*Math.log(f);
+    }
 
-		if (!node.isRoot()) {
-			if (node.getHeight()>node.getParent().getHeight())
-				return false;
-		}
+    /**
+     * Check whether the heights of all nodes in the subtree of node are smaller
+     * than those of their parents.
+     *
+     * @param node
+     * @return True if heights satisfy the condition.
+     */
+    public boolean validateSubtreeNodeHeights(Node node) {
 
-		if (!node.isLeaf()) {
-			for (Node child : node.getChildren()) {
-				if (!validateSubtreeNodeHeights(child))
-					return false;
-			}
-		}
+        if (!node.isRoot())
+            if (node.getHeight()>node.getParent().getHeight())
+                return false;
 
-		return true;
-	}
-	
+        if (!node.isLeaf())
+            for (Node child : node.getChildren())
+                if (!validateSubtreeNodeHeights(child))
+                    return false;
+
+        return true;
+    }
 }

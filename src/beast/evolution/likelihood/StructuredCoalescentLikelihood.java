@@ -245,25 +245,26 @@ public class StructuredCoalescentLikelihood extends ColouredTreeDistribution {
 	public static void main (String[] argv) throws Exception {
 
 		// Assemble test ColouredTree:
-		TreeParser parser = new TreeParser("", false);
+		TreeParser parser = new TreeParser();
 		String newickStr =
-				"(((A[&state=1]:0.25)[&state=0]:0.25,B[&state=0]:0.5)[&state=0]:1.5,"
-				+ "(C[&state=0]:1.0,D[&state=0]:1.0)[&state=0]:1.0)[&state=0]:0.0;";
+                        "(((A[&state=1]:0.25)[&state=0]:0.25,B[&state=0]:0.5)[&state=0]:1.5,"
+                        + "(C[&state=0]:1.0,D[&state=0]:1.0)[&state=0]:1.0)[&state=0]:0.0;";
 		parser.initByName(
-				"adjustTipHeights", true,
-				"singlechild", true,
-				"newick", newickStr);
+                        "IsLabelledNewick", true,
+                        "adjustTipHeights", true,
+                        "singlechild", true,
+                        "newick", newickStr);
 		Tree flatTree = parser;
 
 		ColouredTree ctree = new ColouredTree();
 		ctree.initByName(
-				"nColours", 2,
-				"maxBranchColours", 10,
-				"tree", new Tree(),
-				"changeColours", new IntegerParameter("0"),
-				"changeTimes", new RealParameter("0.0"),
-				"changeCounts", new IntegerParameter("0"),
-				"nodeColours", new IntegerParameter("0"));
+                        "nColours", 2,
+                        "maxBranchColours", 10,
+                        "tree", new Tree(),
+                        "changeColours", new IntegerParameter("0"),
+                        "changeTimes", new RealParameter("0.0"),
+                        "changeCounts", new IntegerParameter("0"),
+                        "nodeColours", new IntegerParameter("0"));
 		ctree.initFromFlatTree(flatTree);
 
 		// Assemble migration model:
