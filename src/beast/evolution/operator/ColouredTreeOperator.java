@@ -38,55 +38,52 @@ public abstract class ColouredTreeOperator extends TreeOperator {
     public Input<ColouredTree> colouredTreeInput = new Input<ColouredTree>(
             "colouredTree", "Coloured tree on which to operate.",
             Validate.REQUIRED);
-
     protected Tree tree;
     protected ColouredTree cTree;
 
-    
     /**
      * Swap the colouring information associated with nodeA and nodeB.
-     * 
+     *
      * @param nodeA
-     * @param nodeB 
+     * @param nodeB
      */
     public void swapNodes(Node nodeA, Node nodeB) {
 
         // Store old contents of nodeB:
-        
+
         int oldChangeCount = cTree.getChangeCount(nodeB);
         int oldNodeColour = cTree.getNodeColour(nodeB);
         List<Integer> changeList = new ArrayList<Integer>();
         List<Double> changeTimeList = new ArrayList<Double>();
-        
-        for (int i=0; i<oldChangeCount; i++) {
+
+        for (int i = 0; i < oldChangeCount; i++) {
             changeList.add(cTree.getChangeColour(nodeB, i));
             changeTimeList.add(cTree.getChangeTime(nodeB, i));
         }
-        
+
         // Copy contents of nodeA to nodeB:
-        
+
         setChangeCount(nodeB, 0);
-        for (int i=0; i<cTree.getChangeCount(nodeA); i++) {
+        for (int i = 0; i < cTree.getChangeCount(nodeA); i++)
             addChange(nodeB, cTree.getChangeColour(nodeA, i),
                     cTree.getChangeTime(nodeA, i));
-        }
         setNodeColour(nodeB, cTree.getNodeColour(nodeA));
-        
+
         // Copy original contents of nodeB to nodeA:
 
         setChangeCount(nodeA, 0);
-        for (int i=0; i<oldChangeCount; i++)
+        for (int i = 0; i < oldChangeCount; i++)
             addChange(nodeA, changeList.get(i), changeTimeList.get(i));
         setNodeColour(nodeA, oldNodeColour);
-        
+
     }
-    
+
     /**
      * Define a new root for the coloured tree.
-     * 
+     *
      * @param node Node to become root.
      */
-    public void setRoot(Node node) {        
+    public void setRoot(Node node) {
         swapNodes(node, tree.getRoot());
         tree.setRoot(node);
     }
@@ -257,7 +254,7 @@ public abstract class ColouredTreeOperator extends TreeOperator {
                     "Attempted to alter non-existent change colour.");
 
         int offset = node.getNr() * cTree.getMaxBranchColours();
-        cTree.changeColoursInput.get().setValue(offset+idx, colour);
+        cTree.changeColoursInput.get().setValue(offset + idx, colour);
 
     }
 
@@ -275,7 +272,7 @@ public abstract class ColouredTreeOperator extends TreeOperator {
 
         int offset = node.getNr() * cTree.getMaxBranchColours();
         for (int i = 0; i < colours.length; i++)
-            cTree.changeColoursInput.get().setValue(offset+i, colours[i]);
+            cTree.changeColoursInput.get().setValue(offset + i, colours[i]);
 
     }
 
@@ -293,7 +290,7 @@ public abstract class ColouredTreeOperator extends TreeOperator {
                     "Attempted to alter non-existent change time.");
 
         int offset = node.getNr() * cTree.getMaxBranchColours();
-        cTree.changeTimesInput.get().setValue(offset+idx, time);
+        cTree.changeTimesInput.get().setValue(offset + idx, time);
     }
 
     /**
@@ -310,7 +307,7 @@ public abstract class ColouredTreeOperator extends TreeOperator {
 
         int offset = cTree.getBranchOffset(node);
         for (int i = 0; i < times.length; i++)
-            cTree.changeTimesInput.get().setValue(offset+i, times[i]);
+            cTree.changeTimesInput.get().setValue(offset + i, times[i]);
     }
 
     /**
@@ -355,151 +352,5 @@ public abstract class ColouredTreeOperator extends TreeOperator {
     public void setNodeColour(Node node, int colour) {
         cTree.nodeColoursInput.get().setValue(node.getNr(), colour);
     }
-
-    
-    /**
-     * Initialise colours and tree topology from Tree object in which colour
-     * changes are marked by single-child nodes and colours are stored in
-     * metadata tags.
-     *
-     * @param flatTree
-     */
-    public void initFromFlatTree(Tree flatTree) throws Exception {
-        
-        // Grab primary colouring parameters from inputs:
-        colourLabel = colourLabelInput.get();
-        nColours = nColoursInput.get();
-        maxBranchColours = maxBranchColoursInput.get();
-
-        // Obtain tree to colour:
-        tree = treeInput.get();
-
-        // Obtain references to Parameters used to store colouring:
-        changeColours = changeColoursInput.get();
-        changeTimes = changeTimesInput.get();
-        changeCounts = changeCountsInput.get();
-        nodeColours = nodeColoursInput.get();
-
-        // Hack to deal with StateNodes that haven't been attached to
-        // a state yet.
-        if (changeColours.getState()==null) {
-            State state = new State();
-            state.initByName(
-                    "stateNode", changeColours,
-                    "stateNode", changeTimes,
-                    "stateNode", changeCounts,
-                    "stateNode", nodeColours);
-            state.initialise();
-        }
-
-        // Obtain number of nodes and leaves in tree to construct:
-        int nNodes = getTrueNodeCount(flatTree.root);
-        int nLeaves = flatTree.root.getLeafNodeCount();
-
-        // Allocate memory for colour arrays:
-        initParameters(nNodes);
-
-        // Initialise lists of available node numbers:
-        List<Integer> leafNrs = new ArrayList<Integer>();
-        List<Integer> internalNrs = new ArrayList<Integer>();
-
-        for (int i = 0; i<nLeaves; i++)
-            leafNrs.add(i);
-
-        for (int i = 0; i<nNodes; i++)
-            if (i<nLeaves)
-                leafNrs.add(i);
-            else
-                internalNrs.add(i);
-
-        // Build new coloured tree:
-
-        List<Node> activeFlatTreeNodes = new ArrayList<Node>();
-        List<Node> nextActiveFlatTreeNodes = new ArrayList<Node>();
-        List<Node> activeTreeNodes = new ArrayList<Node>();
-        List<Node> nextActiveTreeNodes = new ArrayList<Node>();
-
-        // Populate active node lists with root:
-        activeFlatTreeNodes.add(flatTree.getRoot());
-        Node root = new Node();
-        //root.setNr(internalNrs.get(0));
-        //internalNrs.remove(0);
-        activeTreeNodes.add(root);
-
-        while (!activeFlatTreeNodes.isEmpty()) {
-
-            nextActiveFlatTreeNodes.clear();
-            nextActiveTreeNodes.clear();
-
-            for (int idx = 0; idx<activeFlatTreeNodes.size(); idx++) {
-                Node flatTreeNode = activeFlatTreeNodes.get(idx);
-                Node treeNode = activeTreeNodes.get(idx);
-
-                Node thisFlatNode = flatTreeNode;
-                List<Integer> colours = new ArrayList<Integer>();
-                List<Double> times = new ArrayList<Double>();
-
-                while (thisFlatNode.getChildCount()==1) {
-                    int col = (int) Math.round((Double) thisFlatNode.getMetaData("&state"));
-                    colours.add(col);
-                    times.add(thisFlatNode.getHeight());
-
-                    thisFlatNode = thisFlatNode.getLeft();
-                }
-
-                // Order changes from youngest to oldest:
-                colours = Lists.reverse(colours);
-                times = Lists.reverse(times);
-
-                switch (thisFlatNode.getChildCount()) {
-                    case 0:
-                        // Leaf at base of branch
-                        treeNode.setNr(leafNrs.get(0));
-                        leafNrs.remove(0);
-                        break;
-
-                    case 2:
-                        // Non-leaf at base of branch
-                        treeNode.setNr(internalNrs.get(0));
-                        internalNrs.remove(0);
-
-                        nextActiveFlatTreeNodes.add(thisFlatNode.getLeft());
-                        nextActiveFlatTreeNodes.add(thisFlatNode.getRight());
-
-                        Node daughter = new Node();
-                        Node son = new Node();
-                        treeNode.setLeft(daughter);
-                        treeNode.setRight(son);
-                        nextActiveTreeNodes.add(daughter);
-                        nextActiveTreeNodes.add(son);
-
-                        break;
-                }
-
-                // Add colour changes to coloured tree branch:
-                for (int i = 0; i<colours.size(); i++)
-                    addChange(treeNode, colours.get(i), times.get(i));
-
-                // Set node colour at base of coloured tree branch:
-                int nodeCol = (int) Math.round((Double) thisFlatNode.getMetaData("&state"));
-                setNodeColour(treeNode, nodeCol);
-
-                // Set node height:
-                treeNode.setHeight(thisFlatNode.getHeight());
-            }
-
-            // Replace old active node lists with new:
-            activeFlatTreeNodes.clear();
-            activeFlatTreeNodes.addAll(nextActiveFlatTreeNodes);
-
-            activeTreeNodes.clear();
-            activeTreeNodes.addAll(nextActiveTreeNodes);
-
-        }
-
-        // Assign tree topology:
-        tree.assignFromWithoutID(new Tree(root));
-    }
-
 
 }

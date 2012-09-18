@@ -1,12 +1,10 @@
 package beast.evolution.tree;
 
 import beast.core.*;
-import beast.core.parameter.IntegerParameter;
-import beast.core.parameter.RealParameter;
+import beast.core.Input.Validate;
 import beast.util.TreeParser;
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author dkuh004
@@ -20,39 +18,30 @@ public class ColouredTreeFromNewick extends ColouredTree implements StateNodeIni
 
     public Input<TreeParser> colouredNewick = new Input<TreeParser>(
             "colouredNewick", "Newick tree with single children and meta data containing colouring.");
+    
+    public Input<String> newickStringInput = new Input<String>("newick",
+            "Tree in Newick format.", Validate.REQUIRED);
 
-
-
-    protected ColouredTree ctree;
-
+    @Override
     public void initAndValidate() throws Exception {
-
-        ctree = new ColouredTree(treeInput.get(), colouredNewick.get(), colourLabelInput.get(), nColoursInput.get(),maxBranchColoursInput.get());
-
-        changeColours = changeColoursInput.get();
-        changeTimes = changeTimesInput.get();
-        changeCounts = changeCountsInput.get();
-        nodeColours = nodeColoursInput.get(); 
-        tree= treeInput.get(); //ctree.tree;
-
-        colourLabel = colourLabelInput.get();
-        nColours = nColoursInput.get();
-        maxBranchColours = maxBranchColoursInput.get();
-
-        initStateNodes() ;
+        
+        TreeParser parser = new TreeParser();
+        parser.initByName(
+                "IsLabelledNewick", true,
+                "adjustTipHeights", true,
+                "singlechild", true,
+                "newick", newickStringInput.get());
+        Tree flatTree = parser;
+        
+        initFromFlatTree(flatTree);
+        initStateNodes();
     }
 
 
-    public void initStateNodes()  {
+    @Override
+    public void initStateNodes()  { }
 
-        changeColoursInput.get().assignFromWithoutID(ctree.changeColours);
-        changeTimesInput.get().assignFromWithoutID(ctree.changeTimes);
-        changeCountsInput.get().assignFromWithoutID(ctree.changeCounts);
-        nodeColoursInput.get().assignFromWithoutID(ctree.nodeColours);
-        treeInput.get().assignFromWithoutID(ctree.tree);     
-//        System.out.println();
-    }
-
+    @Override
     public List<StateNode> getInitialisedStateNodes() {
 
         List<StateNode> statenodes = new ArrayList<StateNode>();
