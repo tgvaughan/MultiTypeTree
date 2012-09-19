@@ -15,15 +15,13 @@ import java.util.List;
 @Description("Class to initialize a ColouredTree from single child newick tree with colour metadata")
 public class ColouredTreeFromNewick extends ColouredTree implements StateNodeInitialiser {
 
-
-    public Input<TreeParser> colouredNewick = new Input<TreeParser>(
-            "colouredNewick", "Newick tree with single children and meta data containing colouring.");
-    
     public Input<String> newickStringInput = new Input<String>("newick",
             "Tree in Newick format.", Validate.REQUIRED);
 
     @Override
     public void initAndValidate() throws Exception {
+        
+        super.initAndValidate();
         
         TreeParser parser = new TreeParser();
         parser.initByName(

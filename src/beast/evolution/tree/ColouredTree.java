@@ -17,6 +17,7 @@
 package beast.evolution.tree;
 
 import beast.core.*;
+import beast.core.Input.Validate;
 import beast.core.parameter.*;
 import beast.evolution.operator.ColouredTreeModifier;
 import beast.util.Randomizer;
@@ -38,15 +39,20 @@ public class ColouredTree extends CalculationNode implements Loggable {
     /*
      * Plugin inputs:
      */
+    
+    // Inputs specifying the constant characteristics of the tree
     public Input<String> colourLabelInput = new Input<String>(
-            "colourLabel", "Label for colours (e.g. deme)");
+            "colourLabel",
+            "Label for colours (e.g. deme)", "deme");
     public Input<Integer> nColoursInput = new Input<Integer>(
-            "nColours", "Number of colours to consider.");
+            "nColours",
+            "Number of colours to consider.", Validate.REQUIRED);
     public Input<Integer> maxBranchColoursInput = new Input<Integer>(
             "maxBranchColours",
-            "Max number of colour changes allowed along a single branch.");
-    public Input<Tree> treeInput = new Input<Tree>(
-            "tree", "Tree on which to place colours.");
+            "Max number of colour changes allowed along a single branch.", 20);
+    
+    // Inputs providing access to the variable state of the tree
+    public Input<Tree> treeInput = new Input<Tree>("tree", "Tree on which to place colours.");    
     public Input<IntegerParameter> changeColoursInput = new Input<IntegerParameter>(
             "changeColours", "Changes in colour along branches");
     public Input<RealParameter> changeTimesInput = new Input<RealParameter>(
@@ -82,12 +88,25 @@ public class ColouredTree extends CalculationNode implements Loggable {
         maxBranchColours = maxBranchColoursInput.get();
 
         // Obtain tree to colour:
+        if (treeInput.get() == null)
+            treeInput.setValue(new Tree(), this);
         tree = treeInput.get();
 
         // Obtain references to Parameters used to store colouring:
+        if (changeColoursInput.get() == null)
+            changeColoursInput.setValue(new IntegerParameter("0"), this);
         changeColours = changeColoursInput.get();
+        
+        if (changeTimesInput.get() == null)
+            changeTimesInput.setValue(new RealParameter("0.0"), this);
         changeTimes = changeTimesInput.get();
+        
+        if (changeCountsInput.get() == null)
+            changeCountsInput.setValue(new IntegerParameter("0"), this);
         changeCounts = changeCountsInput.get();
+        
+        if (nodeColoursInput.get() == null)
+            nodeColoursInput.setValue(new IntegerParameter("0"), this);
         nodeColours = nodeColoursInput.get();
 
     }

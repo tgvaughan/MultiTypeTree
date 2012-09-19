@@ -29,8 +29,6 @@ import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
-import java.io.File;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -172,10 +170,10 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 
         for (int l = 0; l < leafColours.getDimension(); l++) {
             Node node = new Node();
-            node.setHeight(0.0);
             node.setNr(nextNodeNr);
             node.setID(String.valueOf(nextNodeNr));
             activeNodes.get(leafColours.getValue(l)).add(node);
+            modifier.setNodeHeight(node, 0.0);
             modifier.setNodeColour(node, leafColours.getValue(l));
 
             nextNodeNr++;
@@ -210,7 +208,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
             t = event.time;
         }
 
-        // Return first remaining active node as root:
+        // Return sole remaining active node as root:
         for (List<Node> nodeList : activeNodes)
             if (!nodeList.isEmpty())
                 return nodeList.get(0);
@@ -334,16 +332,16 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 
             // Create new parent node with appropriate ID and time:
             Node parent = new Node();
-            parent.setHeight(event.time);
             parent.setNr(nextNodeNr);
             parent.setID(String.valueOf(nextNodeNr));
+            modifier.setNodeHeight(parent, event.time);
             nextNodeNr++;
 
             // Connect new parent to children:
-            parent.setLeft(daughter);
-            parent.setRight(son);
-            son.setParent(parent);
-            daughter.setParent(parent);
+            modifier.setNodeChildLeft(parent, daughter);
+            modifier.setNodeChildRight(parent, son);
+            modifier.setNodeParent(son, parent);
+            modifier.setNodeParent(daughter, parent);
 
             // Ensure new parent is set to correct colour:
             modifier.setNodeColour(parent, event.fromColour);
@@ -428,7 +426,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
                 "value", "0 0 0");
 
         // Generate ensemble:
-        int reps = 50000;
+        int reps = 100000;
         double[] heights = new double[reps];
 
         long startTime = System.currentTimeMillis();
@@ -457,11 +455,13 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
 
         System.out.printf("Took %1.2f seconds\n", time / 1000.0);
 
+        /*
         PrintStream outStream = new PrintStream(new File("heights.txt"));
         outStream.println("h");
         for (int i = 0; i < reps; i++)
             outStream.println(heights[i]);
         outStream.close();
+        */
 
     }
 }

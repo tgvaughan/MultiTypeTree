@@ -353,4 +353,44 @@ public abstract class ColouredTreeOperator extends TreeOperator {
         cTree.nodeColoursInput.get().setValue(node.getNr(), colour);
     }
 
+    /**
+     * Set height (age) of node.
+     * 
+     * @param node
+     * @param height 
+     */
+    public void setNodeHeight(Node node, double height) {
+        node.setHeight(height);
+    }
+    
+    /**
+     * Set nodeB to be the left child of nodeA.
+     * 
+     * @param parentNode
+     * @param childNode 
+     */
+    public void setNodeChildLeft(Node parentNode, Node childNode) {
+        parentNode.setLeft(childNode);
+    }
+    
+    /**
+     * Set childNode to be the right child of parentNode.
+     * 
+     * @param parentNode
+     * @param childNode 
+     */
+    public void setNodeChildRight(Node parentNode, Node childNode) {
+        parentNode.setRight(childNode);
+    }
+    
+    /**
+     * Set parentNode to be the parent of childNode.
+     * 
+     * @param childNode
+     * @param parentNode 
+     */
+    public void setNodeParent(Node childNode, Node parentNode) {
+        childNode.setParent(parentNode);
+    }
+
 }
