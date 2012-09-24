@@ -1,43 +1,44 @@
 <beast version='2.0'
-	namespace='beast.evolution.tree:beast.evolution.tree.coalescent:beast.core.parameter:beast.app.draw.tree'>
+       namespace='beast.evolution.tree:beast.evolution.tree.coalescent:beast.core.parameter:beast.app.draw.tree:beast.evolution.migrationmodel'>
 
-	<colouredTree spec='StructuredCoalescentColouredTree' id='colouredTree'
-			nColours='3' maxBranchColours='20'
-			colourLabel='deme'>
-		<rateMatrix spec='RealParameter' dimension='9' minordimension='3'
-				value='0.0 0.1 0.1 0.1 0.0 0.1 0.1 0.1 0.0'/>
-		<popSizes spec='RealParameter' dimension='3'
-				value='5.0 5.0 5.0'/>
-		<leafColours spec='IntegerParameter' dimension='10'
-				value='0 0 1 2 2 1 1 0 0 2' />
-	</colouredTree>
+    <migrationModel spec='MigrationModel' id='migmodel'>
+        <rateMatrix spec='RealParameter' dimension='9' minordimension='3'
+                    value='0.0 0.02 0.02 0.02 0.0 0.02 0.02 0.02 0.0'/>
+        <popSizes spec='RealParameter' dimension='2'
+                  value='5.0 5.0 5.0'/>
+    </migrationModel>
+    
+    <colouredTree spec='StructuredCoalescentColouredTree' id='colouredTree'
+                  nColours='3' maxBranchColours='20'
+                  migrationModel='@migmodel'>
+        <leafColours spec='IntegerParameter' dimension='6'
+                     value='0 1 2 0 1 2'/>
+    </colouredTree>
 
-	<tree spec='FlatColouredTree' id='tree'>
-		<colouredTree idref='colouredTree'/>
-	</tree>
+    <tree spec='FlatColouredTree' id='tree' colouredTree='@colouredTree'/>
 
-	<colorTable spec='ColorTable' id='traitColourTable'>
-		<color spec='ColorPlugin' color='red'/>
-		<color spec='ColorPlugin' color='green'/>
-		<color spec='ColorPlugin' color='blue'/>
-	</colorTable>
+    <colorTable spec='ColorTable' id='traitColourTable'>
+        <color spec='ColorPlugin' color='red'/>
+        <color spec='ColorPlugin' color='green'/>
+        <color spec='ColorPlugin' color='blue'/>
+    </colorTable>
 
-	<treeDrawing spec='RootedTreeDrawing' id='treeDrawing'
-			orientation='right' showLeafLabels='false'
-			lineThickness='2.0' rotateTree='ladderizeRight'
-			colorTrait='deme'>
-		<traitColorTable idref='traitColourTable' />
-		<!--
-		<internalNodeTimesDecorator spec='NodeTimesDecorator' fontSize='footnotesize'/>
-		-->
-		<tree idref='tree'/>
-	</treeDrawing>
+    <treeDrawing spec='RootedTreeDrawing' id='treeDrawing'
+                 orientation='right' showLeafLabels='false'
+                 lineThickness='2.0' rotateTree='ladderizeRight'
+                 colorTrait='deme'
+                 traitColorTable='@traitColourTable'
+                 tree='@tree'>
+                 <!--
+                 <internalNodeTimesDecorator spec='NodeTimesDecorator' fontSize='footnotesize'/>
+      		-->
+    </treeDrawing>
 
-	<run spec='TreeDrawingGrid' fileName='figure.tex'
-			width='140' height='140' strideLength='1'
-			rowSpacer='20' columnSpacer='15'
-			oneScale='true' debug='false'>
-		<treeDrawing idref='treeDrawing'/>
-	</run>
+    <run spec='TreeDrawingGrid' fileName='figure.tex'
+             width='140' height='140' strideLength='1'
+             rowSpacer='20' columnSpacer='15'
+             oneScale='true' debug='false'>
+        <treeDrawing idref='treeDrawing'/>
+    </run>
 
 </beast>

@@ -20,13 +20,11 @@ import beast.core.CalculationNode;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
-import beast.core.Plugin;
 import beast.core.parameter.RealParameter;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
-
 import java.util.Arrays;
 
 /**
@@ -56,6 +54,7 @@ public class MigrationModel extends CalculationNode {
     private EigenvalueDecomposition Qdecomp, Rdecomp;
     private DoubleMatrix2D QVinv, RVinv;
     
+    // Flag to indicate whether EV decompositions need updating.
     private boolean dirty;
 
     public MigrationModel() { }
@@ -63,6 +62,7 @@ public class MigrationModel extends CalculationNode {
     @Override
     public void initAndValidate() throws Exception {
         dirty = true;
+        updateMatrices();
     }
 
     public void updateMatrices() throws Exception {
