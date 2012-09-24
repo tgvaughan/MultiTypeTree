@@ -3,6 +3,8 @@
 \usepackage{tikz}
 \usetikzlibrary{calc}
 
+\usepackage{graphicx}
+
 \newcommand{\class}[1]{{\texttt #1}}
 \newcommand{\method}[1]{{\texttt #1}}
 \newcommand{\package}[1]{{\textsf #1}}
@@ -11,6 +13,8 @@
 
 \title{Updated overview and present status of work on the multi-type
   tree sampler}
+
+\author{Tim Vaughan, Denise K\"uhnert, Alexei Drummond}
 
 \maketitle
 
@@ -38,11 +42,23 @@ therefore only a cursory outline of the framework.
 \subsection{The ColouredTree plugin}
 
 The main class of the sampler is \class{ColouredTree}, which derives
-from \class{Plugin}. This class is essentially just a wrapper around
-a \class{Tree} input and four \class{Parameter} inputs which together
+from \class{Plugin}. This class is essentially just a wrapper around a
+\class{Tree} input and four \class{Parameter} inputs which together
 contain the information about the tree topology and the distribution
-of migration/infection events along its branches.  Figure 1 contains a
-schematic illustrating this structure.
+of migration/infection events along its branches.
+Figure~\ref{fig:treeComposition} contains a schematic illustrating
+this structure.
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{treeComposition.pdf}
+\caption{Schematic representation of how the multi-type tree plugin
+  \class{ColouredTree} represents the type/deme/colour information
+  along each branch.  Note that the types at each of the nodes are
+  also recorded, although these are completely specified by the list
+  of change times and colours.}
+\label{fig:treeComposition}
+\end{figure}
 
 Besides this primary function, \class{ColouredTree} contains public
 methods necessary for obtaining information about the multi-type tree
@@ -163,10 +179,12 @@ proposed trees are valid multi-type trees.  Another alternative is to
 allow the operators to do what they will, but to then \emph{discard}
 any proposal which does not meet the validity criteria. Both of these
 approaches have the advantage that they require only trivial
-modification of the existing suite of operators.  The drawback,
-however, is that we expect the mixing rates to be quite
+modification of the existing suite of operators.  There are at least
+two drawbacks, however: 1) we expect the mixing rates to be quite
 slow---especially as the number of types/demes and the frequency of
-type-shift/migration events increase.
+type-shift/migration events increase, and 2) these modified operators
+do not explore the possible migration paths meaning that special
+additional operators must be constructed specifically for this purpose.
 
 The third alternative, and the approach that we have chosen in most
 cases to pursue, is to have the operators modify both the components
@@ -314,23 +332,64 @@ still remaining.
 
 While we already have a suite of operators which together are in
 principle capable of exploring the complete space of multi-type trees,
-we expect the addition of the following operators to improve the
-overall mixing rate of the sampler:
+we expect the following additions to markedly improve the overall
+mixing rate of the sampler:
 \begin{enumerate}
-\item Up-down operator
-\item Narrow and wide exchange operators
+\item extension of the \class{ColouredTreeScaler} to provide a general
+  up-down scaling operator for the simultaneous scaling of the
+  multi-type tree height and other model parameters, and
+\item implementation of multi-type tree versions of the narrow and
+  wide exchange operators to allow for bolder tree topology changes,
+  which are particularly useful during the burn-in phase.
 \end{enumerate}
 
 \subsection{Performance testing}
 
-Implement operators from Ewing et al and compare mixing (ESS/second)
-with that of their operators.
+In order to assess the performance (i.e. rate of mixing per unit CPU
+time) of the completed sampler, we intend to directly compare it to
+the sampler detailed by Ewing et al.~\cite{Ewing2004}.  That sampler
+uses the \emph{discarding} approach to apply the regular BEAST tree
+moves to multi-type trees, with the addition of two operators which
+exclusively modify the type information.  We intend to implement these
+additional moves in BEAST, enabling us to perform the comparison on
+using whichever set of data we choose.
 
 \subsection{Additional goals}
 
-Paper.
+Once we are happy with the overall performance and stability of the
+sampler, we intend to publish a methods paper (perhaps in BMC
+Bioinformatics) detailing the new operators and announcing the demise
+of Migrate.
 
-\bibliography{virus_papers}
-\bibliographystyle{unsrt}
+%\bibliography{virus_papers}
+%\bibliographystyle{unsrt}
+
+\begin{thebibliography}{1}
+
+\bibitem{Wilson1998}
+I.~J. Wilson and D.~J. Balding.
+\newblock Genealogical inference from microsatellite data.
+\newblock {\em Genetics}, 150(1):499--510, Sep 1998.
+
+\bibitem{Drummond2002}
+Alexei~J. Drummond, Geoff~K. Nicholls, Allen~G. Rodrigoa, and Wiremu Solomonc.
+\newblock Estimating mutation parameters, population history and genealogy
+  simultaneously from temporally spaced sequence data.
+\newblock {\em Genetics}, 161:1307, 2002.
+
+\bibitem{Fearnhead2006}
+Paul Fearnhead and Chris Sherlock.
+\newblock An exact Gibbs sampler for the Markov-modulated Poisson process.
+\newblock {\em Journal of the Royal Statistical Society: Series B}, 68:767,
+  2006.
+
+\bibitem{Ewing2004}
+Greg Ewing, Geoff Nicholls, and Allen Rodrigo.
+\newblock Using temporally spaced sequences to simultaneously estimate
+  migration rates, mutation rate and population sizes in measurably evolving
+  populations.
+\newblock {\em Genetics}, 168(4):2407--2420, Dec 2004.
+
+\end{thebibliography}
 
 \end{document}
