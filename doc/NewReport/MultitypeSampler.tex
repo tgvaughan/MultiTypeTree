@@ -1,0 +1,143 @@
+\documentclass[english]{article}
+
+\newcommand{\class}[1]{{\texttt #1}}
+\newcommand{\method}[1]{{\texttt #1}}
+\newcommand{\package}[1]{{\textsf #1}}
+
+\begin{document}
+
+\title{Present status of the multi-type tree sampler}
+
+\maketitle
+
+\section{Introduction}
+
+We discuss here the current status and future goals of the project
+to implement a multi-type (or coloured) tree distribution sampler
+within the BEAST framework. Such a sampler will enable us to infer
+parameters under the assumption of sophisticated population genetics
+and epidemiological models.
+
+Currently, the sampler is implemented as an add-on called
+\package{ColouredTree}. The eventual goal, however, is to integrate the
+sampler into the production BEAST 2 code.
+
+
+\section{Overview of framework}
+
+To date, we have a working framework for the sampler in place.  The
+best place to go for the nitty-gritty details of the sampler is the
+JavaDoc output from the ColouredTree source.  What follows is
+therefore only a cursory outline of the framework.
+
+
+\subsection{The ColouredTree plugin}
+
+The main class of the sampler is \class{ColouredTree}, which derives
+from \class{Plugin}. This class is essentially just a wrapper around
+a \class{Tree} input and four \class{Parameter} inputs which together
+contain the information about the tree topology and the distribution
+of migration/infection events along its branches.  Figure 1 contains a
+schematic illustrating this structure.
+
+Besides this primary function, \class{ColouredTree} contains public
+methods necessary for obtaining information about the multi-type tree
+it represents.  At the most basic level this includes methods which
+return the number of migration events along each branch, as well as
+the type and time of each of these events.
+
+Noteably, \class{ColouredTree} does \emph{not} contain the methods
+necessary for modifying any of the details of these events.  This is
+due to the restriction imposed by BEAST that only methods belonging to
+classes derived from \class{Operator} are permitted to alter instances
+of \class{StateNode} such as \class{Parameter}.  For this reason,
+many of these methods (which were originally contained in
+\class{ColouredTree}) have been moved to \class{ColouredTreeOperator}.
+
+There is one exception to this rule: the \method{initFromFlatTree()}
+method, which avoids this difficulty by calling the more primitive
+methods belonging to \class{ColouredTreeModifier} which is a special
+subclass of \class{ColouredTreeOperator} constructed specifically for
+this purpose.
+
+\subsection{The ColouredTreeOperator plugin}
+
+The abstract \class{ColouredTreeOperator} class is designed to be
+subclassed by operators intended to modify \class{ColouredTree}
+configurations.  It includes all of the methods one might otherwise
+expect to see in \class{ColouredTree}, including primitive setters
+like \method{setChangeColour()}, \method{setChangeTime()} and
+\method{setChangeCount()}, togther with composite and more useful
+methods such as \method{addChange()}.
+
+Importantly, \class{ColouredTreeOperator} now also defines a method
+\method{setRoot()} which should be used in place of the method of the
+same name defined by the \class{Tree} class to change the root node of
+a multi-type tree topology.  The reason behind this is that
+\class{Tree.setRoot()} has recently begun to alter the ID numbers of
+nodes in the tree to ensure that the root node is always given the ID
+$n-1$.  The method \class{ColouredTreeOperator.setRoot()} updates the
+data in \class{ColouredTree} to reflect this change.
+
+As mentioned above, there is a special subclass of the abstract
+\class{ColouredTreeOperator} named \class{ColouredTreeModifier} which
+is intended to be directly instantiated and used in methods which need
+to be able to modify \class{ColouredTree} objects but for which direct
+inclusion in \class{ColouredTreeOperator} does not make sense from a
+structural point of view.  This includes the
+\class{ColouredTree.initFromFlatTree()} method mentioned previously,
+as well as methods implementing \class{StateNodeInitialiser} such as
+\class{StructuredCoalescentColouredTree}. (Ordinarily, a
+\class{StateNodeInitialiser} sets the initial values of a
+\class{StateNode} using its constructor.  This is not an ideal
+approach to constructing complex multi-type tree objects, however,
+which are much easier to construct in an incremental fashion.
+
+\subsection{The ColouredTreeDistribution plugin}
+
+The \class{ColouredTreeDistribution} plugin is another abstract class,
+in this case designed to be subclassed by likelihoods and priors over
+the multi-type tree space.  Only two such distributions presently
+exist: a structured coalescent distribution named
+\class{StructuredCoalescentLikelihood} and Denise's birth-death model
+likelihood.
+
+\subsection{The MigrationModel plugin}
+
+This plugin is intended to be the equivalent of
+\class{SubstitutionModel} for multi-type trees. Its primary contents
+are a migration rate matrix and a vector of deme population sizes. It
+also contains a set of helper methods which calculate eigenvalue
+decompositions of the rate matrix and use this to calculate transition
+probabilities between demes along lineages. It is derived from
+\class{CalculationNode} as the eigenvalue decomposition must be
+recalculated whenever the migration rates and/or population sizes are
+altered.
+
+
+\subsection{The ColouredTreeFromNewick plugin}
+
+This plugin is useful for initialising \class{ColouredTree} objects
+using a tree specification given in Newick format.  Colour changes
+are specified using single-child nodes and the colours themselves are
+specified as traits on the node below the branches they refer to.
+Internally, this plugin uses the \class{TreeParser} plugin in
+combination with \class{ColouredTree.initFromFlatTree()}.
+
+\section{Operators for multi-type trees}
+
+\subsection{Special considerations}
+
+\subsection{Implemented operators}
+
+\begin{enumerate}
+\item ColouredWilsonBaldingRandom
+\item ColouredWilsonBalding
+\item ColouredTreeScale
+\item ColouredSubtreeSlide
+\item ColouredUniform
+\end{enumerate}
+
+
+\section{Work yet to do}
+\end{document}
