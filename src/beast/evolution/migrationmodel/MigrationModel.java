@@ -55,15 +55,20 @@ public class MigrationModel extends CalculationNode {
     private DoubleMatrix2D Q, R;
     private EigenvalueDecomposition Qdecomp, Rdecomp;
     private DoubleMatrix2D QVinv, RVinv;
+    
+    private boolean dirty;
 
     public MigrationModel() { }
 
     @Override
     public void initAndValidate() throws Exception {
-        updateMatrices();
+        dirty = true;
     }
 
     public void updateMatrices() throws Exception {
+        
+        if (!dirty)
+            return;
 
         popSizes = popSizesInput.get();
 
@@ -116,6 +121,8 @@ public class MigrationModel extends CalculationNode {
         Rdecomp = new EigenvalueDecomposition(R);
         QVinv = Algebra.DEFAULT.inverse(Qdecomp.getV());
         RVinv = Algebra.DEFAULT.inverse(Rdecomp.getV());
+        
+        dirty = false;
 
     }
 
@@ -194,7 +201,8 @@ public class MigrationModel extends CalculationNode {
      *
      * @return Effective population size.
      */
-    public double getTotalPopSize() {
+    public double getTotalPopSize() throws Exception {
+        updateMatrices();
         return totalPopSize;
     }
 
@@ -220,7 +228,10 @@ public class MigrationModel extends CalculationNode {
      * @return exp(factor*A)
      */
     public DoubleMatrix2D getMatrixExp(EigenvalueDecomposition decomp,
-            DoubleMatrix2D Vinv, double factor) {
+            DoubleMatrix2D Vinv, double factor) throws Exception {
+        
+        updateMatrices();
+        
         DoubleMatrix2D V = decomp.getV();
         DoubleMatrix2D D = decomp.getD().copy();
 
@@ -232,7 +243,10 @@ public class MigrationModel extends CalculationNode {
     }
 
     public DoubleMatrix2D getMatrixPow(EigenvalueDecomposition decomp,
-            DoubleMatrix2D Vinv, double power, double factor) {
+            DoubleMatrix2D Vinv, double power, double factor) throws Exception {
+        
+        updateMatrices();
+        
         DoubleMatrix2D V = decomp.getV();
         DoubleMatrix2D D = decomp.getD().copy();
 
@@ -248,7 +262,7 @@ public class MigrationModel extends CalculationNode {
      * @param factor
      * @return exp(factor*Q)
      */
-    public DoubleMatrix2D getQexp(double factor) {
+    public DoubleMatrix2D getQexp(double factor) throws Exception {        
         return getMatrixExp(Qdecomp, QVinv, factor);
     }
 
@@ -259,7 +273,7 @@ public class MigrationModel extends CalculationNode {
      * @param factor
      * @return (factor*Q)^power
      */
-    public DoubleMatrix2D getQpow(double power, double factor) {
+    public DoubleMatrix2D getQpow(double power, double factor) throws Exception {
         return getMatrixPow(Qdecomp, QVinv, power, factor);
     }
 
@@ -271,7 +285,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return [exp(factor*Q)]_ij
      */
-    public double getQexpElement(double factor, int i, int j) {
+    public double getQexpElement(double factor, int i, int j) throws Exception {
         return getQexp(factor).get(i, j);
     }
 
@@ -284,7 +298,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return [(factor*Q)^power]_ij
      */
-    public double getQpowElement(double power, double factor, int i, int j) {
+    public double getQpowElement(double power, double factor, int i, int j) throws Exception {
         return getQpow(power, factor).get(i, j);
     }
 
@@ -294,7 +308,7 @@ public class MigrationModel extends CalculationNode {
      * @param factor
      * @return exp(factor*R)
      */
-    public DoubleMatrix2D getRexp(double factor) {
+    public DoubleMatrix2D getRexp(double factor) throws Exception {
         return getMatrixExp(Rdecomp, RVinv, factor);
     }
 
@@ -305,7 +319,7 @@ public class MigrationModel extends CalculationNode {
      * @param factor
      * @return (factor*R)^power
      */
-    public DoubleMatrix2D getRpow(double power, double factor) {
+    public DoubleMatrix2D getRpow(double power, double factor) throws Exception {
         return getMatrixPow(Rdecomp, RVinv, power, factor);
     }
 
@@ -317,7 +331,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return [exp(factor*R)_ij
      */
-    public double getRexpElement(double factor, int i, int j) {
+    public double getRexpElement(double factor, int i, int j) throws Exception {
         return getRexp(factor).get(i, j);
     }
 
@@ -330,7 +344,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return [(factor*R)^power]_ij
      */
-    public double getRpowElement(double power, double factor, int i, int j) {
+    public double getRpowElement(double power, double factor, int i, int j) throws Exception {
         return getRpow(power, factor).get(i, j);
     }
     
@@ -340,13 +354,13 @@ public class MigrationModel extends CalculationNode {
     @Override
     protected boolean requiresRecalculation() {
         // we only get here if something is dirty
-        updateMatrix = true;
+        dirty = true;
         return true;
     }
 
     @Override
     protected void restore() {
-        updateMatrix = true;
+        dirty = true;
         super.restore();
     }
 
