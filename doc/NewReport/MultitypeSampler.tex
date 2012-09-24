@@ -1,4 +1,7 @@
-\documentclass[english]{article}
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{tikz}
+\usetikzlibrary{calc}
 
 \newcommand{\class}[1]{{\texttt #1}}
 \newcommand{\method}[1]{{\texttt #1}}
@@ -6,7 +9,8 @@
 
 \begin{document}
 
-\title{Present status of the multi-type tree sampler}
+\title{Updated overview and present status of work on the multi-type
+  tree sampler}
 
 \maketitle
 
@@ -118,26 +122,215 @@ altered.
 \subsection{The ColouredTreeFromNewick plugin}
 
 This plugin is useful for initialising \class{ColouredTree} objects
-using a tree specification given in Newick format.  Colour changes
-are specified using single-child nodes and the colours themselves are
+using a tree specification given in Newick format.  Colour changes are
+specified using single-child nodes and the colours themselves are
 specified as traits on the node below the branches they refer to.
 Internally, this plugin uses the \class{TreeParser} plugin in
-combination with \class{ColouredTree.initFromFlatTree()}.
+combination with \class{ColouredTree.initFromFlatTree()}.  (Previously
+this used a complex arrangement of methods which Denise was forced to
+come up with due to short-commings in my original code.)
 
 \section{Operators for multi-type trees}
 
+The operators which are responsible for sampling from the multi-type
+tree proposal distribution are very similar to those already defined
+for sampling from traditional rooted tree distributions.  There are
+differences, however, and these are enough to require at least trivial
+reimplementation each of the original BEAST tree operators.
+
 \subsection{Special considerations}
+
+The differences hinted at above are primarily to do with the fact that
+multi-type trees have an additional level of state information
+associated with each branch, and that any modification of the tree
+must take this additional state information into consideration or else
+an inconsistent or otherwise invalid multi-type tree may result.
+
+Consider a branch corresponding to a lineage in a particular deme, for
+example. If an operator alters the tree topology by reconnecting this
+branch to some other point on the tree, it may connect the tree
+directly to a lineage in another deme if the geographical locations
+associated with the branches involved are not explicitly taken into
+account.  Similarly, if the height of a node on the tree is adjusted
+without considering the timing of migration events, the repositioned
+node may find itself above or below a migration event on one of its
+connected branches---another obviously invalid situation.
+
+There are a number of possible approaches to dealing with problems
+like these.  Firstly, we can \emph{constrain} the modifications
+introduced by the existing \class{Tree} operators to ensure the
+proposed trees are valid multi-type trees.  Another alternative is to
+allow the operators to do what they will, but to then \emph{discard}
+any proposal which does not meet the validity criteria. Both of these
+approaches have the advantage that they require only trivial
+modification of the existing suite of operators.  The drawback,
+however, is that we expect the mixing rates to be quite
+slow---especially as the number of types/demes and the frequency of
+type-shift/migration events increase.
+
+The third alternative, and the approach that we have chosen in most
+cases to pursue, is to have the operators modify both the components
+of \class{Tree} and \class{ColouredTree} simultaneously: allowing both
+traditional tree modifications and modifications to the migratory
+paths in a single move.
 
 \subsection{Implemented operators}
 
+Below is a brief description of each of the operators which have been
+implemented so-far.
+
+\subsubsection{ColouredWilsonBaldingRandom}
+
+This is the first of two operators based the branch-swapping move
+operator first proposed by Wilson and Balding \cite{Wilson1998} and
+later modified by Drummond et al. \cite{Drummond2002}. The tree
+topology changes invoked by the non-typed move are shown in figure
+\ref{fig:WBmove}.  These changes simply involve selecting a subtree at
+random, dissolving the branch connecting the subtree to the rest of
+the tree then creating a replacement branch to some other location on
+the tree.
+
+
+\begin{figure}
+\hspace{-1cm}
+\begin{tikzpicture}
+\coordinate (leaf1) at (-3,0);
+\coordinate (leaf2) at (-1,0);
+\coordinate (leaf3) at (1,0);
+\coordinate (leaf4) at (3,0);
+\coordinate (internal) at (0,1);
+\coordinate (root) at (0,5);
+
+\draw (leaf2)--(internal) node[below]{$i$}--(leaf3);
+\draw (leaf1) node[right=3pt]{}--(root) node[left=3pt]{} node[right=3pt]{$j_p$}--(leaf4) node[right]{$j$};
+\fill (root) circle (0.05);
+\fill (internal) circle (0.05);
+\fill (leaf1) circle (0.05);
+\fill (leaf2) circle (0.05);
+\fill (leaf3) circle (0.05);
+\fill (leaf4) circle (0.05);
+
+% AUCTeX preview can't handle this:
+\coordinate (source) at ($(leaf1)!0.6!(root)$);
+\coordinate (dest) at ($(leaf4)!0.5!(root)$);
+\draw (internal)--(source) node[left]{$i_p$};
+\draw [dashed] (internal)--(dest) node[right]{$i_{p'}$};
+\fill (source) circle (0.05);
+\fill (dest) circle (0.05);
+
+\draw (-3,5) node{(a)};
+
+\end{tikzpicture}\hspace{1cm}\begin{tikzpicture}
+\coordinate (leaf1) at (-2,0);
+\coordinate (leaf2) at (0,0);
+\coordinate (leaf3) at (4,0);
+\coordinate (oldRoot) at (2,3);
+\coordinate (newRoot) at (0,5);
+
+\draw (leaf2) node[left]{$i_s$}--(oldRoot) node[right]{$j$}--(leaf3);
+\draw [dashed] (leaf1) node[left]{$i$}--(newRoot)--(oldRoot);
+
+% AUCTeX preview can't handle this:
+\coordinate (source) at ($(leaf2)!0.6!(oldRoot)$);
+\draw [color=gray](leaf1)--(source);
+\fill (source) circle (0.05);
+\draw (source) node[right=3pt]{$i_p$};
+\draw (newRoot) node[right=3pt]{$i_{p'}$};
+
+\fill (oldRoot) circle (0.05);
+\fill (newRoot) circle (0.05);
+\fill (leaf1) circle (0.05);
+\fill (leaf2) circle (0.05);
+\fill (leaf3) circle (0.05);
+
+\draw (-2,5) node{(b)};
+
+\end{tikzpicture}
+\caption{The two kinds of tree topology changes invoked by the
+  modified Wilson-Balding moves: (a) moves which do not alter the root
+  and (b) those which do.  In both of these figures, the dashed line
+  represents a new branch to be created and coloured/typed.}
+\label{fig:WBmove}
+\end{figure}
+
+ In order to cope with multi-typed trees, the
+\class{ColouredWilsonBaldingRandom} operator simply dissolves the type
+information along with the deleted branch, then generates a completely
+new migration path along the newly created connecting branch.  In the
+case of this particular operator, the proposal distribution for the
+new path is simply a fixed rate continuous time random walk between
+the available demes, starting at the deme corresponding to the top of
+the chosen subtree.  In the case that the deme at the end of the walk
+does \emph{not} match the deme at the new connection point ($i_{p'}$
+in the figure), the entire move is discarded.  Note that the rate of
+the process used to generate the new path is not inferred (it has no
+physical meaning) but is instead simply a tuning parameter of the operator.
+
+\subsubsection{ColouredWilsonBalding}
+
+The \class{ColouredWilsonBalding} operator is a more sophisticated
+variant of the last operator.  It differs only in that where that
+operator used a fixed rate random walk to generate the migratory path
+along the new branch, \class{ColouredWilsonBalding} uses the combined
+uniformization/forward-backward algorithm of Fearnhead and Sherlock
+\cite{Fearnhead2006} to sample migration paths from a provided
+\class{MigrationModel} conditional on the location/deme/type at
+\emph{both} ends of the new branch.  This operator therefore has in
+general a significantly higher per move acceptance probability than
+its simpler cousin, although this comes at the expense of a more
+computationally complex proposal algorithm.
+
+\subsubsection{ColouredTreeScale}
+
+This operator is a trivial extension of the \class{TreeScale} operator
+and simply multiplies the height of all coalescence nodes and lineage
+migrations in the tree by a constant scale factor.
+
+\subsubsection{ColouredSubtreeSlide}
+
+This operator extends \class{SubtreeSlide} in the same way that the
+Wilson-Balding operator is extended by
+\class{ColouredWilsonBaldingRandom}.  The original subtree slide
+involves selecting a branch connecting a subtree to the rest of the
+tree, dissolving that branch, then reconnecting the subtree to a point chosen
+uniformly along the branch to which the subtree was originally joined.  In the
+multi-type extension to this operator, the migratory path along the
+newly created branch is generated using a constant rate random walk as
+described above.
+
+\subsubsection{ColouredUniform}
+
+This operator is an extension to the existing \class{Uniform} tree
+operator which ensures the validity of its application to multi-type
+trees by constraining the range of the uniform adjustment of node
+heights. 
+
+\section{Work still to complete}
+
+Although the sampler is already functional, there are a number of loose ends
+still remaining.
+
+\subsection{Operators to implement}
+
+While we already have a suite of operators which together are in
+principle capable of exploring the complete space of multi-type trees,
+we expect the addition of the following operators to improve the
+overall mixing rate of the sampler:
 \begin{enumerate}
-\item ColouredWilsonBaldingRandom
-\item ColouredWilsonBalding
-\item ColouredTreeScale
-\item ColouredSubtreeSlide
-\item ColouredUniform
+\item Up-down operator
+\item Narrow and wide exchange operators
 \end{enumerate}
 
+\subsection{Performance testing}
 
-\section{Work yet to do}
+Implement operators from Ewing et al and compare mixing (ESS/second)
+with that of their operators.
+
+\subsection{Additional goals}
+
+Paper.
+
+\bibliography{virus_papers}
+\bibliographystyle{unsrt}
+
 \end{document}
