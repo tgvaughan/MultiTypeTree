@@ -21,7 +21,6 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.Node;
-import beast.util.PoissonRandomizer;
 import beast.util.Randomizer;
 import java.util.Arrays;
 
@@ -55,14 +54,14 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
     @Override
     public double proposal() {
         cTree = colouredTreeInput.get();
-        tree = m_tree.get(this);
+        tree = cTree.getUncolouredTree();
         migrationModel = migrationModelInput.get();
         alpha = alphaInput.get();
 
         // Check that operator can be applied to tree:
         if (tree.getLeafNodeCount()<3)
             throw new IllegalStateException("Tree too small for"
-                    +" ColouredWilsonBaldingRandom operator.");
+                    +" ColouredWilsonBalding operator.");
 
         // Select source node:
         Node srcNode;
@@ -93,10 +92,6 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
             // Record probability of current colouring:
             logHR += getBranchColourProb(srcNode);
 
-            // Record old srcNode parent height and change count:
-            double oldTime = t_srcNodeP;
-            int oldChangeCount = cTree.getChangeCount(srcNode);
-
             // Record srcNode grandmother height:
             double t_srcNodeG = srcNodeP.getParent().getHeight();
 
@@ -110,9 +105,6 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
             // Recolour root branches:
             logHR -= recolourRootBranches(srcNode);
-
-            int newChangeCount = cTree.getChangeCount(srcNode)
-                    +cTree.getChangeCount(destNode);
 
             // Return HR:
             logHR += Math.log(alpha*t_destNode)
@@ -130,11 +122,8 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
             // Incorporate probability of current colouring:
             logHR += getRootBranchColourProb(srcNode);
 
-            // Record old srcNode parent height and combined change count
-            // for srcNode and her sister:
+            // Record old srcNode parent height
             double oldTime = t_srcNodeP;
-            int oldChangeCount = cTree.getChangeCount(srcNode)
-                    +cTree.getChangeCount(srcNodeS);
 
             // Choose height of new attachement point:
             double min_newTime = Math.max(t_srcNode, t_destNode);
@@ -151,8 +140,6 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
             // Recolour new branch:
             logHR -= recolourBranch(srcNode);
 
-            int newChangeCount = cTree.getChangeCount(srcNode);
-
             // Return HR:
             logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
                     -Math.log(alpha*t_srcNodeS)
@@ -167,10 +154,6 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
         // Incorporate probability of current colouring.
         logHR += getBranchColourProb(srcNode);
-
-        // Record old srcNodeP height and change count:
-        double oldTime = t_srcNodeP;
-        int oldChangeCount = cTree.getChangeCount(srcNode);
 
         // Record srcNode grandmother height:
         double t_srcNodeG = srcNodeP.getParent().getHeight();
@@ -187,8 +170,6 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
 
         // Recolour new branch:
         logHR -= recolourBranch(srcNode);
-
-        int newChangeCount = cTree.getChangeCount(srcNode);
 
         // Return HR:
         logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))

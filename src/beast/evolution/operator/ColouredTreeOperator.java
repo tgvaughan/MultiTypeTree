@@ -19,12 +19,10 @@ package beast.evolution.operator;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
-import beast.core.State;
+import beast.core.Operator;
 import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
-import beast.evolution.operators.TreeOperator;
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,14 +31,55 @@ import java.util.List;
  * @author Tim Vaughan
  */
 @Description("This operator generates proposals for a coloured beast tree.")
-public abstract class ColouredTreeOperator extends TreeOperator {
+public abstract class ColouredTreeOperator extends Operator {
 
     public Input<ColouredTree> colouredTreeInput = new Input<ColouredTree>(
             "colouredTree", "Coloured tree on which to operate.",
             Validate.REQUIRED);
     protected Tree tree;
     protected ColouredTree cTree;
+    
+    
+    /* ***********************************************************************
+     * The following two methods are copied verbatim from TreeOperator.  We've
+     * done this as extending TreeOperator would mean forcing every subclass
+     * of ColouredTreeOperator to require both a ColouredTree and a Tree as
+     * inputs.
+     */
+    
+    /**
+     * Obtain the sister of node "child" having parent "parent".
+     * 
+     * @param parent the parent
+     * @param child  the child that you want the sister of
+     * @return the other child of the given parent.
+     */
+    protected Node getOtherChild(Node parent, Node child) {
+        if (parent.getLeft().getNr() == child.getNr()) {
+            return parent.getRight();
+        } else {
+            return parent.getLeft();
+        }
+    }
 
+    /**
+     * Replace node "child" with another node.
+     *
+     * @param node
+     * @param child
+     * @param replacement
+     */
+    public void replace(Node node, Node child, Node replacement) {
+    	node.getChildren().remove(child);
+    	node.getChildren().add(replacement);
+        node.makeDirty(Tree.IS_FILTHY);
+        replacement.setParent(node);
+        replacement.makeDirty(Tree.IS_FILTHY);
+    }
+    
+    /* **********************************************************************/
+
+    
     /**
      * Swap the colouring information associated with nodeA and nodeB.
      *

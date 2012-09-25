@@ -26,6 +26,8 @@ import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
@@ -60,12 +62,16 @@ public class MigrationModel extends CalculationNode {
     public MigrationModel() { }
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         dirty = true;
         updateMatrices();
     }
 
-    public void updateMatrices() throws Exception {
+    /**
+     * Ensure all local fields including matrices and eigenvalue decomposition
+     * objects are consistent with current values held by inputs.
+     */
+    public void updateMatrices()  {
         
         if (!dirty)
             return;
@@ -77,17 +83,16 @@ public class MigrationModel extends CalculationNode {
         else if (rateMatrixInput.get().getDimension() == popSizes.getDimension() * (popSizes.getDimension() - 1))
             addDiagonal(rateMatrixInput.get().getValues(), popSizes.getDimension());
 
-
         totalPopSize = 0.0;
         for (int i = 0; i < popSizes.getDimension(); i++)
             totalPopSize += popSizes.getArrayValue(i);
 
         if (rateMatrix.getMinorDimension1() != rateMatrix.getMinorDimension2())
-            throw new Exception("Migration matrix must be square!");
+            throw new IllegalArgumentException("Migration matrix must be square!");
 
         if (rateMatrix.getMinorDimension1() != popSizes.getDimension())
-            throw new Exception("Side of migration matrix not equal length of"
-                    + " population size vector.");
+            throw new IllegalArgumentException("Side of migration matrix not"
+                    + "equal to length of population size vector.");
 
         int nColours = getNDemes();
 
@@ -135,7 +140,7 @@ public class MigrationModel extends CalculationNode {
      * @param dim*(dim-1) rate matrix
      * @author Denise
      */
-    void addDiagonal(Double[] matrix, int dim) throws Exception {
+    void addDiagonal(Double[] matrix, int dim) {
 
         Double[] squareMatrix = new Double[dim * dim];
 
@@ -150,8 +155,13 @@ public class MigrationModel extends CalculationNode {
                 }
 
         rateMatrix = new RealParameter();
-        rateMatrix.initByName("value", Arrays.toString(squareMatrix).replaceAll("[\\[\\],]", " "),
-                "minordimension", 2);
+        
+        try {
+            rateMatrix.initByName("value", Arrays.toString(squareMatrix).replaceAll("[\\[\\],]", " "),
+                    "minordimension", 2);
+        } catch (Exception ex) {
+            Logger.getLogger(MigrationModel.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -201,7 +211,7 @@ public class MigrationModel extends CalculationNode {
      *
      * @return Effective population size.
      */
-    public double getTotalPopSize() throws Exception {
+    public double getTotalPopSize() {
         updateMatrices();
         return totalPopSize;
     }
@@ -228,7 +238,7 @@ public class MigrationModel extends CalculationNode {
      * @return exp(factor*A)
      */
     public DoubleMatrix2D getMatrixExp(EigenvalueDecomposition decomp,
-            DoubleMatrix2D Vinv, double factor) throws Exception {
+            DoubleMatrix2D Vinv, double factor) {
         
         updateMatrices();
         
@@ -243,7 +253,7 @@ public class MigrationModel extends CalculationNode {
     }
 
     public DoubleMatrix2D getMatrixPow(EigenvalueDecomposition decomp,
-            DoubleMatrix2D Vinv, double power, double factor) throws Exception {
+            DoubleMatrix2D Vinv, double power, double factor) {
         
         updateMatrices();
         
@@ -262,7 +272,7 @@ public class MigrationModel extends CalculationNode {
      * @param factor
      * @return exp(factor*Q)
      */
-    public DoubleMatrix2D getQexp(double factor) throws Exception {        
+    public DoubleMatrix2D getQexp(double factor) {        
         return getMatrixExp(Qdecomp, QVinv, factor);
     }
 
@@ -273,7 +283,7 @@ public class MigrationModel extends CalculationNode {
      * @param factor
      * @return (factor*Q)^power
      */
-    public DoubleMatrix2D getQpow(double power, double factor) throws Exception {
+    public DoubleMatrix2D getQpow(double power, double factor) {
         return getMatrixPow(Qdecomp, QVinv, power, factor);
     }
 
@@ -285,7 +295,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return [exp(factor*Q)]_ij
      */
-    public double getQexpElement(double factor, int i, int j) throws Exception {
+    public double getQexpElement(double factor, int i, int j) {
         return getQexp(factor).get(i, j);
     }
 
@@ -298,7 +308,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return [(factor*Q)^power]_ij
      */
-    public double getQpowElement(double power, double factor, int i, int j) throws Exception {
+    public double getQpowElement(double power, double factor, int i, int j) {
         return getQpow(power, factor).get(i, j);
     }
 
@@ -308,7 +318,7 @@ public class MigrationModel extends CalculationNode {
      * @param factor
      * @return exp(factor*R)
      */
-    public DoubleMatrix2D getRexp(double factor) throws Exception {
+    public DoubleMatrix2D getRexp(double factor) {
         return getMatrixExp(Rdecomp, RVinv, factor);
     }
 
@@ -319,7 +329,7 @@ public class MigrationModel extends CalculationNode {
      * @param factor
      * @return (factor*R)^power
      */
-    public DoubleMatrix2D getRpow(double power, double factor) throws Exception {
+    public DoubleMatrix2D getRpow(double power, double factor) {
         return getMatrixPow(Rdecomp, RVinv, power, factor);
     }
 
@@ -331,7 +341,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return [exp(factor*R)_ij
      */
-    public double getRexpElement(double factor, int i, int j) throws Exception {
+    public double getRexpElement(double factor, int i, int j) {
         return getRexp(factor).get(i, j);
     }
 
@@ -344,7 +354,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return [(factor*R)^power]_ij
      */
-    public double getRpowElement(double power, double factor, int i, int j) throws Exception {
+    public double getRpowElement(double power, double factor, int i, int j) {
         return getRpow(power, factor).get(i, j);
     }
     
@@ -370,7 +380,7 @@ public class MigrationModel extends CalculationNode {
      * @param args
      * @throws Exception
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
 //		RealParameter pops = new RealParameter();
 //		pops.initByName(

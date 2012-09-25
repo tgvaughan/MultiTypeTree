@@ -50,7 +50,7 @@ public class ColouredWilsonBaldingRandom extends ColouredTreeOperator {
     @Override
     public double proposal() {
         cTree = colouredTreeInput.get();
-        tree = m_tree.get(this);
+        tree = cTree.getUncolouredTree();
         mu = muInput.get();
         alpha = alphaInput.get();
 

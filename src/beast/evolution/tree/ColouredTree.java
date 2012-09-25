@@ -732,6 +732,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
      * @param flatTree
      */
     public void initFromFlatTree(Tree flatTree) throws Exception {
+        
 
         // Hack to deal with StateNodes that haven't been attached to
         // a state yet.
@@ -793,7 +794,8 @@ public class ColouredTree extends CalculationNode implements Loggable {
                 List<Double> times = new ArrayList<Double>();
 
                 while (thisFlatNode.getChildCount() == 1) {
-                    int col = (int) Math.round((Double) thisFlatNode.getMetaData("&state"));
+                    int col = (int) Math.round(
+                            (Double)thisFlatNode.getMetaData("&" + colourLabel));
                     colours.add(col);
                     times.add(thisFlatNode.getHeight());
 
@@ -834,7 +836,8 @@ public class ColouredTree extends CalculationNode implements Loggable {
                     modifier.addChange(treeNode, colours.get(i), times.get(i));
 
                 // Set node colour at base of coloured tree branch:
-                int nodeCol = (int) Math.round((Double) thisFlatNode.getMetaData("&state"));
+                int nodeCol = (int) Math.round(
+                        (Double)thisFlatNode.getMetaData("&" + colourLabel));
                 modifier.setNodeColour(treeNode, nodeCol);
 
                 // Set node height:

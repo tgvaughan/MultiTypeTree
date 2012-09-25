@@ -30,8 +30,9 @@ public class ColouredUniform extends ColouredTreeOperator {
      */
     @Override
     public double proposal() {
-        final Tree tree = m_tree.get(this);
+
         ColouredTree ctree = colouredTreeInput.get();
+        final Tree tree = ctree.getUncolouredTree();
 
         // randomly select internal node
         final int nNodeCount = tree.getNodeCount();
