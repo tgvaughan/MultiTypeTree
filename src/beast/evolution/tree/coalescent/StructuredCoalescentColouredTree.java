@@ -23,7 +23,7 @@ import beast.core.State;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.migrationmodel.MigrationModel;
-import beast.evolution.operator.ColouredTreeModifier;
+import beast.evolution.operators.ColouredTreeModifier;
 import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;

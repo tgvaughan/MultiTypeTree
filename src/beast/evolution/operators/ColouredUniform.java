@@ -1,4 +1,4 @@
-package beast.evolution.operator;
+package beast.evolution.operators;
 
 
 import beast.evolution.tree.Node;

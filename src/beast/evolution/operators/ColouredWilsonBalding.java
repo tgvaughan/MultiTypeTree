@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.evolution.operator;
+package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.core.Input;
@@ -62,6 +62,10 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
         if (tree.getLeafNodeCount()<3)
             throw new IllegalStateException("Tree too small for"
                     +" ColouredWilsonBalding operator.");
+        
+        // DEBUG: Finding source of topology error
+        int nc = tree.getRoot().getNodeCount();
+        System.out.println("START proposal: NC=" + nc);
 
         // Select source node:
         Node srcNode;

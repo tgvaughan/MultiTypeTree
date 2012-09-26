@@ -19,7 +19,7 @@ package beast.evolution.tree;
 import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.*;
-import beast.evolution.operator.ColouredTreeModifier;
+import beast.evolution.operators.ColouredTreeModifier;
 import beast.util.Randomizer;
 import beast.util.TreeParser;
 import com.google.common.collect.Lists;
