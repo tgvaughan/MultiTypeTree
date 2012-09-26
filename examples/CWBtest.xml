@@ -21,13 +21,13 @@
 
         <init spec='beast.evolution.tree.ColouredTreeFromNewick'
               id="colouredTree" tree="@tree" 
-              colourLabel="state" nColours="2" maxBranchColours="100">
+              colourLabel="deme" nColours="2" maxBranchColours="100">
             <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
             <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>
             <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
             <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
             <input name='newick'>
-                ((1[&amp;state='0']:1,2[&amp;state='0']:1)[&amp;state='0']:1,3[&amp;state='0']:2)[&amp;state='0']:0;                
+                ((1[deme='0']:1,2[deme='0']:1)[deme='0']:1,3[deme='0']:2)[deme='0']:0;                
             </input>
         </init>
 
@@ -72,10 +72,6 @@
             <log spec='beast.evolution.tree.ColourChangeCountLogger'>
                 <colouredTree idref="colouredTree"/>
             </log>
-        </logger>
-
-        <logger logEvery="10000" fileName="CWBtest.trees">
-            <log idref="tree"/>
         </logger>
 
         <logger logEvery="10000" fileName="CWBtest_col.trees" mode="tree">
