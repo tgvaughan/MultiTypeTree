@@ -1,5 +1,5 @@
 <beast version='2.0'
-       namespace='beast.core:beast.core.util:beast.evolution.nuc:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree'>
+       namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree'>
 
     <model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
         <rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
@@ -12,7 +12,7 @@
               id="colouredTree"
               colourLabel="deme" nColours="2" maxBranchColours="100"
               figtreeCompatible="true">
-            <tree id="tree" spec="beast.evolution.tree.Tree"/>
+            <tree id="tree" spec="Tree"/>
             <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
             <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>
             <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
