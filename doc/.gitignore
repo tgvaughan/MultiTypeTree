@@ -1,6 +1,7 @@
 *.log
 *.aux
 ColouredTree.pdf
+MultitypeSampler.pdf
 *.bbl
 *.blg
 *.bib
