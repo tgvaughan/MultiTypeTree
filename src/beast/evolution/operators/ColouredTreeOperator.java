@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Abstract base class for all operators on ColouredTree objects.
  *
  * @author Tim Vaughan
  */
