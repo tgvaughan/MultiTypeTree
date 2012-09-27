@@ -62,10 +62,6 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
         if (tree.getLeafNodeCount()<3)
             throw new IllegalStateException("Tree too small for"
                     +" ColouredWilsonBalding operator.");
-        
-        // DEBUG: Finding source of topology error
-        int nc = tree.getRoot().getNodeCount();
-        System.out.println("START proposal: NC=" + nc);
 
         // Select source node:
         Node srcNode;
@@ -236,8 +232,9 @@ public class ColouredWilsonBalding extends ColouredTreeOperator {
     }
 
     /**
-     * Recolour branch between srcNode and its parent with rate fixed by the
-     * tuning parameter mu.
+     * Recolour branch between srcNode and its parent.  Uses the combined
+     * uniformization/forward-backward approach of Fearnhead and Sherlock (2006)
+     * to condition on both the beginning and end states.
      *
      * @param srcNode
      * @return Probability of new state.

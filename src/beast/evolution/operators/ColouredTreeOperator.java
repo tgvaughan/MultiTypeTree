@@ -70,10 +70,15 @@ public abstract class ColouredTreeOperator extends Operator {
      * @param replacement
      */
     public void replace(Node node, Node child, Node replacement) {
-    	node.getChildren().remove(child);
-    	node.getChildren().add(replacement);
-        node.makeDirty(Tree.IS_FILTHY);
         replacement.setParent(node);
+        if (node.getLeft().getNr() == child.getNr()) {
+            node.setLeft(replacement);
+        } else {
+            // it must be the right child
+            node.setRight(replacement);
+        }
+        node.makeDirty(Tree.IS_FILTHY);
+
         replacement.makeDirty(Tree.IS_FILTHY);
     }
     
@@ -90,12 +95,12 @@ public abstract class ColouredTreeOperator extends Operator {
 
         // Store old contents of nodeB:
 
-        int oldChangeCount = cTree.getChangeCount(nodeB);
-        int oldNodeColour = cTree.getNodeColour(nodeB);
+        int oldChangeCountB = cTree.getChangeCount(nodeB);
+        int oldNodeColourB = cTree.getNodeColour(nodeB);
         List<Integer> changeList = new ArrayList<Integer>();
         List<Double> changeTimeList = new ArrayList<Double>();
 
-        for (int i = 0; i < oldChangeCount; i++) {
+        for (int i = 0; i < oldChangeCountB; i++) {
             changeList.add(cTree.getChangeColour(nodeB, i));
             changeTimeList.add(cTree.getChangeTime(nodeB, i));
         }
@@ -111,9 +116,9 @@ public abstract class ColouredTreeOperator extends Operator {
         // Copy original contents of nodeB to nodeA:
 
         setChangeCount(nodeA, 0);
-        for (int i = 0; i < oldChangeCount; i++)
+        for (int i = 0; i < oldChangeCountB; i++)
             addChange(nodeA, changeList.get(i), changeTimeList.get(i));
-        setNodeColour(nodeA, oldNodeColour);
+        setNodeColour(nodeA, oldNodeColourB);
 
     }
 
@@ -137,10 +142,6 @@ public abstract class ColouredTreeOperator extends Operator {
      * @param node
      */
     public void disconnectBranch(Node node) {
-        
-        // DEBUG: Finding source of topology error
-        int nc = tree.getRoot().getNodeCount();
-        System.out.println("START disconnectBranch - NC=" + nc);
 
         // Check argument validity:
         Node parent = node.getParent();
@@ -163,10 +164,6 @@ public abstract class ColouredTreeOperator extends Operator {
 
         // Clear colour changes from parent:
         setChangeCount(parent, 0);
-        
-        // DEBUG: Finding source of topology error
-        nc = tree.getRoot().getNodeCount();
-        System.out.println("END disconnectBranch - NC=" + nc);
     }
 
     /**
@@ -177,10 +174,6 @@ public abstract class ColouredTreeOperator extends Operator {
      */
     public void disconnectBranchFromRoot(Node node) {
 
-        // DEBUG: Finding source of topology error
-        int nc = tree.getRoot().getNodeCount();
-        System.out.println("START disconnectBranchFromRoot - NC=" + nc);
-        
         // Check argument validity:
         if (node.isRoot() || !node.getParent().isRoot())
             throw new IllegalArgumentException("Illegal argument to"
@@ -199,10 +192,6 @@ public abstract class ColouredTreeOperator extends Operator {
         parent.makeDirty(Tree.IS_FILTHY);
         sister.makeDirty(Tree.IS_FILTHY);
         node.makeDirty(Tree.IS_FILTHY);
-        
-        // DEBUG: Finding source of topology error
-        nc = tree.getRoot().getNodeCount();
-        System.out.println("END disconnectBranchFromRoot - NC=" + nc);
     }
 
     /**
@@ -215,10 +204,6 @@ public abstract class ColouredTreeOperator extends Operator {
      * @param destTime
      */
     public void connectBranch(Node node, Node destBranchBase, double destTime) {
-        
-        // DEBUG: Finding source of topology error
-        int nc = tree.getRoot().getNodeCount();
-        System.out.println("START connectBranch - NC=" + nc);
 
         // Check argument validity:
         if (node.isRoot() || destBranchBase.isRoot())
@@ -259,10 +244,6 @@ public abstract class ColouredTreeOperator extends Operator {
         node.makeDirty(Tree.IS_FILTHY);
         parent.makeDirty(Tree.IS_FILTHY);
         destBranchBase.makeDirty(Tree.IS_FILTHY);
-        
-        // DEBUG: Finding source of topology error
-        nc = tree.getRoot().getNodeCount();
-        System.out.println("END connectBranch - NC=" + nc);
     }
 
     /**
@@ -274,10 +255,6 @@ public abstract class ColouredTreeOperator extends Operator {
      * @param destTime
      */
     public void connectBranchToRoot(Node node, Node oldRoot, double destTime) {
-        
-        // DEBUG: Finding source of topology error
-        int nc = tree.getRoot().getNodeCount();
-        System.out.println("START connectBranchToRoot - NC=" + nc);
 
         // Check argument validity:
         if (node.isRoot() || !oldRoot.isRoot())
@@ -304,10 +281,6 @@ public abstract class ColouredTreeOperator extends Operator {
         newRoot.makeDirty(Tree.IS_FILTHY);
         oldRoot.makeDirty(Tree.IS_FILTHY);
         node.makeDirty(Tree.IS_FILTHY);
-        
-        // DEBUG: Finding source of topology error
-        nc = tree.getRoot().getNodeCount();
-        System.out.println("END connectBranchToRoot - NC=" + nc);
     }
 
     /**

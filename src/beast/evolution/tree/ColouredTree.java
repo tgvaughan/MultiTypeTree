@@ -694,6 +694,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
             }
 
             Node startNode = flatTree.getNode(nodeNum);
+
             startNode.setMetaData(colourLabel,
                     getNodeColour(node));
             startNode.m_sMetaData = String.format("%s%s=%d",
