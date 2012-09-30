@@ -19,10 +19,7 @@ package beast.evolution.operators;
 import beast.core.Description;
 import beast.core.Input;
 import beast.evolution.tree.Node;
-import beast.math.GammaFunction;
-import beast.util.PoissonRandomizer;
 import beast.util.Randomizer;
-import java.util.Arrays;
 
 /**
  * A subtree slide operator for coloured trees.  This version uses an
@@ -77,18 +74,15 @@ public class ColouredSubtreeSlide extends RandomRecolourOperator {
             // Assign new height to parent:
             parent.setHeight(t_parentNew);
             
-            // Incorporate probability of forward node height change into HR:
-            logHR -= Math.log(1.0/(t_parentOld-tMin));
-
             // Recolour branches between node, the root and node's sister:
             logHR -= recolourRootBranches(node);
             
             // Reject outright if colouring inconsistent:
-            if (cTree.getNodeColour(parent) != cTree.getNodeColour(sister))
+            if (cTree.getNodeColour(parent) != cTree.getFinalBranchColour(sister))
                 return Double.NEGATIVE_INFINITY;
 
-            // Incorporate probability of reverse node height change into HR:
-            logHR += Math.log(1.0/(t_parentNew-tMin));
+            // Incorporate node height change into HR:
+            logHR += Math.log((t_parentOld-tMin)/(t_parentNew-tMin));
             
             return logHR;
 

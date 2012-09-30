@@ -77,8 +77,9 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
     }
 
     /**
-     * Recolour branches with nChanges between srcNode and the root (srcNode's
-     * parent) and nChangesSister between the root and srcNode's sister.
+     * Recolour branches between srcNode and the root (srcNode's
+     * parent) and between the root and srcNode's sister with a rate fixed
+     * by the tuning parameter mu.
      *
      * @param srcNode
      * @param nChangesNode

@@ -18,7 +18,7 @@
             <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
             <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
             <input name="newick">
-                (1[state='0']:1,2[state='0']:1)[state='0']:0;
+                (1[state='1']:1,2[state='0']:1)[state='0']:0;
             </input>
         </init>
       
@@ -47,7 +47,7 @@
                           weight="0.5" colouredTree="@colouredTree"
                           mu="0.2" rootSlideParam="1.5" />
 
-        <logger logEvery="1000" fileName="operatorTests.log">
+        <logger logEvery="1000" fileName="STStest.log">
             <model idref='P'/>
             <log idref="P"/>
             <log spec='TreeHeightLogger'>
@@ -70,7 +70,7 @@
         </logger>
 
         <!--
-        <logger logEvery="10000" fileName="operatorTests_col.trees" mode="tree">
+        <logger logEvery="10000" fileName="STStest_col.trees" mode="tree">
             <log idref="colouredTree"/>
         </logger>
         -->
