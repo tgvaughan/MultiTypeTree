@@ -91,7 +91,7 @@ public class ColouredTreeScale extends ColouredTreeOperator {
         for (RealParameter scalar : scalarParamsInverseInput.get()) {
             double oldValue = scalar.getValue();
             scalar.setValue(oldValue/f);
-            n -= 1;
+            n -= 1; // Inversely scaled parameters contribute differently to HR
         }
 
         // Return Hastings ratio:

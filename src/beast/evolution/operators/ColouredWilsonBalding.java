@@ -30,13 +30,13 @@ import java.util.Arrays;
  * @author Tim Vaughan
  */
 @Description("Implements the unweighted Wilson-Balding branch"
-+"swapping move.  This move is similar to one proposed by WILSON"
-+"and BALDING 1998 and involves removing a subtree and"
-+"re-attaching it on a new parent branch. "
-+"See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
-+"This version recolours each newly generated branch by drawing a"
-+"path from the migration model conditional on the colours at the"
-+"branch ends.")
++" swapping move.  This move is similar to one proposed by WILSON"
++" and BALDING 1998 and involves removing a subtree and"
++" re-attaching it on a new parent branch. "
++" See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
++" This version recolours each newly generated branch by drawing a"
++" path from the migration model conditional on the colours at the"
++" branch ends.")
 public class ColouredWilsonBalding extends UniformizationRecolourOperator {
 
     public Input<Double> alphaInput = new Input<Double>("alpha",
