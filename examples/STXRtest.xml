@@ -40,16 +40,19 @@
         </distribution>
 
         <operator spec='ColouredSubtreeExchangeRandom' id="CSTXR"
-                          weight="0.9" colouredTree="@colouredTree"
+                          weight="1.0" colouredTree="@colouredTree"
                           mu="0.2"/>
         
-        <operator spec='ColouredWilsonBaldingRandom' id="CWBR"
-                  weight="0.1" colouredTree="@colouredTree"
-                  mu="0.2"/>
+        <operator spec='NodeRecolour' id="NR"
+                  weight="1" colouredTree="@colouredTree"
+                  migrationModel="@migmodel"/>
+        
+        <operator spec='ColouredUniform' id="CU"
+                  weight="1" colouredTree="@colouredTree"/>
 
         <operator spec='ColouredTreeScale' id="CTS"
-                          weight="1" colouredTree='@colouredTree'
-                          scaleFactor="1.5"/>
+                  weight="1" colouredTree='@colouredTree'
+                  scaleFactor="1.5"/>
 
         <logger logEvery="1000" fileName="STXRtest.log">
             <model idref='P'/>

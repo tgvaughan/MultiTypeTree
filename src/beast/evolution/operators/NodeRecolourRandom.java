@@ -24,8 +24,8 @@ import beast.util.Randomizer;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 @Description("Recolours a randomly chosen node and its attached branches. "
-        + "This variant uses the uniformization branch recolouring procedure.")
-public class NodeRecolour extends UniformizationRecolourOperator {
+        + "This variant uses an unconditioned random walk for branch recolouring.")
+public class NodeRecolourRandom extends RandomRecolourOperator {
     
     @Override
     public void initAndValidate() { }
@@ -53,12 +53,19 @@ public class NodeRecolour extends UniformizationRecolourOperator {
         // Select new node colour:
         setNodeColour(node, Randomizer.nextInt(cTree.getNColours()));
         
-        // Recolour attached branches:
-        if (!node.isRoot())
+        // Recolour attached branches, forcing reject if inconsistent:
+        if (!node.isRoot()) {
             logHR -= recolourBranch(node);
+            if (cTree.getFinalBranchColour(node) != cTree.getNodeColour(node.getParent()))
+                return Double.NEGATIVE_INFINITY;
+        }
 
         logHR -= recolourBranch(node.getLeft())
                 + recolourBranch(node.getRight());
+       
+        if (cTree.getFinalBranchColour(node.getLeft()) != cTree.getNodeColour(node)
+                || cTree.getFinalBranchColour(node.getRight()) != cTree.getNodeColour(node))
+            return Double.NEGATIVE_INFINITY;
         
         return logHR;
     }

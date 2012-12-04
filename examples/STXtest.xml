@@ -14,7 +14,7 @@
                       figtreeCompatible="true">
             <tree id="tree" spec="Tree"/>
             <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
-            <changeTimes id="tree.times"  spec="RealParameter" value="0."/>
+            <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>
             <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
             <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
             <input name="newick">
@@ -39,15 +39,22 @@
 
         </distribution>
 
-        <operator spec='ColouredSubtreeExchangeRandom' id="CSTXR"
+        <operator spec='ColouredSubtreeExchange' id="CSTX"
                           weight="1" colouredTree="@colouredTree"
-                          mu="0.2"/>
+                          migrationModel="@migmodel"/>
+        
+        <operator spec='NodeRecolour' id="NR"
+                  weight="1" colouredTree="@colouredTree"
+                  migrationModel="@migmodel"/>
+        
+        <operator spec='ColouredUniform' id="CU"
+                  weight="1" colouredTree="@colouredTree"/>
 
         <operator spec='ColouredTreeScale' id="CTS"
-                          weight="1" colouredTree='@colouredTree'
-                          scaleFactor="1.5"/>
+                  weight="1" colouredTree='@colouredTree'
+                  scaleFactor="1.5"/>
 
-        <logger logEvery="1000" fileName="CWBRtest.log">
+        <logger logEvery="1000" fileName="STXRtest.log">
             <model idref='P'/>
             <log idref="P"/>
             <log spec='beast.evolution.tree.TreeHeightLogger'>
