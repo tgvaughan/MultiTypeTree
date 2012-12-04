@@ -37,7 +37,10 @@ public class ColouredSubtreeExchange extends UniformizationRecolourOperator {
     public void initAndValidate() { }
     
     @Override
-    public double proposal() {        
+    public double proposal() {
+        cTree = colouredTreeInput.get();
+        tree = cTree.getUncolouredTree();
+        
         double logHR = 0.0;
 
         // Select source and destination nodes:
@@ -69,8 +72,7 @@ public class ColouredSubtreeExchange extends UniformizationRecolourOperator {
             destNodeParent = destNode.getParent();
         }
         
-        // Reject outright if substitution would result in negative branch
-        // lengths:
+        // Reject if substitution would result in negative branch lengths:
         if (destNode.getHeight()>srcNodeParent.getHeight()
                 || srcNode.getHeight()>destNodeParent.getHeight())
             return Double.NEGATIVE_INFINITY;
@@ -84,11 +86,6 @@ public class ColouredSubtreeExchange extends UniformizationRecolourOperator {
         
         // Recolour branches involved:
         logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
-        
-        // Force rejection if colouring inconsistent:
-        if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(srcNodeParent)
-                || cTree.getFinalBranchColour(destNode) != cTree.getNodeColour(srcNodeParent))
-            return Double.NEGATIVE_INFINITY;
         
         return logHR;
     }    

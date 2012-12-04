@@ -39,7 +39,10 @@ public class ColouredSubtreeExchangeRandom extends RandomRecolourOperator {
     public void initAndValidate() { }
     
     @Override
-    public double proposal() {        
+    public double proposal() {
+        cTree = colouredTreeInput.get();
+        tree = cTree.getUncolouredTree();
+        
         double logHR = 0.0;
 
         // Select source and destination nodes:
@@ -88,7 +91,7 @@ public class ColouredSubtreeExchangeRandom extends RandomRecolourOperator {
         logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
         
         // Force rejection if colouring inconsistent:
-        if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(srcNodeParent)
+        if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(destNodeParent)
                 || cTree.getFinalBranchColour(destNode) != cTree.getNodeColour(srcNodeParent))
             return Double.NEGATIVE_INFINITY;
         

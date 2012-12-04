@@ -15,8 +15,9 @@ import beast.util.Randomizer;
 
 import beast.core.Description;
 
-@Description("Randomly selects true internal tree node (i.e. not the root) and move node height uniformly in interval " +
-        "restricted by the nodes parent and children.")
+@Description("Randomly selects true internal tree node (i.e. not the root) and"
+        + " move node height uniformly in interval restricted by the nodes"
+        + " parent and children.")
 public class ColouredUniform extends ColouredTreeOperator {
 
     @Override
