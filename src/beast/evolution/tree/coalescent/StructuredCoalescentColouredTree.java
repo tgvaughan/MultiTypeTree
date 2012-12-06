@@ -20,8 +20,13 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.State;
+import beast.core.StateNode;
+import beast.core.StateNodeInitialiser;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
+import beast.evolution.alignment.Alignment;
+import beast.evolution.alignment.ColouredSequence;
+import beast.evolution.alignment.Sequence;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.operators.ColouredTreeModifier;
 import beast.evolution.tree.ColouredTree;
@@ -29,6 +34,7 @@ import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +46,7 @@ import java.util.List;
  */
 @Description("A coloured tree generated randomly from leaf colours and"
 + "a migration matrix with fixed population sizes.")
-public class StructuredCoalescentColouredTree extends ColouredTree {
+public class StructuredCoalescentColouredTree extends ColouredTree implements StateNodeInitialiser {
 
     /*
      * Plugin inputs:
@@ -51,8 +57,11 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
             Validate.REQUIRED);
     public Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
             "leafColours",
-            "Colours of leaf nodes.",
-            Validate.REQUIRED);
+            "Colours of leaf nodes.");
+    
+    public Input<Alignment> alignmentInput = new Input<Alignment>(
+            "alignment",
+            "Alignment containing coloured taxa.");
 
     /*
      * Non-input fields:
@@ -60,6 +69,10 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
     protected MigrationModel migrationModel;
     
     private ColouredTreeModifier modifier;
+    
+    private List<Integer> leafColours;
+    private List<String> leafNames;
+
 
     /*
      * Other private fields and classes:
@@ -101,6 +114,8 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
     @Override
     public void initAndValidate() throws Exception {
         
+        super.initAndValidate();
+        
         // Get modifier instance
         modifier = new ColouredTreeModifier(this);
 
@@ -110,45 +125,59 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
         maxBranchColours = maxBranchColoursInput.get();
         migrationModel = migrationModelInput.get();
 
-        // Obtain leaf colours:
-        leafColours = leafColoursInput.get();
-
-        // Parameters used to store colouring:
-        changeColours = new IntegerParameter("0");
-        changeTimes = new RealParameter("0.0");
-        changeCounts = new IntegerParameter("0");
-        nodeColours = new IntegerParameter("0");
-
-        // Attach state nodes to temporary State, as Parameters must
-        // belong to a State before they can be modified by calls to
-        // setValue(). (Why?)
-        State state = new State();
-        state.initByName(
-                "stateNode", changeColours,
-                "stateNode", changeTimes,
-                "stateNode", changeCounts,
-                "stateNode", nodeColours);
-        state.initialise();
-
-        // Ensure inputs retain references to colouring parameters:
-        changeColoursInput.setValue(changeColours, this);
-        changeTimesInput.setValue(changeTimes, this);
-        changeCountsInput.setValue(changeCounts, this);
-        nodeColoursInput.setValue(nodeColours, this);
+        // Obtain leaf colours from explicit input or alignment:
+        leafColours = Lists.newArrayList();
+        leafNames = Lists.newArrayList();
+        if (leafColoursInput.get() != null) {            
+            for (int i=0; i<leafColoursInput.get().getDimension(); i++) {
+                leafColours.add(leafColoursInput.get().getValue(i));
+                leafNames.add(String.valueOf(i));
+            }
+        } else {
+            if (alignmentInput.get() == null)
+                throw new IllegalArgumentException("Either leafColours or "
+                        + "coloured alignment must be provided.");
+            
+            List<Sequence> sequences = alignmentInput.get().m_pSequences.get();
+            if (sequences == null || sequences.size()<2) {
+                throw new IllegalArgumentException("Alignment must contain "
+                        + "at least two sequences.");
+            }
+            for (int i=0; i<sequences.size(); i++) {
+                if (!(sequences.get(i) instanceof ColouredSequence))
+                    throw new IllegalArgumentException("Alignment must contain "
+                            + "only coloured sequences.");
+                
+                // I know this is horrible and breaking all sorts of programmer
+                // etiquette rules, but...
+                ColouredSequence colouredSequence = (ColouredSequence) sequences.get(i);
+                leafColours.add(colouredSequence.colourInput.get());
+                leafNames.add(alignmentInput.get().getTaxaNames().get(i));
+            }
+        }
+        
+        // Hack to deal with StateNodes that haven't been attached to
+        // a state yet.
+        if (changeColours.getState() == null) {
+            State state = new State();
+            state.initByName(
+                    "stateNode", changeColours,
+                    "stateNode", changeTimes,
+                    "stateNode", changeCounts,
+                    "stateNode", nodeColours);
+            state.initialise();
+        }
 
         // Allocate arrays for recording colour change information:
-        int nNodes = 2 * leafColours.getDimension() - 1;
+        int nNodes = 2 * leafColours.size() - 1;
         initParameters(nNodes);
 
-        // Construct tree:
-        tree = new Tree(simulateTree());
+        // Construct tree and assign to input plugin:
+        tree.assignFromWithoutID(new Tree(simulateTree()));
 
         // Ensure colouring is internally consistent:
         if (!isValid())
             throw new Exception("Inconsistent colour assignment.");
-
-        // Assign tree to input plugin:
-        treeInput.setValue(tree, this);
     }
 
     /**
@@ -168,13 +197,13 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
         for (int i = 0; i < nColours; i++)
             activeNodes.add(new ArrayList<Node>());
 
-        for (int l = 0; l < leafColours.getDimension(); l++) {
+        for (int l = 0; l < leafColours.size(); l++) {
             Node node = new Node();
             node.setNr(nextNodeNr);
-            node.setID(String.valueOf(nextNodeNr));
-            activeNodes.get(leafColours.getValue(l)).add(node);
+            node.setID(leafNames.get(l));
+            activeNodes.get(leafColours.get(l)).add(node);
             modifier.setNodeHeight(node, 0.0);
-            modifier.setNodeColour(node, leafColours.getValue(l));
+            modifier.setNodeColour(node, leafColours.get(l));
 
             nextNodeNr++;
         }
@@ -396,6 +425,23 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
         return nodeList.get(n);
     }
 
+        
+    @Override
+    public void initStateNodes() { }
+
+    @Override
+    public List<StateNode> getInitialisedStateNodes() {
+        List<StateNode> statenodes = new ArrayList<StateNode>();
+
+        statenodes.add(treeInput.get());
+        statenodes.add(changeColoursInput.get());
+        statenodes.add(changeTimesInput.get());
+        statenodes.add(changeCountsInput.get());
+        statenodes.add(nodeColoursInput.get());
+
+        return statenodes;
+    }    
+    
     /**
      * Generates an ensemble of trees from the structured coalescent for testing
      * coloured tree-space samplers.
@@ -464,4 +510,5 @@ public class StructuredCoalescentColouredTree extends ColouredTree {
         */
 
     }
+
 }

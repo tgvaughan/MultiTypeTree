@@ -46,12 +46,13 @@ public class StructuredCoalescentLikelihoodTest {
 
 		// Assemble test ColouredTree:
 		String newickStr =
-                        "(((A[&state=1]:0.25)[&state=0]:0.25,B[&state=0]:0.5)[&state=0]:1.5,"
-                        + "(C[&state=0]:1.0,D[&state=0]:1.0)[&state=0]:1.0)[&state=0]:0.0;";
+                        "(((A[state=1]:0.25)[state=0]:0.25,B[state=0]:0.5)[state=0]:1.5,"
+                        + "(C[state=0]:1.0,D[state=0]:1.0)[state=0]:1.0)[state=0]:0.0;";
 
 		ColouredTreeFromNewick ctree = new ColouredTreeFromNewick();
 		ctree.initByName(
                         "newick", newickStr,
+                        "colourLabel", "state",
                         "nColours", 2,
                         "maxBranchColours", 10);
 
@@ -68,7 +69,8 @@ public class StructuredCoalescentLikelihoodTest {
 		MigrationModel migrationModel = new MigrationModel();
 		migrationModel.initByName(
                         "rateMatrix", rateMatrix,
-                        "popSizes", popSizes);
+                        "popSizes", popSizes,
+                        "rateMatrixIsBackward", false);
 
 		// Set up likelihood instance:
 		StructuredCoalescentLikelihood likelihood = new StructuredCoalescentLikelihood();

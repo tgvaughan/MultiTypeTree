@@ -49,6 +49,11 @@ public class MigrationModel extends CalculationNode {
             "Deme population sizes.",
             Validate.REQUIRED);
     
+    public Input<Boolean> rateMatrixIsBackward = new Input<Boolean>(
+            "rateMatrixIsBackward",
+            "If true, rate matrix elements are read as reverse-time rates. Default true.",
+            true);
+    
     private RealParameter rateMatrix, popSizes;
     private double totalPopSize;
     private double mu;
@@ -191,9 +196,12 @@ public class MigrationModel extends CalculationNode {
      * @return Rate matrix element.
      */
     public double getBackwardRate(int i, int j) {
-        return rateMatrix.getMatrixValue(j, i)
-                * popSizes.getArrayValue(i)
-                / popSizes.getArrayValue(j);
+        if (rateMatrixIsBackward.get())
+            return rateMatrix.getMatrixValue(i, j);
+        else 
+            return rateMatrix.getMatrixValue(j, i)
+                    * popSizes.getArrayValue(i)
+                    / popSizes.getArrayValue(j);
     }
 
     /**

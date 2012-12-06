@@ -1,19 +1,9 @@
 package beast.evolution.operators;
 
 
-import beast.evolution.tree.Node;
-import beast.evolution.tree.Tree;
-import beast.evolution.tree.ColouredTree;
-import beast.util.Randomizer;
-
-
-/**
- * @author Denise Kuehnert
- *         Date: Aug 30, 2012
- *         Time: 4:37:32 PM
- */
-
 import beast.core.Description;
+import beast.evolution.tree.Node;
+import beast.util.Randomizer;
 
 @Description("Randomly selects true internal tree node (i.e. not the root) and"
         + " move node height uniformly in interval restricted by the nodes"

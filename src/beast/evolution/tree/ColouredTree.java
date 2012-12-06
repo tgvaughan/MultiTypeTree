@@ -73,7 +73,6 @@ public class ColouredTree extends CalculationNode implements Loggable {
      */
     protected String colourLabel;
     protected Integer nColours, maxBranchColours;
-    protected IntegerParameter leafColours;
     protected Tree tree;
     public IntegerParameter nodeColours, changeColours, changeCounts;
     public RealParameter changeTimes;
@@ -1110,7 +1109,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
      */
     @Override
     public String toString() {
-        return getFlattenedTree().toString();
+        return getFlattenedTree().getRoot().toNewick(null);
     }
 
     /////////////////////////////////////////////////
@@ -1120,7 +1119,25 @@ public class ColouredTree extends CalculationNode implements Loggable {
     public void init(PrintStream printStream) throws Exception {
 
         printStream.println("#NEXUS\n");
+        printStream.println("Begin taxa;");
+        printStream.println("\tDimensions ntax=" + tree.getLeafNodeCount() + ";");
+        printStream.println("\t\tTaxlabels");
+        for (int i=0; i<tree.getLeafNodeCount(); i++) {
+            printStream.println("\t\t\t" + tree.getNodesAsArray()[i].getID());
+        }
+        printStream.println("\t\t\t;");
+        printStream.println("End;");
+
         printStream.println("Begin trees;");
+        printStream.println("\tTranslate");
+        for (int i=0; i<tree.getLeafNodeCount(); i++) {
+            printStream.print("\t\t\t"+tree.getNodesAsArray()[i].getNr()
+                    + " " + tree.getNodesAsArray()[i].getID());
+            if (i<tree.getLeafNodeCount()-1)
+                printStream.print(",");
+            printStream.print("\n");
+        }
+        printStream.print("\t\t\t;");
     }
 
     @Override
@@ -1130,11 +1147,13 @@ public class ColouredTree extends CalculationNode implements Loggable {
         String sNewick = flatTree.getRoot().toNewick(null);
         printStream.print(sNewick);
         printStream.print(";");
+        
+        
     }
 
     @Override
     public void close(PrintStream printStream) {
-        printStream.print("End;");
+        printStream.println("End;");
     }
 
     /**

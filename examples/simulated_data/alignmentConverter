@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+
+from sys import argv, exit, stdout
+from argparse import ArgumentParser
+from xml.etree.ElementTree import ElementTree
+
+def writeFasta(etree, outFile):
+    ntaxa = len(etree.getroot().getchildren())
+
+    for i in range(ntaxa):
+        taxon = etree.getroot().getchildren()[i].get('taxon')
+        seq = etree.getroot().getchildren()[i].get('value')
+        outFile.write('>{}\n{}\n'.format(taxon,seq))
+
+def writeNexus(etree, outFile):
+
+    # Get sequence length and taxon count
+    ntaxa = len(etree.getroot().getchildren())
+    nchar = len(etree.getroot().getchildren()[0].get('value'))
+
+    # Write nexus boilerplate
+    outFile.write("""#nexus
+
+Begin data;
+Dimensions ntax={} nchar={};
+Format datatype=dna symbols="ACTG" missing=? gap=-;
+Matrix
+""".format(ntaxa, nchar))
+
+    # Write sequences
+    for i in range(ntaxa):
+        taxon = etree.getroot().getchildren()[i].get('taxon')
+        seq = etree.getroot().getchildren()[i].get('value')
+        outFile.write('{}\t{}\n'.format(taxon,seq))
+
+    # Write end boilerplate
+    outFile.write(";\nEnd;\n")
+
+
+outputFunctions = {'fasta': writeFasta, 'nexus': writeNexus}
+
+
+if __name__=='__main__':
+
+    availableFormats = ""
+    for fmt in outputFunctions.keys():
+        if len(availableFormats)>0:
+            availableFormats += ", "
+        availableFormats += fmt
+
+    parser = ArgumentParser(description="Convert alignment from BEAST 2 XML to other format.")
+    parser.add_argument("format", type=str, help="Output format ({}).".format(availableFormats))
+    parser.add_argument("xml_file", type=str, help="File containing alignment in BEAST 2 XML.")
+    parser.add_argument("-o","--output", type=str, help="Optional name of output file.")
+
+    if len(argv)<2:
+        parser.print_usage()
+        exit(0)
+
+    args = parser.parse_args(argv[1:])
+
+    if args.format not in outputFunctions.keys():
+        print "Unsupported output format.  Currently supported formats are: {}".format(availableFormats)
+        exit(1)
+
+    try:
+        etree = ElementTree(file=args.xml_file)
+    except:
+        print "Error opening file '{}' for reading.".format(args.xml_file)
+        exit(1)
+
+    if args.output == None:
+        outFile = stdout
+    else:
+        try:
+            outFile = open(args.output, 'w')
+        except:
+            print "Error opening file '{}' for writing.".format(args.o)
+            exit(1)
+
+
+    outputFunctions.get(args.format)(etree, outFile)
+
+    if args.output != None:
+        outFile.close()
