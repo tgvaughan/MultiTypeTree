@@ -25,6 +25,7 @@ import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
+import cern.colt.matrix.linalg.Property;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,6 +35,10 @@ import java.util.logging.Logger;
  * ColouredTree operators and likelihoods. Note that this class and package are
  * just stubs. We expect to have something similar to the SubstitutionModel
  * class/interface eventually.
+ * 
+ * Note that the transition rate matrices exposed for the uniformization
+ * recolouring operators are symmetrized variants of the actual rate
+ * matrices, to allow for easier diagonalization.
  *
  * @author Tim Vaughan
  */
@@ -104,12 +109,12 @@ public class MigrationModel extends CalculationNode {
         mu = 0.0;
         Q = new DenseDoubleMatrix2D(nColours, nColours);
 
-        // Set up backward transition rate matrix:
+        // Set up _symmetrized_ backward transition rate matrix:
         for (int i = 0; i < nColours; i++) {
             Q.set(i, i, 0.0);
             for (int j = 0; j < nColours; j++)
                 if (i != j) {
-                    Q.set(j, i, getBackwardRate(j, i));
+                    Q.set(j, i, 0.5*(getBackwardRate(j, i) + getBackwardRate(i,j)));
                     Q.set(i, i, Q.get(i, i) - Q.get(j, i));
                 }
 
@@ -225,14 +230,17 @@ public class MigrationModel extends CalculationNode {
     }
 
     public double getMu() {
+        updateMatrices();
         return mu;
     }
 
     public double getQelement(int i, int j) {
+        updateMatrices();
         return Q.get(i, j);
     }
 
     public double getRelement(int i, int j) {
+        updateMatrices();
         return R.get(i, j);
     }
 
@@ -248,8 +256,6 @@ public class MigrationModel extends CalculationNode {
     public DoubleMatrix2D getMatrixExp(EigenvalueDecomposition decomp,
             DoubleMatrix2D Vinv, double factor) {
         
-        updateMatrices();
-        
         DoubleMatrix2D V = decomp.getV();
         DoubleMatrix2D D = decomp.getD().copy();
 
@@ -262,8 +268,6 @@ public class MigrationModel extends CalculationNode {
 
     public DoubleMatrix2D getMatrixPow(EigenvalueDecomposition decomp,
             DoubleMatrix2D Vinv, double power, double factor) {
-        
-        updateMatrices();
         
         DoubleMatrix2D V = decomp.getV();
         DoubleMatrix2D D = decomp.getD().copy();
@@ -281,6 +285,7 @@ public class MigrationModel extends CalculationNode {
      * @return exp(factor*Q)
      */
     public DoubleMatrix2D getQexp(double factor) {        
+        updateMatrices();
         return getMatrixExp(Qdecomp, QVinv, factor);
     }
 
@@ -292,6 +297,7 @@ public class MigrationModel extends CalculationNode {
      * @return (factor*Q)^power
      */
     public DoubleMatrix2D getQpow(double power, double factor) {
+        updateMatrices();
         return getMatrixPow(Qdecomp, QVinv, power, factor);
     }
 
@@ -327,6 +333,7 @@ public class MigrationModel extends CalculationNode {
      * @return exp(factor*R)
      */
     public DoubleMatrix2D getRexp(double factor) {
+        updateMatrices();
         return getMatrixExp(Rdecomp, RVinv, factor);
     }
 
@@ -338,6 +345,7 @@ public class MigrationModel extends CalculationNode {
      * @return (factor*R)^power
      */
     public DoubleMatrix2D getRpow(double power, double factor) {
+        updateMatrices();
         return getMatrixPow(Rdecomp, RVinv, power, factor);
     }
 

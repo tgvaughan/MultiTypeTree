@@ -57,12 +57,13 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
 
         // Select number of virtual events:
         double Pba = migrationModel.getQexpElement(L, col_srcNodeP, col_srcNode);
-        double muL = migrationModel.getMu()*L;
+        double muL = migrationModel.getMu()*L;        
+        
         double u1 = Randomizer.nextDouble()*Pba;
         int nVirt = 0;
         double poisAcc = Math.exp(-muL);
         u1 -= poisAcc*migrationModel.getRpowElement(0, 1.0, col_srcNodeP, col_srcNode);
-        while (u1>0) {
+        while (u1>0.0) {
             nVirt += 1;
             poisAcc *= muL/nVirt;
             u1 -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, col_srcNodeP, col_srcNode);
