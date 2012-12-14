@@ -1,15 +1,9 @@
 package beast.evolution.tree;
 
 import beast.core.*;
-import beast.core.parameter.IntegerParameter;
-import beast.core.parameter.RealParameter;
 import beast.util.Randomizer;
-
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import java.util.List;
 
 /**
  * @author dkuh004
@@ -21,56 +15,49 @@ public class RandomColouredTree extends ColouredTree implements StateNodeInitial
 
     public Input<TraitSet> m_trait = new Input<TraitSet>("trait", "trait information for initializing traits (like node dates) in the tree");
 
-
-    Integer[] nodeCols;
-    Integer[] changeCols;
-    Double[] times;
-    Integer[]  counts;
-
-    public void initAndValidate() throws Exception{
-
-        System.out.println("in RandomColouredtree");
+    @Override
+    public void initAndValidate() throws Exception {
 
         super.initAndValidate();
-
-        int nNodes = tree.getNodeCount();
-
-        nodeCols = new Integer[nNodes];
-        changeCols = new Integer[nNodes*maxBranchColours];
-        times = new Double[nNodes*maxBranchColours];
-        counts =  new Integer[nNodes]; Arrays.fill(counts,0);
+        
+        // Hack to deal with StateNodes that haven't been attached to
+        // a state yet. (Only necessary when using method to simulate
+        // a whole bunch of trees rather than initilize and MCMC chain.)
+        if (changeColours.getState() == null) {
+            State state = new State();
+            state.initByName(
+                    "stateNode", changeColours,
+                    "stateNode", changeTimes,
+                    "stateNode", changeCounts,
+                    "stateNode", nodeColours);
+            state.initialise();
+        }
 
         initStateNodes() ;
     }
 
 
+    @Override
     public void initStateNodes()  throws Exception {
+        
+        initParameters(tree.getLeafNodeCount());
+                
+        /* fill leaf colour array */
+        for (int i = 0; i<tree.getLeafNodeCount(); i++)
+            getModifier().setNodeColour(tree.getNode(i), (int)m_trait.get().getValue(i));
 
-        simulateColouring();
-
-        nodeColoursInput.get().assignFromWithoutID(new IntegerParameter(nodeCols));
-        changeColoursInput.get().assignFromWithoutID(new IntegerParameter(changeCols));
-        changeTimesInput.get().assignFromWithoutID(new RealParameter(times));
-        changeCountsInput.get().assignFromWithoutID(new IntegerParameter(counts));
-
+        simulateColouring(tree.getRoot());
+        
         if (!isValid())
             throw new Exception("Inconsistent colour assignment.");
         
     }
 
-    public void simulateColouring() throws Exception {
-
-        /* fill leaf colour array */
-        for (int i = 0; i<tree.getLeafNodeCount(); i++){
-
-            nodeCols[i] = (int) m_trait.get().getValue(i) ;
-
-        }
-
-        simulateColouring(tree.getRoot());
-
-    }
-
+    /**
+     * Minimal random colouring of tree consistent with leaf colours.
+     * 
+     * @param node 
+     */
     public void simulateColouring(Node node){
 
         if (node.getNodeCount() >= 3){
@@ -79,73 +66,33 @@ public class RandomColouredTree extends ColouredTree implements StateNodeInitial
 
             if (left.getNodeCount() >= 3)  simulateColouring(left);
             if (right.getNodeCount() >= 3)  simulateColouring(right);
-
-            int leftCol = counts[left.getNr()]==0 ? nodeCols[left.getNr()] : changeCols[left.getNr()*maxBranchColours + counts[left.getNr()] - 1];
-            int rightCol = counts[right.getNr()]==0 ? nodeCols[right.getNr()] : changeCols[right.getNr()*maxBranchColours + counts[right.getNr()] - 1];
-
+            
+            int leftCol = getFinalBranchColour(left);
+            int rightCol = getFinalBranchColour(right);
 
             if (leftCol == rightCol)
-                changeNodeColour(node.getNr(), leftCol);
+                getModifier().setNodeColour(node, leftCol);
 
             else {
 
-                int keep = Randomizer.nextBoolean()? 1 : 0;
-
-                if (nodeCols[node.getNr()]!=null) {
-                    if (nodeCols[node.getNr()] == leftCol) keep = 0;
-                    if (nodeCols[node.getNr()] == rightCol) keep = 1;
+                Node nodeToKeep, other;
+                if (Randomizer.nextBoolean()) {
+                    nodeToKeep = left;
+                    other = right;
+                } else {
+                    nodeToKeep = right;
+                    other = left;
                 }
 
-                changeNodeColour(node.getNr(), nodeCols[node.getChild(keep).getNr()]);
+                getModifier().setNodeColour(node, getNodeColour(nodeToKeep));
 
-                Node changeChild = node.getChild(1-keep);
-                double lowerBound = counts[changeChild.getNr()]==0 ? changeChild.getHeight() : times[changeChild.getNr()*maxBranchColours + counts[changeChild.getNr()] - 1];
-                double time = (node.getHeight() - lowerBound)*Randomizer.nextDouble() + lowerBound;
-
-                addChange(changeChild.getNr(), changeChild.getNr()*maxBranchColours + counts[changeChild.getNr()], nodeCols[node.getNr()], time, changeCols, times, counts);
+                double changeTime = Randomizer.nextDouble()*(node.getHeight()-other.getHeight()) + other.getHeight();
+                getModifier().addChange(other, getNodeColour(node), changeTime);
             }
         }
     }
 
-    public void changeNodeColour(int nodeNr, int colour){
-
-        if (!(nodeCols[nodeNr] == null ||  nodeCols[nodeNr] == colour || tree.getNode(nodeNr).isRoot())){  //nodeCols[nodeNr] = colour;
-
-      //  else {
-
-            double time;
-
-            if (counts[nodeNr] ==0) {
-
-                time = (tree.getNode(nodeNr).getParent().getHeight() - tree.getNode(nodeNr).getHeight())*Randomizer.nextDouble() + tree.getNode(nodeNr).getHeight();
-
-                addChange(nodeNr, nodeNr*maxBranchColours + counts[nodeNr], nodeCols[nodeNr], time, changeCols, times, counts);
-            }
-
-            else { // need to insert a change before all others
-
-                Node node = tree.getNode(nodeNr);
-
-                if (!(nodeCols[node.getParent().getNr()] == colour)){
-
-                    for (int i = counts[nodeNr]; i > 0; i--){
-                        times[nodeNr*maxBranchColours + i] =  times[nodeNr*maxBranchColours + i -1];
-                        changeCols[nodeNr*maxBranchColours + i] =  changeCols[nodeNr*maxBranchColours + i -1];
-                    }
-
-                    time = (times[nodeNr*maxBranchColours + 1] - node.getHeight())*Randomizer.nextDouble() + node.getHeight();
-
-                    addChange(nodeNr, nodeNr*maxBranchColours, nodeCols[nodeNr], time, changeCols, times, counts);
-                }
-                else counts[nodeNr] = 0;
-            }
-        }
-
-        nodeCols[nodeNr] = colour;
-
-    }
-
-
+    @Override
     public List<StateNode> getInitialisedStateNodes() {
 
         List<StateNode> statenodes = new ArrayList<StateNode>();

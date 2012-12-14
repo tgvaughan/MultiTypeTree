@@ -20,6 +20,7 @@ import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.*;
 import beast.evolution.operators.ColouredTreeModifier;
+import beast.evolution.operators.ColouredTreeOperator;
 import beast.util.Randomizer;
 import beast.util.TreeParser;
 import com.google.common.collect.Lists;
@@ -117,57 +118,6 @@ public class ColouredTree extends CalculationNode implements Loggable {
     }
 
     /**
-     * Constructor to get coloured tree from coloured (single child) newick
-     * tree.
-     *
-     * @param colourLabel
-     * @param nColours
-     * @param maxBranchColours
-     * @throws Exception
-     */
-    public ColouredTree(Tree tree, TreeParser treeParser, String colourLabel, int nColours, int maxBranchColours) throws Exception {
-
-//        TreeParser treeParser = new TreeParser("", false);
-//        treeParser.initByName("adjustTipHeights",false, "singlechild", true, "newick", newick);
-
-        this.colourLabel = colourLabel;
-        this.nColours = nColours;
-        this.maxBranchColours = maxBranchColours;
-
-        List<Integer> markedForDeletion = new ArrayList<Integer>();
-        int nNodes = treeParser.getNodeCount();
-
-        Integer[] cols = new Integer[nNodes*maxBranchColours];
-        Arrays.fill(cols, -1);
-        Double[] times = new Double[nNodes*maxBranchColours];
-        Arrays.fill(times, -1.);
-        Integer[] counts = new Integer[nNodes];
-        Arrays.fill(counts, 0);
-
-        setupColourParameters(treeParser.getRoot(), cols, times, counts);
-
-        // Assign parsed tree to official tree topology field and remove single children from it:
-//        tree = treeParser;
-        nNodes -= getSingleChildCount(treeParser, markedForDeletion);
-        treeParser = removeSingleChildren(treeParser, markedForDeletion);
-
-        assignColourArrays(treeParser, cols, times, counts, nNodes);
-
-        TreeParser binaryTree = treeParser;
-        binaryTree.setInputValue("adjustTipHeights", false);
-        binaryTree.setInputValue("singlechild", false);
-
-        // Assign tree to input plugin:
-        this.tree = tree.copy();
-        this.tree.assignFromWithoutID(binaryTree);
-
-        // Ensure colouring is internally consistent:
-        if (!isValid())
-            throw new Exception("Inconsistent colour assignment.");
-
-    }
-
-    /**
      * Allocate memory for recording tree colour information.
      *
      * @param nNodes Number of nodes tree will contain.
@@ -180,239 +130,24 @@ public class ColouredTree extends CalculationNode implements Loggable {
         nodeColours.setDimension(nNodes);
         
     }
+    
+    /**
+     * Obtain sneaky modifier to allow non-operators (e.g. state node
+     * initializers to incrementally create coloured trees.)
+     * 
+     * @return modifier
+     */
+    public ColouredTreeOperator getModifier() {
+        return modifier;
+    }
 
+    /**
+     * Obtain maximum allowed colours per branch.
+     * 
+     * @return max colours per branch
+     */
     public int getMaxBranchColours() {
         return maxBranchColours;
-    }
-
-    /**
-     * Get number of single child nodes of a tree.
-     *
-     * @param tree The tree.
-     */
-    public int getSingleChildCount(Tree tree, List<Integer> markedForDeletion) {
-
-        return getSingleChildCount(tree.getRoot(), markedForDeletion);
-
-    }
-
-    /**
-     * Get number of single child nodes of a tree.
-     *
-     * @param node The root of the (sub)tree.
-     */
-    public int getSingleChildCount(Node node, List<Integer> markedForDeletion) {
-
-        if (node.isLeaf())
-            return 0;
-
-        if (node.getChildCount()==1) {
-
-            markedForDeletion.add(node.getNr());
-            return 1+getSingleChildCount(node.getLeft(), markedForDeletion);
-        } else
-            return getSingleChildCount(node.getLeft(), markedForDeletion)+getSingleChildCount(node.getRight(), markedForDeletion);
-
-    }
-
-    /**
-     * Delete single child nodes from tree
-     *
-     * @param markedForDeletion list of single node numbers
-     */
-    public TreeParser removeSingleChildren(TreeParser treeParser, List<Integer> markedForDeletion) throws Exception {
-
-        List<Node> nodes = new ArrayList<Node>();
-
-        for (int i : markedForDeletion)
-            nodes.add(treeParser.getNode(i));
-
-        for (Node node : nodes) {
-
-            if (node.getChildCount()!=1)
-                throw new RuntimeException("Error: node marked for deletion"
-                        +" should have exactly one child node, but has "
-                        +node.getChildCount());
-
-            Node parent = node.getParent();
-
-            if (node==parent.getLeft()) {
-                parent.setLeft(node.getLeft());
-                parent.getLeft().setParent(parent);
-
-            } else if (node==parent.getRight()) {
-                parent.setRight(node.getLeft());
-                parent.getRight().setParent(parent);
-
-            }
-        }
-
-        treeParser.nodeCount = treeParser.getNodeCount()-nodes.size();
-        treeParser.internalNodeCount = treeParser.getInternalNodeCount()-nodes.size();
-
-        treeParser.getRoot().labelInternalNodes(treeParser.getLeafNodeCount());
-        treeParser.setInputValue("newick", null);
-        treeParser.initArrays();
-
-        return treeParser;
-
-    }
-
-    /**
-     * Set up colours for Newick constructor using recursive decent.
-     *
-     * @param node
-     * @param cols
-     * @param times
-     * @param counts
-     */
-    private void setupColourParameters(Node node, Integer[] cols,
-            Double[] times, Integer[] counts) {
-
-        int nodeState = Integer.parseInt(node.m_sMetaData.split("=")[1].replaceAll("'", "").replaceAll("\"", ""));
-        int nodeNr = node.getNr();
-        node.setMetaData("oldNodeNumber", nodeNr);
-
-        if (node.getChildCount()==1) {
-
-            Node child1 = node.getLeft();
-            int child1state = Integer.parseInt(child1.m_sMetaData.split("=")[1].replaceAll("'", "").replaceAll("\"", ""));
-
-            if (child1.getChildCount()==1) {
-
-                int[] changes = new int[maxBranchColours];
-                double[] changetimes = new double[maxBranchColours];
-                changes[0] = nodeState;
-                changetimes[0] = node.getHeight();
-
-                int i = 1;
-                node = child1;
-
-                while (node.getChildCount()==1&&i<maxBranchColours) {
-
-                    changes[i] = Integer.parseInt(node.m_sMetaData.split("=")[1].replaceAll("'", "").replaceAll("\"", ""));
-                    changetimes[i] = node.getHeight();
-                    i++;
-                    node = node.getLeft();
-                }
-
-                if (node.getChildCount()==1&&i==maxBranchColours)
-                    throw new RuntimeException("Too many changes on branch!");
-
-                nodeNr = node.getNr();
-
-                for (int j = i-1; j>=0; j--)
-                    addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], changes[j], changetimes[j], cols, times, counts);
-
-                setupColourParameters(node, cols, times, counts);
-
-
-            } else {
-
-                nodeNr = child1.getNr();
-                if (child1state!=nodeState)
-                    addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
-
-                setupColourParameters(child1, cols, times, counts);
-            }
-        } else if (node.getChildCount()==2) {
-
-            Node child1 = node.getLeft();
-            int child1state = Integer.parseInt(child1.m_sMetaData.split("=")[1].replaceAll("'", "").replaceAll("\"", ""));
-
-            Node child2 = node.getRight();
-            int child2state = Integer.parseInt(child2.m_sMetaData.split("=")[1].replaceAll("'", "").replaceAll("\"", ""));
-
-            if (child1state!=nodeState) {
-                nodeNr = child1.getNr();
-                addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
-            }
-            if (child2state!=nodeState) {
-                nodeNr = child2.getNr();
-                addChange(nodeNr, maxBranchColours*nodeNr+counts[nodeNr], nodeState, node.getHeight(), cols, times, counts);
-            }
-
-            setupColourParameters(child1, cols, times, counts);
-            setupColourParameters(child2, cols, times, counts);
-
-        }
-
-//        else if (node.isLeaf()){
-//            leafCols[nodeNr] = nodeState;
-//        }
-
-    }
-
-    private void assignColourArrays(TreeParser treeParser, Integer[] cols, Double[] times, Integer[] counts, int nNodes) throws Exception {
-
-
-        Integer[] cols_afterRemoval = new Integer[nNodes*maxBranchColours];
-        Arrays.fill(cols_afterRemoval, -1);
-        Double[] times_afterRemoval = new Double[nNodes*maxBranchColours];
-        Arrays.fill(times_afterRemoval, -1.);
-        Integer[] counts_afterRemoval = new Integer[nNodes];
-        Arrays.fill(counts_afterRemoval, 0);
-        Integer[] nodeCols = new Integer[nNodes];
-
-        Node node;
-        int oldNodeNumber;
-
-        for (int i = 0; i<nNodes; i++) {
-            node = treeParser.getNode(i);
-
-            nodeCols[i] = Integer.parseInt(node.m_sMetaData
-                    .split("=")[1]
-                    .replaceAll("'", "")
-                    .replaceAll("\"", ""));
-
-            oldNodeNumber = (Integer) node.getMetaData("oldNodeNumber");
-            node.m_sMetaData = null;
-            counts_afterRemoval[i] = counts[oldNodeNumber];
-
-            for (int j = 0; j<counts_afterRemoval[i]; j++) {
-
-                cols_afterRemoval[maxBranchColours*i+j] = cols[maxBranchColours*oldNodeNumber+j];
-                times_afterRemoval[maxBranchColours*i+j] = times[maxBranchColours*oldNodeNumber+j];
-            }
-        }
-
-
-        // Initialize statenodes:
-
-        changeColours = new IntegerParameter(cols);
-        changeTimes = new RealParameter(times);
-        changeCounts = new IntegerParameter(counts);
-        nodeColours = new IntegerParameter(nodeCols);
-
-        IntegerParameter cols_I = new IntegerParameter(cols_afterRemoval);
-        RealParameter times_I = new RealParameter(times_afterRemoval);
-        IntegerParameter counts_I = new IntegerParameter(counts_afterRemoval);
-        IntegerParameter nodeCols_I = new IntegerParameter(nodeCols);
-
-        changeColours.assignFromWithoutID(cols_I);
-        changeTimes.assignFromWithoutID(times_I);
-        changeCounts.assignFromWithoutID(counts_I);
-        nodeColours.assignFromWithoutID(nodeCols_I);
-
-    }
-
-    /**
-     * Set up colours for newick constructor.
-     *
-     * @param nodeNr
-     * @param index
-     * @param colour
-     * @param time
-     * @param cols
-     * @param times
-     * @param counts
-     */
-    protected void addChange(int nodeNr, int index, int colour, double time, Integer[] cols, Double[] times, Integer[] counts) {
-
-        cols[index] = colour;
-        times[index] = time;
-        counts[nodeNr]++;
-
     }
 
     /**
@@ -464,6 +199,11 @@ public class ColouredTree extends CalculationNode implements Loggable {
         return nodeColours.getValue(node.getNr());
     }
 
+    /**
+     * Get array of colours of all nodes on tree.
+     * 
+     * @return array of node colours
+     */
     public Integer[] getNodeColours() {
         return nodeColours.getValues();
     }
