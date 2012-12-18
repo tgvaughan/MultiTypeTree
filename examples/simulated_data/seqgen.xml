@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beast version="2.0"
-       namespace="beast.core:beast.util:beast.evolution.alignment:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.app.seqgen:hamlet.beast">
+       namespace="beast.core:beast.util:beast.evolution.alignment:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.app.seqgen:master.beast">
 
   <alignment spec="Alignment" id="alignment"
 	     dataType="nucleotide">
@@ -22,7 +22,7 @@
   </siteModel>
 
 
-  <tree spec="HamletTree" id="tree">
+  <tree spec="MasterTree" id="tree">
     <model spec='InheritanceModel'>
       <populationType spec='PopulationType' typeName='X' dim="2" id='X'/>
       <reactionGroup spec='InheritanceReactionGroup' reactionGroupName='Coalescence'>

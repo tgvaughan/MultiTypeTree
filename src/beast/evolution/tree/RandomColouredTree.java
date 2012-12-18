@@ -40,7 +40,7 @@ public class RandomColouredTree extends ColouredTree implements StateNodeInitial
     @Override
     public void initStateNodes()  throws Exception {
         
-        initParameters(tree.getLeafNodeCount());
+        initParameters(tree.getLeafNodeCount()*2 + 1);
                 
         /* fill leaf colour array */
         for (int i = 0; i<tree.getLeafNodeCount(); i++)
