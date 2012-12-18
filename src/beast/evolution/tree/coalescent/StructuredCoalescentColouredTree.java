@@ -24,13 +24,11 @@ import beast.core.StateNode;
 import beast.core.StateNodeInitialiser;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
-import beast.evolution.alignment.Alignment;
-import beast.evolution.alignment.ColouredSequence;
-import beast.evolution.alignment.Sequence;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.operators.ColouredTreeModifier;
 import beast.evolution.tree.ColouredTree;
 import beast.evolution.tree.Node;
+import beast.evolution.tree.TraitSet;
 import beast.evolution.tree.Tree;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
@@ -58,11 +56,9 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
     public Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
             "leafColours",
             "Colours of leaf nodes.");
-    
-    public Input<Alignment> alignmentInput = new Input<Alignment>(
-            "alignment",
-            "Alignment containing coloured taxa.");
-
+    public Input<TraitSet> traitSetInput = new Input<TraitSet>(
+            "traitSet",
+            "Trait set specifying colours of leaf nodes.");
     /*
      * Non-input fields:
      */
@@ -134,26 +130,16 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
                 leafNames.add(String.valueOf(i));
             }
         } else {
-            if (alignmentInput.get() == null)
+            if (traitSetInput.get() == null)
                 throw new IllegalArgumentException("Either leafColours or "
-                        + "coloured alignment must be provided.");
-            
-            List<Sequence> sequences = alignmentInput.get().m_pSequences.get();
-            if (sequences == null || sequences.size()<2) {
-                throw new IllegalArgumentException("Alignment must contain "
-                        + "at least two sequences.");
+                        + "trait set must be provided.");
+
+            /* fill leaf colour array */
+            for (int i = 0; i<traitSetInput.get().m_taxa.get().asStringList().size(); i++) {
+                leafColours.add((int)traitSetInput.get().getValue(i));
+                leafNames.add(traitSetInput.get().m_taxa.get().asStringList().get(i));
             }
-            for (int i=0; i<sequences.size(); i++) {
-                if (!(sequences.get(i) instanceof ColouredSequence))
-                    throw new IllegalArgumentException("Alignment must contain "
-                            + "only coloured sequences.");
-                
-                // I know this is horrible and breaking all sorts of programmer
-                // etiquette rules, but...
-                ColouredSequence colouredSequence = (ColouredSequence) sequences.get(i);
-                leafColours.add(colouredSequence.colourInput.get());
-                leafNames.add(alignmentInput.get().getTaxaNames().get(i));
-            }
+
         }
         
         // Hack to deal with StateNodes that haven't been attached to

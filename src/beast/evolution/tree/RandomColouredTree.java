@@ -13,7 +13,8 @@ import java.util.List;
 @Description("Class to initialize a ColouredTree from random tree by adding minimum number of changes needed")
 public class RandomColouredTree extends ColouredTree implements StateNodeInitialiser {
 
-    public Input<TraitSet> m_trait = new Input<TraitSet>("trait", "trait information for initializing traits (like node dates) in the tree");
+    public Input<TraitSet> m_trait = new Input<TraitSet>("trait",
+            "trait information for initializing leaf node colours");
 
     @Override
     public void initAndValidate() throws Exception {

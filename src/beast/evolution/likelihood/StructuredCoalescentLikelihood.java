@@ -18,11 +18,9 @@ package beast.evolution.likelihood;
 
 import beast.core.*;
 import beast.core.Input.Validate;
-import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.*;
-import beast.util.TreeParser;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
