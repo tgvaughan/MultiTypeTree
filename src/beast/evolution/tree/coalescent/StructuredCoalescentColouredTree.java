@@ -134,7 +134,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
                 throw new IllegalArgumentException("Either leafColours or "
                         + "trait set must be provided.");
 
-            /* fill leaf colour array */
+            // Fill leaf colour array:
             for (int i = 0; i<traitSetInput.get().m_taxa.get().asStringList().size(); i++) {
                 leafColours.add((int)traitSetInput.get().getValue(i));
                 leafNames.add(traitSetInput.get().m_taxa.get().asStringList().get(i));
