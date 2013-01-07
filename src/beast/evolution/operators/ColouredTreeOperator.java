@@ -46,10 +46,14 @@ public abstract class ColouredTreeOperator extends Operator {
      * Exception thrown when maximum colour changes is exceeded.
      */
     protected class RecolouringException extends Exception {
-        public RecolouringException() {};
+        ColouredTree cTree;
+        public RecolouringException(ColouredTree cTree) {
+            this.cTree = cTree;
+        };
         public void discardMsg() {
             System.err.println("WARNING: Discarding proposal due to maximum "
-                    + "number of colours allowed on branch being exceeded.");
+                    + "number of colours allowed on branch being exceeded. ("
+                    + cTree.getNDiscardsAndIncrement() + " such discards so-far.)");
         }
         public void throwRuntime() {
             throw new RuntimeException("Maximum number of colour changes "
@@ -403,7 +407,7 @@ public abstract class ColouredTreeOperator extends Operator {
         int count = cTree.getChangeCount(node);
 
         if (count >= cTree.getMaxBranchColours())
-            throw new RecolouringException();
+            throw new RecolouringException(cTree);
 
         // Add spot for new colour change:
         setChangeCount(node, count + 1);

@@ -20,9 +20,7 @@ import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.*;
 import beast.evolution.operators.ColouredTreeModifier;
-import beast.evolution.operators.ColouredTreeOperator;
 import beast.util.Randomizer;
-import beast.util.TreeParser;
 import com.google.common.collect.Lists;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -79,6 +77,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
     protected String colourLabel;
     protected Integer nColours, maxBranchColours;
     protected Boolean discardIfMaxExceeded;
+    protected int nDiscards;
     protected Tree tree;
     public IntegerParameter nodeColours, changeColours, changeCounts;
     public RealParameter changeTimes;
@@ -120,7 +119,11 @@ public class ColouredTree extends CalculationNode implements Loggable {
         if (nodeColoursInput.get() == null)
             nodeColoursInput.setValue(new IntegerParameter("0"), this);
         nodeColours = nodeColoursInput.get();
-
+        
+        // Initialise counter used to keep track of maxBranchColour-related
+        // discards:
+        nDiscards = 0;
+        
     }
 
     /**
@@ -163,6 +166,10 @@ public class ColouredTree extends CalculationNode implements Loggable {
     public boolean discardWhenMaxExceeded() {
         return discardIfMaxExceeded;
     } 
+    
+    public int getNDiscardsAndIncrement() {
+        return ++nDiscards;
+    }
 
     /**
      * Retrieve uncoloured component of this coloured tree.

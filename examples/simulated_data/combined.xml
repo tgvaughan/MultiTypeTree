@@ -149,7 +149,7 @@
     <init spec='StructuredCoalescentColouredTree' id='colouredTree'
 	  nColours="2"
 	  maxBranchColours="10"
-	  discardIfMaxExceeded="false"
+	  discardIfMaxExceeded="true"
 	  figtreeCompatible="true">
 
       <tree spec="Tree" id="tree"/>
