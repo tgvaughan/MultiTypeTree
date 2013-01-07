@@ -94,12 +94,28 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
             double newTime = t_destNode+Randomizer.nextExponential(1.0/(alpha*t_destNode));
 
             // Implement tree changes:
-            disconnectBranch(srcNode);
+            try {
+                disconnectBranch(srcNode);
+            } catch (RecolouringException ex) {
+                if (cTree.discardWhenMaxExceeded()) {
+                    ex.discardMsg();
+                    return Double.NEGATIVE_INFINITY;
+                } else
+                    ex.throwRuntime();
+            }
             connectBranchToRoot(srcNode, destNode, newTime);
             setRoot(srcNodeP);
 
             // Recolour root branches:
-            logHR -= recolourRootBranches(srcNode);
+            try {
+                logHR -= recolourRootBranches(srcNode);
+            } catch (RecolouringException ex) {
+                if (cTree.discardWhenMaxExceeded()) {
+                    ex.discardMsg();
+                    return Double.NEGATIVE_INFINITY;
+                } else
+                    ex.throwRuntime();
+            }
 
             // Return HR:
             logHR += Math.log(alpha*t_destNode)
@@ -133,7 +149,15 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
             setRoot(srcNodeS);
 
             // Recolour new branch:
-            logHR -= recolourBranch(srcNode);
+            try {
+                logHR -= recolourBranch(srcNode);
+            } catch (RecolouringException ex) {
+                if (cTree.discardWhenMaxExceeded()) {
+                    ex.discardMsg();
+                    return Double.NEGATIVE_INFINITY;
+                } else
+                    ex.throwRuntime();
+            }
 
             // Return HR:
             logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
@@ -160,11 +184,27 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
         double newTime = min_newTime+span*Randomizer.nextDouble();
 
         // Implement tree changes:
-        disconnectBranch(srcNode);
+        try {
+            disconnectBranch(srcNode);
+        } catch (RecolouringException ex) {
+            if (cTree.discardWhenMaxExceeded()) {
+                ex.discardMsg();
+                return Double.NEGATIVE_INFINITY;
+            } else
+                ex.throwRuntime();
+        }
         connectBranch(srcNode, destNode, newTime);
 
         // Recolour new branch:
-        logHR -= recolourBranch(srcNode);
+        try {
+            logHR -= recolourBranch(srcNode);
+        } catch (RecolouringException ex) {
+            if (cTree.discardWhenMaxExceeded()) {
+                ex.discardMsg();
+                return Double.NEGATIVE_INFINITY;
+            } else
+                ex.throwRuntime();
+        }
 
         // HR contribution of topology and node height changes:
         logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))

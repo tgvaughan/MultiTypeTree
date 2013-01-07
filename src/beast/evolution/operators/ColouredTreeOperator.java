@@ -25,6 +25,8 @@ import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Abstract base class for all operators on ColouredTree objects.
@@ -40,6 +42,20 @@ public abstract class ColouredTreeOperator extends Operator {
     protected Tree tree;
     protected ColouredTree cTree;
     
+    /**
+     * Exception thrown when maximum colour changes is exceeded.
+     */
+    protected class RecolouringException extends Exception {
+        public RecolouringException() {};
+        public void discardMsg() {
+            System.err.println("WARNING: Discarding proposal due to maximum "
+                    + "number of colours allowed on branch being exceeded.");
+        }
+        public void throwRuntime() {
+            throw new RuntimeException("Maximum number of colour changes "
+                    + "allowed on branch exceeded.");
+        }
+    };
     
     /* ***********************************************************************
      * The following two methods are copied verbatim from TreeOperator.  We've
@@ -110,15 +126,23 @@ public abstract class ColouredTreeOperator extends Operator {
 
         setChangeCount(nodeB, 0);
         for (int i = 0; i < cTree.getChangeCount(nodeA); i++)
-            addChange(nodeB, cTree.getChangeColour(nodeA, i),
-                    cTree.getChangeTime(nodeA, i));
+            try {
+                addChange(nodeB, cTree.getChangeColour(nodeA, i),
+                        cTree.getChangeTime(nodeA, i));
+            } catch (Exception ex) {
+                Logger.getLogger(ColouredTreeOperator.class.getName()).log(Level.SEVERE, null, ex);
+            }
         setNodeColour(nodeB, cTree.getNodeColour(nodeA));
 
         // Copy original contents of nodeB to nodeA:
 
         setChangeCount(nodeA, 0);
         for (int i = 0; i < oldChangeCountB; i++)
-            addChange(nodeA, changeList.get(i), changeTimeList.get(i));
+            try {
+                addChange(nodeA, changeList.get(i), changeTimeList.get(i));
+            } catch (Exception ex) {
+                Logger.getLogger(ColouredTreeOperator.class.getName()).log(Level.SEVERE, null, ex);
+            }
         setNodeColour(nodeA, oldNodeColourB);
 
     }
@@ -142,7 +166,7 @@ public abstract class ColouredTreeOperator extends Operator {
      *
      * @param node
      */
-    public void disconnectBranch(Node node) {
+    public void disconnectBranch(Node node) throws RecolouringException {
 
         // Check argument validity:
         Node parent = node.getParent();
@@ -225,8 +249,12 @@ public abstract class ColouredTreeOperator extends Operator {
         // Divide colour changes between new branches:
         setChangeCount(parent, 0);
         for (int idx = split; idx < cTree.getChangeCount(destBranchBase); idx++)
-            addChange(parent, cTree.getChangeColour(destBranchBase, idx),
-                    cTree.getChangeTime(destBranchBase, idx));
+            try {
+                addChange(parent, cTree.getChangeColour(destBranchBase, idx),
+                        cTree.getChangeTime(destBranchBase, idx));
+            } catch (Exception ex) {
+                Logger.getLogger(ColouredTreeOperator.class.getName()).log(Level.SEVERE, null, ex);
+            }
         setChangeCount(destBranchBase, split);
 
         // Set colour at split:
@@ -294,7 +322,7 @@ public abstract class ColouredTreeOperator extends Operator {
     public void setChangeColour(Node node, int idx, int colour) {
 
         if (idx > cTree.getChangeCount(node))
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                     "Attempted to alter non-existent change colour.");
 
         int offset = node.getNr() * cTree.getMaxBranchColours();
@@ -371,12 +399,11 @@ public abstract class ColouredTreeOperator extends Operator {
      * @param newColour
      * @param time
      */
-    public void addChange(Node node, int newColour, double time) {
+    public void addChange(Node node, int newColour, double time) throws RecolouringException {
         int count = cTree.getChangeCount(node);
 
         if (count >= cTree.getMaxBranchColours())
-            throw new RuntimeException(
-                    "Maximum number of colour changes along branch exceeded.");
+            throw new RecolouringException();
 
         // Add spot for new colour change:
         setChangeCount(node, count + 1);

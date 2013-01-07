@@ -77,7 +77,15 @@ public class ColouredSubtreeSlideRandom extends RandomRecolourOperator {
             parent.setHeight(t_parentNew);
             
             // Recolour branches between node, the root and node's sister:
-            logHR -= recolourRootBranches(node);
+            try {
+                logHR -= recolourRootBranches(node);
+            } catch (RecolouringException ex) {
+                if (cTree.discardWhenMaxExceeded()) {
+                    ex.discardMsg();
+                    return Double.NEGATIVE_INFINITY;
+                } else
+                    ex.throwRuntime();
+            }
             
             // Reject outright if colouring inconsistent:
             if (cTree.getNodeColour(parent) != cTree.getFinalBranchColour(sister))

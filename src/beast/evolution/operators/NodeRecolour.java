@@ -54,11 +54,19 @@ public class NodeRecolour extends UniformizationRecolourOperator {
         setNodeColour(node, Randomizer.nextInt(cTree.getNColours()));
         
         // Recolour attached branches:
-        if (!node.isRoot())
-            logHR -= recolourBranch(node);
+        try {
+            if (!node.isRoot())
+                logHR -= recolourBranch(node);
 
-        logHR -= recolourBranch(node.getLeft())
-                + recolourBranch(node.getRight());
+            logHR -= recolourBranch(node.getLeft())
+                    + recolourBranch(node.getRight());
+        } catch (RecolouringException ex) {
+            if (cTree.discardWhenMaxExceeded()) {
+                ex.discardMsg();
+                return Double.NEGATIVE_INFINITY;
+            } else
+                ex.throwRuntime();
+        }
         
         return logHR;
     }

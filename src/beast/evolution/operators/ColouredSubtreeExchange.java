@@ -85,7 +85,15 @@ public class ColouredSubtreeExchange extends UniformizationRecolourOperator {
         replace(destNodeParent, destNode, srcNode);
         
         // Recolour branches involved:
-        logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
+        try {
+            logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
+        } catch (RecolouringException ex) {
+            if (cTree.discardWhenMaxExceeded()) {
+                ex.discardMsg();
+                return Double.NEGATIVE_INFINITY;
+            } else
+                ex.throwRuntime();
+        }
         
         return logHR;
     }    

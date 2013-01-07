@@ -17,6 +17,7 @@
 package beast.evolution.operators;
 
 import beast.evolution.tree.ColouredTree;
+import beast.evolution.tree.Node;
 
 /**
  * Operator for modifying coloured trees.
@@ -44,6 +45,24 @@ public class ColouredTreeModifier extends ColouredTreeOperator {
     @Override
     public double proposal() {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    @Override
+    public void disconnectBranch(Node node) {
+        try {
+            super.disconnectBranch(node);
+        } catch (RecolouringException ex) {
+            ex.throwRuntime();
+        }
+    }
+    
+    @Override
+    public void addChange(Node node, int newColour, double time) {
+        try {
+            super.addChange(node, newColour, time);
+        } catch (RecolouringException ex) {
+            ex.throwRuntime();
+        }
     }
     
 }

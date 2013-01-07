@@ -51,6 +51,10 @@ public class ColouredTree extends CalculationNode implements Loggable {
     public Input<Integer> maxBranchColoursInput = new Input<Integer>(
             "maxBranchColours",
             "Max number of colour changes allowed along a single branch.", 20);
+    public Input<Boolean> discardIfMaxExceededInput = new Input<Boolean>(
+            "discardIfMaxExceeded",
+            "Whether or operators should silently discard trees proposed with "
+            + "too many colour changes.  Default false.", false);
     
     // Inputs providing access to the variable state of the tree
     public Input<Tree> treeInput = new Input<Tree>("tree", "Tree on which to place colours.");    
@@ -74,6 +78,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
      */
     protected String colourLabel;
     protected Integer nColours, maxBranchColours;
+    protected Boolean discardIfMaxExceeded;
     protected Tree tree;
     public IntegerParameter nodeColours, changeColours, changeCounts;
     public RealParameter changeTimes;
@@ -92,6 +97,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
         colourLabel = colourLabelInput.get();
         nColours = nColoursInput.get();
         maxBranchColours = maxBranchColoursInput.get();
+        discardIfMaxExceeded = discardIfMaxExceededInput.get();
 
         // Obtain tree to colour:
         if (treeInput.get() == null)
@@ -137,7 +143,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
      * 
      * @return modifier
      */
-    public ColouredTreeOperator getModifier() {
+    public ColouredTreeModifier getModifier() {
         return modifier;
     }
 
@@ -149,6 +155,14 @@ public class ColouredTree extends CalculationNode implements Loggable {
     public int getMaxBranchColours() {
         return maxBranchColours;
     }
+    
+    /**
+     * @return true if operators should force reject on poposed trees
+     * having too many colour changes.
+     */
+    public boolean discardWhenMaxExceeded() {
+        return discardIfMaxExceeded;
+    } 
 
     /**
      * Retrieve uncoloured component of this coloured tree.

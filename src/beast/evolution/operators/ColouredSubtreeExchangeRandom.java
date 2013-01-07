@@ -88,7 +88,15 @@ public class ColouredSubtreeExchangeRandom extends RandomRecolourOperator {
         replace(destNodeParent, destNode, srcNode);
         
         // Recolour branches involved:
-        logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
+        try {
+            logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
+        } catch (RecolouringException ex) {
+            if (cTree.discardWhenMaxExceeded()) {
+                ex.discardMsg();
+                return Double.NEGATIVE_INFINITY;
+            } else
+                ex.throwRuntime();
+        }
         
         // Force rejection if colouring inconsistent:
         if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(destNodeParent)

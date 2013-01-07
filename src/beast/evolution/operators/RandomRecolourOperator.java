@@ -38,7 +38,7 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
      * @param srcNode
      * @return Probability of branch colouring
      */
-    protected double recolourBranch(Node srcNode) {
+    protected double recolourBranch(Node srcNode) throws RecolouringException {
         
         double mu = muInput.get();
 
@@ -86,7 +86,7 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
      * @param nChangesSister
      * @return Probability of branch colouring.
      */
-    protected double recolourRootBranches(Node srcNode) {
+    protected double recolourRootBranches(Node srcNode) throws RecolouringException {
 
         Node root = srcNode.getParent();
         Node srcNodeSister = getOtherChild(root, srcNode);

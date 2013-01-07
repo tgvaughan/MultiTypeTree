@@ -42,7 +42,7 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
      * @param srcNode
      * @return Probability of new state.
      */
-    protected double recolourBranch(Node srcNode) {
+    protected double recolourBranch(Node srcNode) throws RecolouringException {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
@@ -138,7 +138,7 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
      * @param srcNode
      * @return Probability of new state.
      */
-    protected double recolourRootBranches(Node srcNode) {
+    protected double recolourRootBranches(Node srcNode) throws RecolouringException {
         
         MigrationModel migrationModel = migrationModelInput.get();
 

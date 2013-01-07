@@ -89,13 +89,29 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
             double newTime = t_destNode+Randomizer.nextExponential(1.0/(alpha*t_destNode));
 
             // Implement tree changes:
-            disconnectBranch(srcNode);
+            try {
+                disconnectBranch(srcNode);
+            } catch (RecolouringException ex) {
+                if (cTree.discardWhenMaxExceeded()) {
+                    ex.discardMsg();
+                    return Double.NEGATIVE_INFINITY;
+                } else
+                    ex.throwRuntime();
+            }
             connectBranchToRoot(srcNode, destNode, newTime);
             setRoot(srcNodeP);
 
             // Recolour root branches, incorporating probability of new branch
             // into HR:
-            logHR -= recolourRootBranches(srcNode);
+            try {
+                logHR -= recolourRootBranches(srcNode);
+            } catch (RecolouringException ex) {
+                if (cTree.discardWhenMaxExceeded()) {
+                    ex.discardMsg();
+                    return Double.NEGATIVE_INFINITY;
+                } else
+                    ex.throwRuntime();
+            }
             
             // Abort if colouring inconsistent:
             if (cTree.getNodeColour(srcNodeP) != cTree.getFinalBranchColour(destNode))
@@ -133,7 +149,15 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
 
             // Recolour new branch, incorporating probability of new branch
             // into HR:
-            logHR -= recolourBranch(srcNode);
+            try {
+                logHR -= recolourBranch(srcNode);
+            } catch (RecolouringException ex) {
+                if (cTree.discardWhenMaxExceeded()) {
+                    ex.discardMsg();
+                    return Double.NEGATIVE_INFINITY;
+                } else
+                    ex.throwRuntime();
+            }
             
             // Abort if new colouring is inconsistent:
             if (cTree.getNodeColour(srcNodeP) != cTree.getFinalBranchColour(srcNode))
@@ -163,11 +187,27 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
         double newTime = min_newTime+span*Randomizer.nextDouble();
 
         // Implement tree changes:
-        disconnectBranch(srcNode);
+        try {
+            disconnectBranch(srcNode);
+        } catch (RecolouringException ex) {
+            if (cTree.discardWhenMaxExceeded()) {
+                ex.discardMsg();
+                return Double.NEGATIVE_INFINITY;
+            } else
+                ex.throwRuntime();
+        }
         connectBranch(srcNode, destNode, newTime);
 
         // Recolour new branch:
-        logHR -= recolourBranch(srcNode);
+        try {
+            logHR -= recolourBranch(srcNode);
+        } catch (RecolouringException ex) {
+            if (cTree.discardWhenMaxExceeded()) {
+                ex.discardMsg();
+                return Double.NEGATIVE_INFINITY;
+            } else
+                ex.throwRuntime();
+        }
         
         // Reject outright if new colouring inconsistent:
         if (cTree.getNodeColour(srcNodeP) != cTree.getFinalBranchColour(srcNode))

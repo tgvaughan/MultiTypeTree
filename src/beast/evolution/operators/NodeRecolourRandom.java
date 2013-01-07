@@ -54,14 +54,22 @@ public class NodeRecolourRandom extends RandomRecolourOperator {
         setNodeColour(node, Randomizer.nextInt(cTree.getNColours()));
         
         // Recolour attached branches, forcing reject if inconsistent:
-        if (!node.isRoot()) {
-            logHR -= recolourBranch(node);
-            if (cTree.getFinalBranchColour(node) != cTree.getNodeColour(node.getParent()))
-                return Double.NEGATIVE_INFINITY;
-        }
+        try {
+            if (!node.isRoot()) {
+                logHR -= recolourBranch(node);
+                if (cTree.getFinalBranchColour(node) != cTree.getNodeColour(node.getParent()))
+                    return Double.NEGATIVE_INFINITY;
+            }
 
-        logHR -= recolourBranch(node.getLeft())
-                + recolourBranch(node.getRight());
+            logHR -= recolourBranch(node.getLeft())
+                    + recolourBranch(node.getRight());
+        } catch (RecolouringException ex) {
+            if (cTree.discardWhenMaxExceeded()) {
+                ex.discardMsg();
+                return Double.NEGATIVE_INFINITY;
+            } else
+                ex.throwRuntime();
+        }
        
         if (cTree.getFinalBranchColour(node.getLeft()) != cTree.getNodeColour(node)
                 || cTree.getFinalBranchColour(node.getRight()) != cTree.getNodeColour(node))

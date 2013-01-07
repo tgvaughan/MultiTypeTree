@@ -42,10 +42,10 @@
     <alignment idref='input_alignment'/>
 
     <initialState spec='InitState'>
-      <lineageSeed spec='Individual' label="t1">
+      <lineageSeed spec='Individual' label="t1" time="0">
         <population spec='Population' type="@X" location="1"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t2">
+      <lineageSeed spec='Individual' label="t2" time="1">
         <population spec='Population' type="@X" location="1"/>
       </lineageSeed>
       <lineageSeed spec='Individual' label="t3">
@@ -148,7 +148,8 @@
     
     <init spec='StructuredCoalescentColouredTree' id='colouredTree'
 	  nColours="2"
-	  maxBranchColours="200"
+	  maxBranchColours="10"
+	  discardIfMaxExceeded="false"
 	  figtreeCompatible="true">
 
       <tree spec="Tree" id="tree"/>
