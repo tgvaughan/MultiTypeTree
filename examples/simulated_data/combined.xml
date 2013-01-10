@@ -18,7 +18,7 @@
     <sequence spec="Sequence" taxon="t10" value="?" />
   </alignment>
 
-  <tree spec="MasterTree" id="true_tree">
+  <tree spec="BeastTreeFromMaster" id="true_tree">
     <model spec='InheritanceModel'>
       <populationType spec='PopulationType' typeName='X' dim="2" id='X'/>
       <reactionGroup spec='InheritanceReactionGroup' reactionGroupName='Coalescence'>
@@ -42,34 +42,34 @@
     <alignment idref='input_alignment'/>
 
     <initialState spec='InitState'>
-      <lineageSeed spec='Individual' label="t1" time="0">
+      <lineageSeed spec='Individual' label="t1">
         <population spec='Population' type="@X" location="1"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t2" time="1">
+      <lineageSeed spec='Individual' label="t2">
         <population spec='Population' type="@X" location="1"/>
       </lineageSeed>
       <lineageSeed spec='Individual' label="t3">
         <population spec='Population' type="@X" location="1"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t4">
+      <lineageSeed spec='Individual' label="t4" time="1">
         <population spec='Population' type="@X" location="0"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t5">
+      <lineageSeed spec='Individual' label="t5" time="1">
         <population spec='Population' type="@X" location="0"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t6">
+      <lineageSeed spec='Individual' label="t6" time="1">
         <population spec='Population' type="@X" location="0"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t7">
+      <lineageSeed spec='Individual' label="t7" time="1">
         <population spec='Population' type="@X" location="0"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t8">
+      <lineageSeed spec='Individual' label="t8" time="1">
         <population spec='Population' type="@X" location="0"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t9">
+      <lineageSeed spec='Individual' label="t9" time="2">
         <population spec='Population' type="@X" location="0"/>
       </lineageSeed>
-      <lineageSeed spec='Individual' label="t10">
+      <lineageSeed spec='Individual' label="t10" time="2">
         <population spec='Population' type="@X" location="0"/>
       </lineageSeed>
     </initialState>
@@ -98,18 +98,33 @@
 
   <!-- INFERENCE  -->
 
-  <traitSet spec='TraitSet' id='traitSet'
-	  traitname="discrete"
-	  value="t1=1,
-		 t2=1,
-		 t3=1,
-		 t4=0,
-		 t5=0,
-		 t6=0,
-		 t7=0,
-		 t8=0,
-		 t9=0,
-		 t10=0">
+  <traitSet spec='TraitSet' id='locationTraitSet'
+	    traitname="location"
+	    value="t1=1,
+		   t2=1,
+		   t3=1,
+		   t4=0,
+		   t5=0,
+		   t6=0,
+		   t7=0,
+		   t8=0,
+		   t9=0,
+		   t10=0">
+    <taxa spec='TaxonSet' alignment='@input_alignment'/>
+  </traitSet>
+
+  <traitSet spec='TraitSet' id='timeTraitSet'
+	    traitname="time"
+	    value="t1=0,
+		   t2=0,
+		   t3=0,
+		   t4=1,
+		   t5=1,
+		   t6=1,
+		   t7=1,
+		   t8=1,
+		   t9=2,
+		   t10=2">
     <taxa spec='TaxonSet' alignment='@input_alignment'/>
   </traitSet>
 
@@ -144,11 +159,11 @@
     <migrationModel idref="migModel"/>
   </input>
   
-  <run spec="MCMC" id="mcmc" chainLength="10000000">
+  <run spec="MCMC" id="mcmc" chainLength="1000000">
     
     <init spec='StructuredCoalescentColouredTree' id='colouredTree'
 	  nColours="2"
-	  maxBranchColours="10"
+	  maxBranchColours="100"
 	  discardIfMaxExceeded="true"
 	  figtreeCompatible="true">
 
@@ -159,7 +174,8 @@
       <nodeColours spec="IntegerParameter" id="nodeColours" value="0"/>
 
       <migrationModel idref='migModel'/>
-      <traitSet idref='traitSet'/>
+      <colourTraitSet idref='locationTraitSet'/>
+      <timeTraitSet idref='timeTraitSet'/>
     </init>
 
     <state>

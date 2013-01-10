@@ -34,6 +34,8 @@ import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -56,9 +58,13 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
     public Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
             "leafColours",
             "Colours of leaf nodes.");
-    public Input<TraitSet> traitSetInput = new Input<TraitSet>(
-            "traitSet",
+    public Input<TraitSet> colourTraitSetInput = new Input<TraitSet>(
+            "colourTraitSet",
             "Trait set specifying colours of leaf nodes.");
+    
+    public Input<TraitSet> timeTraitSetInput = new Input<TraitSet>(
+            "timeTraitSet",
+            "Trait set specifying ages of leaf nodes.");
     /*
      * Non-input fields:
      */
@@ -68,6 +74,8 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
     
     private List<Integer> leafColours;
     private List<String> leafNames;
+    private List<Double> leafTimes;
+    private int nLeaves;
 
 
     /*
@@ -98,13 +106,14 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
             this.toColour = toColour;
             this.time = time;
         }
-
-        @Override
-        boolean isCoalescence() {
-            return false;
+    }
+    
+    private class NullEvent extends SCEvent {
+        public NullEvent() {
+            this.time = Double.POSITIVE_INFINITY;
         }
     }
-
+    
     public StructuredCoalescentColouredTree() { }
 
     @Override
@@ -130,16 +139,31 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
                 leafNames.add(String.valueOf(i));
             }
         } else {
-            if (traitSetInput.get() == null)
+            if (colourTraitSetInput.get() == null)
                 throw new IllegalArgumentException("Either leafColours or "
                         + "trait set must be provided.");
 
             // Fill leaf colour array:
-            for (int i = 0; i<traitSetInput.get().m_taxa.get().asStringList().size(); i++) {
-                leafColours.add((int)traitSetInput.get().getValue(i));
-                leafNames.add(traitSetInput.get().m_taxa.get().asStringList().get(i));
+            for (int i = 0; i<colourTraitSetInput.get().m_taxa.get().asStringList().size(); i++) {
+                leafColours.add((int)colourTraitSetInput.get().getValue(i));
+                leafNames.add(colourTraitSetInput.get().m_taxa.get().asStringList().get(i));
             }
-
+        }
+        
+        nLeaves = leafColours.size();
+        
+        // Set leaf times if specified:
+        leafTimes = Lists.newArrayList();
+        if (timeTraitSetInput.get() == null) {
+            for (int i=0; i<nLeaves; i++)
+                leafTimes.add(0.0);
+        } else {
+            if (timeTraitSetInput.get().m_taxa.get().asStringList().size() != nLeaves)
+                throw new IllegalArgumentException("Number of time traits "
+                        + "doesn't match number of leaf colours supplied.");
+            
+            for (int i=0; i<nLeaves; i++)
+                leafTimes.add(timeTraitSetInput.get().getValue(i));
         }
         
         // Hack to deal with StateNodes that haven't been attached to
@@ -178,20 +202,40 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
         // Initialise node creation counter:
         int nextNodeNr = 0;
 
-        // Initialise active node list:
-        List<List<Node>> activeNodes = new ArrayList<List<Node>>();
-        for (int i = 0; i < nColours; i++)
+        // Initialise node lists:
+        List<List<Node>> activeNodes = Lists.newArrayList();
+        List<List<Node>> inactiveNodes = Lists.newArrayList();
+        for (int i = 0; i < nColours; i++) {
             activeNodes.add(new ArrayList<Node>());
+            inactiveNodes.add(new ArrayList<Node>());
+        }
 
-        for (int l = 0; l < leafColours.size(); l++) {
+        // Add nodes to inactive nodes list:
+        for (int l = 0; l < nLeaves; l++) {
             Node node = new Node();
             node.setNr(nextNodeNr);
             node.setID(leafNames.get(l));
-            activeNodes.get(leafColours.get(l)).add(node);
-            modifier.setNodeHeight(node, 0.0);
+            inactiveNodes.get(leafColours.get(l)).add(node);
+            modifier.setNodeHeight(node, leafTimes.get(l));
             modifier.setNodeColour(node, leafColours.get(l));
 
             nextNodeNr++;
+        }
+        
+        // Sort nodes in inactive nodes lists in order of increasing age:
+        for (int i=0; i<nColours; i++) {
+            Collections.sort(inactiveNodes.get(i), new Comparator<Node>() {
+                @Override
+                public int compare(Node node1, Node node2) {
+                    double dt = node1.getHeight()-node2.getHeight();
+                    if (dt<0)
+                        return -1;
+                    if (dt>0)
+                        return 1;
+                    
+                    return 0;
+                }
+            });
         }
 
         // Allocate propensity lists:
@@ -206,20 +250,42 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
 
         double t = 0.0;
 
-        while (totalNodesRemaining(activeNodes) > 1) {
+        while (totalNodesRemaining(activeNodes)>1
+                || totalNodesRemaining(inactiveNodes)>0) {
 
             // Step 1: Calculate propensities.
             double totalProp = updatePropensities(migrationProp, coalesceProp,
                     activeNodes);
-
+            
             // Step 2: Determine next event.
             SCEvent event = getNextEvent(migrationProp, coalesceProp,
                     totalProp, t);
 
-            // Step 3: Place event on tree.
+            // Step 3: Handle activation of nodes:
+            Node nextNode = null;
+            int nextNodeCol = -1;
+            double nextTime = Double.POSITIVE_INFINITY;
+            for (int i=0; i<nColours; i++) {
+                if (inactiveNodes.get(i).isEmpty())
+                    continue;
+                
+                if (inactiveNodes.get(i).get(0).getHeight()<nextTime) {
+                    nextNode = inactiveNodes.get(i).get(0);
+                    nextTime = nextNode.getHeight();
+                    nextNodeCol = i;
+                }
+            }
+            if (nextTime < event.time) {
+                t = nextTime;
+                activeNodes.get(nextNodeCol).add(nextNode);
+                inactiveNodes.get(nextNodeCol).remove(0);
+                continue;
+            }
+            
+            // Step 4: Place event on tree.
             nextNodeNr = updateTree(activeNodes, event, nextNodeNr);
 
-            // Step 4: Keep track of time increment.
+            // Step 5: Keep track of time increment.
             t = event.time;
         }
 
@@ -229,7 +295,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
                 return nodeList.get(0);
 
         // Should not fall through.
-        throw new Exception("No active nodes remaining end of"
+        throw new Exception("No active nodes remaining end of "
                 + "structured coalescent simulation!");
     }
 
@@ -299,7 +365,10 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
             throws Exception {
 
         // Get time of next event:
-        t += Randomizer.nextExponential(totalProp);
+        if (t>0.0)
+            t += Randomizer.nextExponential(totalProp);
+        else
+            return new NullEvent();
 
         // Select event type:
         double U = Randomizer.nextDouble() * totalProp;
@@ -338,7 +407,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
     private int updateTree(List<List<Node>> activeNodes, SCEvent event,
             int nextNodeNr) {
 
-        if (event.isCoalescence()) {
+        if (event instanceof CoalescenceEvent) {
 
             // Randomly select node pair with chosen colour:
             Node daughter = selectRandomNode(activeNodes.get(event.fromColour));
