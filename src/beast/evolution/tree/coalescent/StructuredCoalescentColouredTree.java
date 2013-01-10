@@ -365,7 +365,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
             throws Exception {
 
         // Get time of next event:
-        if (t>0.0)
+        if (totalProp>0.0)
             t += Randomizer.nextExponential(totalProp);
         else
             return new NullEvent();

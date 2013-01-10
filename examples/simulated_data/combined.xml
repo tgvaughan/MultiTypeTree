@@ -30,10 +30,10 @@
         </reaction>
       </reactionGroup>
       <reactionGroup spec='InheritanceReactionGroup' reactionGroupName='Migration'>
-        <reaction spec='InheritanceReaction' rate="0.1">
+        <reaction spec='InheritanceReaction' rate="2.0">
           X[0] -> X[1]
         </reaction>
-        <reaction spec='InheritanceReaction' rate="0.1">
+        <reaction spec='InheritanceReaction' rate="2.0">
           X[1] -> X[0]
         </reaction>
       </reactionGroup>
@@ -115,16 +115,16 @@
 
   <traitSet spec='TraitSet' id='timeTraitSet'
 	    traitname="time"
-	    value="t1=0,
-		   t2=0,
-		   t3=0,
-		   t4=1,
-		   t5=1,
-		   t6=1,
-		   t7=1,
-		   t8=1,
-		   t9=2,
-		   t10=2">
+	    value="t1=0.0,
+		   t2=0.0,
+		   t3=0.0,
+		   t4=0.1,
+		   t5=0.1,
+		   t6=0.1,
+		   t7=0.1,
+		   t8=0.1,
+		   t9=0.2,
+		   t10=0.2">
     <taxa spec='TaxonSet' alignment='@input_alignment'/>
   </traitSet>
 
@@ -159,7 +159,7 @@
     <migrationModel idref="migModel"/>
   </input>
   
-  <run spec="MCMC" id="mcmc" chainLength="1000000">
+  <run spec="MCMC" id="mcmc" chainLength="10000000">
     
     <init spec='StructuredCoalescentColouredTree' id='colouredTree'
 	  nColours="2"
@@ -238,6 +238,7 @@
     <logger logEvery="10000">
       <model idref='posterior'/>
       <log idref="posterior"/>
+      <log spec="beast.evolution.tree.TreeHeightLogger" tree="@tree"/>
       <ESS spec='ESS' name='log' arg="@posterior"/>
     </logger>
   </run>
