@@ -68,16 +68,23 @@ public class ColouredTreeScale extends ColouredTreeOperator {
             n += 1;
         }
 
-        // Ensure new node heights make sense, force reject if not:
-        if (u<1.0&&!validateSubtreeNodeHeights(tree.getRoot()))
-            return Double.NEGATIVE_INFINITY;
-
         // Scale colour change times:
         for (Node node : tree.getNodesAsArray()) {
             for (int c = 0; c<cTree.getChangeCount(node); c++) {
                 double oldTime = cTree.getChangeTime(node, c);
                 setChangeTime(node, c, f*oldTime);
                 n += 1;
+            }
+        }
+        
+        // Ensure reject invalid tree scalings:
+        if (f<1.0) {
+            for (Node leaf : tree.getExternalNodes()) {
+                if (leaf.getParent().getHeight()<leaf.getHeight())
+                    return Double.NEGATIVE_INFINITY;
+                
+                if (cTree.getChangeCount(leaf)>0 && cTree.getChangeTime(leaf, 0)<leaf.getHeight())
+                    return Double.NEGATIVE_INFINITY;
             }
         }
         
@@ -98,24 +105,4 @@ public class ColouredTreeScale extends ColouredTreeOperator {
         return (n-2)*Math.log(f);
     }
 
-    /**
-     * Check whether the heights of all nodes in the subtree of node are smaller
-     * than those of their parents.
-     *
-     * @param node
-     * @return True if heights satisfy the condition.
-     */
-    public boolean validateSubtreeNodeHeights(Node node) {
-
-        if (!node.isRoot())
-            if (node.getHeight()>node.getParent().getHeight())
-                return false;
-
-        if (!node.isLeaf())
-            for (Node child : node.getChildren())
-                if (!validateSubtreeNodeHeights(child))
-                    return false;
-
-        return true;
-    }
 }

@@ -35,7 +35,7 @@ public class ColourChangeCountLogger extends Plugin implements Loggable {
 			"colouredTree",
 			"Coloured tree to log",
 			Validate.REQUIRED);
-	
+        
 	public ColourChangeCountLogger() { };
 	
 	@Override

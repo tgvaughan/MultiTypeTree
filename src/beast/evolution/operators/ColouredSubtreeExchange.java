@@ -96,6 +96,6 @@ public class ColouredSubtreeExchange extends UniformizationRecolourOperator {
         }
         
         return logHR;
-    }    
+    }
     
 }

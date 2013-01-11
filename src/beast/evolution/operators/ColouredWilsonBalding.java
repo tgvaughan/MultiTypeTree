@@ -19,10 +19,8 @@ package beast.evolution.operators;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
-import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
-import java.util.Arrays;
 
 /**
  * Wilson-Balding branch swapping operator applied to coloured trees.
