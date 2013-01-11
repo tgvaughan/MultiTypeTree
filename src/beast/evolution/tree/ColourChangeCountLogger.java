@@ -32,31 +32,53 @@ import java.io.PrintStream;
 public class ColourChangeCountLogger extends Plugin implements Loggable {
 	
 	public Input<ColouredTree> colouredTreeInput = new Input<ColouredTree>(
-			"colouredTree",
-			"Coloured tree to log",
-			Validate.REQUIRED);
+                "colouredTree",
+                "Coloured tree to log",
+                Validate.REQUIRED);
+        
+        public Input<Boolean> logEachDirectionInput = new Input<Boolean>(
+                "logEachDirection",
+                "Whether to log number of changes between each colour pair.",
+                false);
+        
+        ColouredTree cTree;
+        boolean logEachDirection;
         
 	public ColourChangeCountLogger() { };
 	
 	@Override
-	public void initAndValidate() { };
+	public void initAndValidate() {
+            logEachDirection = logEachDirectionInput.get();
+            cTree = colouredTreeInput.get();
+        };
 
 	@Override
 	public void init(PrintStream out) throws Exception {
-		ColouredTree cTree = colouredTreeInput.get();
-		
+
+            String idString;
+                if (getID() == null || getID().matches("\\s*"))
+                    idString = cTree.getID();
+                else
+                    idString = getID();
+                
 		// Print header:
-		if (getID() == null || getID().matches("\\s*"))
-			out.print(cTree.getID() + ".count\t");
-		else
-			out.print(getID() + "\t");
+                if (!logEachDirection) {
+                    out.print(idString + ".count\t");
+                } else {
+                    for (int c=0; c<cTree.getNColours(); c++) {
+                        for (int cp=0; cp<cTree.getNColours(); cp++) {
+                            if (c == cp)
+                                continue;                            
+                            out.print(idString + ".count_" + c + "to" + cp);
+                        }
+                    }
+                }
 	}
 
 	@Override
 	public void log(int nSample, PrintStream out) {
-		ColouredTree cTree = colouredTreeInput.get();
-		
-		int count = 0;
+
+            int count = 0;
 		for (Node node : cTree.getUncolouredTree().getNodesAsArray()) {
 			if (!node.isRoot())
 				count += cTree.getChangeCount(node);
