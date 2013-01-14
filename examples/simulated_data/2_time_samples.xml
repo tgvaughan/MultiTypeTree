@@ -781,6 +781,11 @@
        <log idref="popSizes"/>
        <log idref="rateMatrix"/>
        <log spec='beast.evolution.tree.TreeHeightLogger' tree='@tree'/>
+       <log spec='beast.evolution.tree.TreeLengthLogger' tree='@tree'/>
+       <log spec='beast.evolution.tree.ColourChangeCountLogger'
+            colouredTree="@colouredTree" logEachDirection="true"/>
+       <log spec='beast.evolution.tree.ColourChangeCountLogger'
+            colouredTree="@colouredTree" logEachDirection="false"/>
      </logger>
      <logger logEvery="10000" fileName="2_time_samples.trees" mode="tree">
        <log idref="colouredTree"/>
@@ -788,6 +793,12 @@
      <logger logEvery="10000">
        <model idref='posterior'/>
        <log idref="posterior"/>
+       <log spec='beast.evolution.tree.TreeHeightLogger' tree='@tree'/>
+       <log spec='beast.evolution.tree.TreeLengthLogger' tree='@tree'/>
+       <log spec='beast.evolution.tree.ColourChangeCountLogger'
+            colouredTree="@colouredTree" logEachDirection="true"/>
+       <log spec='beast.evolution.tree.ColourChangeCountLogger'
+            colouredTree="@colouredTree" logEachDirection="false"/>
        <ESS spec='ESS' name='log' arg="@posterior"/>
      </logger>
    </run>

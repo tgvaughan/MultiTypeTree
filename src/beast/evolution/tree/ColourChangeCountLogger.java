@@ -22,6 +22,8 @@ import beast.core.Input.Validate;
 import beast.core.Loggable;
 import beast.core.Plugin;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Logger for total type-change count in multi-type trees.
@@ -69,7 +71,7 @@ public class ColourChangeCountLogger extends Plugin implements Loggable {
                         for (int cp=0; cp<cTree.getNColours(); cp++) {
                             if (c == cp)
                                 continue;                            
-                            out.print(idString + ".count_" + c + "to" + cp);
+                            out.print(idString + ".count_" + c + "_to_" + cp + "\t");
                         }
                     }
                 }
@@ -78,14 +80,43 @@ public class ColourChangeCountLogger extends Plugin implements Loggable {
 	@Override
 	public void log(int nSample, PrintStream out) {
 
-            int count = 0;
-		for (Node node : cTree.getUncolouredTree().getNodesAsArray()) {
-			if (!node.isRoot())
-				count += cTree.getChangeCount(node);
-		}
-		
-		out.print(count + "\t");
-	}
+            if (!logEachDirection) {
+                
+                int count = 0;
+                for (Node node : cTree.getUncolouredTree().getNodesAsArray()) {
+                    if (!node.isRoot())
+                        count += cTree.getChangeCount(node);
+                }
+                
+                out.print(Integer.toString(count) + "\t");
+                
+            } else {
+            
+                // Count migrations:                
+                int nColours = cTree.getNColours();
+                int [] colourChanges = new int[nColours*nColours];
+                for (Node node : cTree.getUncolouredTree().getNodesAsArray()) {
+                    if (node.isRoot())
+                        continue;
+                    
+                    int lastCol = cTree.getNodeColour(node);
+                    for (int i=0; i<cTree.getChangeCount(node); i++) {
+                        int nextCol = cTree.getChangeColour(node, i);
+                        colourChanges[lastCol + nColours*nextCol] += 1;
+                        lastCol = nextCol;
+                    }
+                }
+                
+                // Log results:
+                for (int c=0; c<nColours; c++) {
+                    for (int cp=0; cp<nColours; cp++) {
+                        if (c==cp)
+                            continue;
+                        out.print(colourChanges[c + nColours*cp] + "\t");
+                    }
+                }
+            }
+        }
 
 	@Override
 	public void close(PrintStream out) { };
