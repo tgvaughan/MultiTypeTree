@@ -52,7 +52,8 @@
 
         <operator spec='ColouredTreeScale' id="CTS"
                   weight="1" colouredTree='@colouredTree'
-                  scaleFactor="1.5"/>
+                  scaleFactor="1.5"
+                  useOldTreeScaler="false"/>
 
         <logger logEvery="1000" fileName="STXtest.log">
             <model idref='P'/>
