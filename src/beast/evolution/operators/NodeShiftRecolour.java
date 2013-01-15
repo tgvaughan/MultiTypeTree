@@ -20,8 +20,6 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
@@ -30,17 +28,25 @@ import java.util.logging.Logger;
         + " with the difference that this operator draws new node positions"
         + " uniformly between the parent and oldest child heights and"
         + " recolours the modified branches.  Additionally, this operator"
-        + " acts on the root node.")
-public class ColouredUniformRecolour extends UniformizationRecolourOperator {
+        + " can act on the root node.")
+public class NodeShiftRecolour extends UniformizationRecolourOperator {
     
     public Input<Boolean> rootOnlyInput = new Input<Boolean>("rootOnly",
             "Always select root node for height adjustment.", false);
     
+    public Input<Boolean> noRootInput = new Input<Boolean>("noRoot",
+            "Never select root node for height adjustment.", false);
+    
     public Input<Double> rootScaleFactorInput = new Input<Double>("rootScaleFactor",
-            "Scale factor used in root height proposals. (Default 1.5)", 1.5);
+            "Scale factor used in root height proposals. (Default 1.1)", 1.1);
     
     @Override
-    public void initAndValidate() { }
+    public void initAndValidate() {
+        
+        if (rootOnlyInput.get() && noRootInput.get())
+            throw new IllegalArgumentException("rootOnly and noRoot inputs "
+                    + "cannot both be set to true simultaneously.");
+    }
     
     @Override
     public double proposal() {
@@ -53,7 +59,11 @@ public class ColouredUniformRecolour extends UniformizationRecolourOperator {
         if (rootOnlyInput.get())
             node = tree.getRoot();
         else
-            node = tree.getNode(Randomizer.nextInt(tree.getInternalNodeCount()));
+            do {
+                node = tree.getNode(tree.getLeafNodeCount()
+                        + Randomizer.nextInt(tree.getInternalNodeCount()));
+            } while (noRootInput.get() && node.isRoot());
+        
                 
         // Generate relevant proposal:
         if (node.isRoot())

@@ -25,7 +25,6 @@ import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
-import cern.colt.matrix.linalg.Property;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
