@@ -6,7 +6,7 @@ import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
 @Description("Randomly selects true internal tree node (i.e. not the root) and"
-        + " move node height uniformly in interval restricted by the nodes"
+        + " moves node height uniformly in interval restricted by the node's"
         + " parent and children.")
 public class ColouredUniform extends ColouredTreeOperator {
 

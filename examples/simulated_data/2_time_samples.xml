@@ -765,6 +765,10 @@
 
      <operator spec="ColouredUniform" id="CU"
  	      weight="1" colouredTree="@colouredTree"/>
+     
+     <operator spec="ColouredUniformRecolour" id="CUR"
+               weight="1" colouredTree="@colouredTree"
+               migrationModel="@migModel" rootOnly="true"/>
 
      <operator spec="ColouredTreeScale" id="CTS"
  	      weight="1" colouredTree="@colouredTree"
