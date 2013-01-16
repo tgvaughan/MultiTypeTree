@@ -34,6 +34,12 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
             "migrationModel",
             "Migration model for proposal distribution", Input.Validate.REQUIRED);
     
+    public Input<Integer> maxIterationsInput = new Input<Integer>(
+            "maxIterations",
+            "Places an upper bound on number of iterations before rejection. "
+            + "(Default 10000.)",
+            10000);
+    
     /**
      * Recolour branch between srcNode and its parent.  Uses the combined
      * uniformization/forward-backward approach of Fearnhead and Sherlock (2006)
@@ -63,8 +69,16 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
         int nVirt = 0;
         double poisAcc = Math.exp(-muL);
         u1 -= poisAcc*migrationModel.getRpowElement(0, 1.0, col_srcNodeP, col_srcNode);
-        while (u1>0.0) {
+        while (u1>0.0) {            
             nVirt += 1;
+            
+            if (maxIterationsInput.get() != null && nVirt>maxIterationsInput.get()) {
+                System.err.println("WARNING: Maximum number of iterations "
+                        + "in uniformized branch recolouring operator exceeded. "
+                        + "Rejecting move.");
+                return Double.NEGATIVE_INFINITY;
+            }
+            
             poisAcc *= muL/nVirt;
             u1 -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, col_srcNodeP, col_srcNode);
         }
