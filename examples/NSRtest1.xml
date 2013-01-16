@@ -39,15 +39,12 @@
 
         </distribution>
 
-        <operator spec='ColouredTreeScale' id="CTS"
-                  weight="1" colouredTree='@colouredTree'
-                  scaleFactor="1.1" useOldTreeScaler="false"/>
+        <operator spec='NodeShiftRecolour' id="NSR"
+                  weight="1" colouredTree="@colouredTree"
+                  rootScaleFactor="1.1"
+                  migrationModel="@migmodel"/>
 
-        <operator spec='ColouredSubtreeSlideRandom' id="STS"
-                  weight="0.5" colouredTree="@colouredTree"
-                  mu="0.2" rootSlideParam="1.5" />
-
-        <logger logEvery="1000" fileName="STStest.log">
+        <logger logEvery="1000" fileName="NSRtest1.log">
             <model idref='P'/>
             <log idref="P"/>
             <log spec='TreeHeightLogger'>

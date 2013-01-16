@@ -11,14 +11,14 @@
         <init spec='ColouredTreeFromNewick'
                       id="colouredTree" 
                       colourLabel="state" nColours="2" maxBranchColours="100"
-              figtreeCompatible="true">
+                      figtreeCompatible="true">
             <tree id="tree" spec="Tree"/>
             <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
-            <changeTimes id="tree.times"  spec="RealParameter" value="0."/>
+            <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>
             <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
             <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
             <input name="newick">
-                (1[state='1']:1,2[state='0']:1)[state='0']:0;
+                ((1[state='0']:1,2[state='0']:1)[state='0']:1,3[state='0']:2)[state='0']:0;
             </input>
         </init>
       
@@ -39,26 +39,27 @@
 
         </distribution>
 
-        <operator spec='ColouredTreeScale' id="CTS"
-                  weight="1" colouredTree='@colouredTree'
-                  scaleFactor="1.1" useOldTreeScaler="false"/>
+        <operator spec='ColouredSubtreeExchange' id="CSTX"
+                          weight="1" colouredTree="@colouredTree"
+                          migrationModel="@migmodel"/>
+        
+        <operator spec='NodeShiftRecolour' id="NSR"
+                  weight="50" colouredTree="@colouredTree"
+                  rootScaleFactor="1.1"
+                  migrationModel="@migmodel"/>
 
-        <operator spec='ColouredSubtreeSlideRandom' id="STS"
-                  weight="0.5" colouredTree="@colouredTree"
-                  mu="0.2" rootSlideParam="1.5" />
-
-        <logger logEvery="1000" fileName="STStest.log">
+        <logger logEvery="1000" fileName="NSRtest2.log">
             <model idref='P'/>
             <log idref="P"/>
-            <log spec='TreeHeightLogger'>
+            <log spec='beast.evolution.tree.TreeHeightLogger'>
                 <tree idref="tree"/>
             </log>
-            <log spec='ColourChangeCountLogger'>
+            <log spec='beast.evolution.tree.ColourChangeCountLogger'>
                 <colouredTree idref="colouredTree"/>
             </log>
         </logger>
 
-        <logger logEvery="10000">
+        <logger logEvery="100000">
             <model idref='P'/>
             <log idref="P"/>
             <log spec='beast.evolution.tree.TreeHeightLogger' >
@@ -70,7 +71,7 @@
         </logger>
 
         <!--
-        <logger logEvery="10000" fileName="STStest_col.trees" mode="tree">
+        <logger logEvery="10000" fileName="CWBRtest_col.trees" mode="tree">
             <log idref="colouredTree"/>
         </logger>
         -->

@@ -29,7 +29,7 @@ import beast.util.Randomizer;
         + " uniformly between the parent and oldest child heights and"
         + " recolours the modified branches.  Additionally, this operator"
         + " can act on the root node.")
-public class NodeShiftRecolour extends UniformizationRecolourOperator {
+public class NodeShiftRecolourRandom extends RandomRecolourOperator {
     
     public Input<Boolean> rootOnlyInput = new Input<Boolean>("rootOnly",
             "Always select root node for height adjustment.", false);
@@ -109,6 +109,11 @@ public class NodeShiftRecolour extends UniformizationRecolourOperator {
                 ex.throwRuntime();
         }
         
+        // Reject if new colouring inconsistent:
+        if ((cTree.getFinalBranchColour(root.getLeft()) != cTree.getNodeColour(root))
+                || (cTree.getFinalBranchColour(root.getRight()) != cTree.getNodeColour(root)))
+            return Double.NEGATIVE_INFINITY;
+        
         return logHR;
     }
     
@@ -148,6 +153,12 @@ public class NodeShiftRecolour extends UniformizationRecolourOperator {
             } else
                 ex.throwRuntime();
         }
+        
+        // Reject if new colouring inconsistent:
+        if ((cTree.getFinalBranchColour(node.getLeft()) != cTree.getNodeColour(node))
+                || (cTree.getFinalBranchColour(node.getRight()) != cTree.getNodeColour(node))
+                || (cTree.getFinalBranchColour(node) != cTree.getNodeColour(node.getParent())))
+            return Double.NEGATIVE_INFINITY;
         
         return logHR;        
     }
