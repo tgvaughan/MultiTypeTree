@@ -763,11 +763,6 @@
  	      weight="1" colouredTree="@colouredTree"
  	      migrationModel="@migModel"/>
 
-     <!--
-     <operator spec="ColouredUniform" id="CU"
- 	      weight="1" colouredTree="@colouredTree"/>
-              -->
-     
      <operator spec="NodeShiftRecolour" id="NSR1"
                weight="1" colouredTree="@colouredTree"
                migrationModel="@migModel" rootOnly="true"/>
