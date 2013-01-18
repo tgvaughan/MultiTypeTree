@@ -570,8 +570,6 @@ public class ColouredTree extends CalculationNode implements Loggable {
         // Populate active node lists with root:
         activeFlatTreeNodes.add(flatTree.getRoot());
         Node root = new Node();
-        //root.setNr(internalNrs.get(0));
-        //internalNrs.remove(0);
         activeTreeNodes.add(root);
 
         while (!activeFlatTreeNodes.isEmpty()) {
