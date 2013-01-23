@@ -55,8 +55,14 @@ public class MigrationModel extends CalculationNode {
     
     public Input<Boolean> rateMatrixIsBackward = new Input<Boolean>(
             "rateMatrixIsBackward",
-            "If true, rate matrix elements are read as reverse-time rates. Default true.",
+            "If true, rate matrix elements are read as reverse-time rates.  "
+            + "Default true.",
             true);
+    
+    public Input<Double> uniformInitialRateInput = new Input<Double>(
+            "uniformInitialRate",
+            "Specify uniform rate with which to initialise matrix.  "
+            + "Overrides previous dimension and value of matrix.");
     
     private RealParameter rateMatrix, popSizes;
     private double totalPopSize;
@@ -71,7 +77,27 @@ public class MigrationModel extends CalculationNode {
     public MigrationModel() { }
 
     @Override
-    public void initAndValidate() {
+    public void initAndValidate() throws Exception {
+        
+        if (uniformInitialRateInput.get() != null) {
+            
+            int nColours = popSizesInput.get().getDimension();
+            double rate = uniformInitialRateInput.get();
+            StringBuilder sb = new StringBuilder();
+            for (int i=0; i<nColours; i++) {
+                for (int j=0; j<nColours; j++) {
+                    if (i==j)
+                        sb.append("0.0 ");
+                    else
+                        sb.append(String.valueOf(rate)).append(" ");
+                }
+            }
+            rateMatrixInput.get().initByName(
+                    "dimension", nColours*nColours,
+                    "minordimension", nColours,
+                    "value", sb.toString());
+        }
+        
         dirty = true;
         updateMatrices();
     }
