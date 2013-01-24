@@ -128,16 +128,24 @@ public class ColourMergeSplit extends ColouredTreeOperator {
             return Double.NEGATIVE_INFINITY;
         
         int leftColourUnder;
-        if (leftIdx>0)
+        double tminLeft;
+        if (leftIdx>0) {
             leftColourUnder = cTree.getChangeColour(left, leftIdx-1);
-        else
+            tminLeft = cTree.getChangeTime(left, leftIdx-1);
+        } else {
             leftColourUnder = cTree.getNodeColour(left);
+            tminLeft = left.getHeight();
+        }
         
         int rightColourUnder;
-        if (rightIdx>0)
+        double tminRight;
+        if (rightIdx>0) {
             rightColourUnder = cTree.getChangeColour(right, rightIdx-1);
-        else
+            tminRight = cTree.getChangeTime(right, rightIdx-1);
+        } else {
             rightColourUnder = cTree.getNodeColour(right);
+            tminRight = right.getHeight();
+        }
 
         if (leftColourUnder != rightColourUnder)
             return Double.NEGATIVE_INFINITY;
@@ -165,7 +173,8 @@ public class ColourMergeSplit extends ColouredTreeOperator {
                 ex.throwRuntime();
         }
         
-        return 0.0;
+        return Math.log(tmax-node.getHeight())
+                - Math.log((node.getHeight()-tminLeft)*(node.getHeight()-tminRight));
     }
     
 }
