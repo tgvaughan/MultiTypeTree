@@ -417,6 +417,57 @@ public abstract class ColouredTreeOperator extends Operator {
         setChangeTime(node, count, time);
 
     }
+    
+    /**
+     * Insert a new colour change at index idx to colour newColour at the
+     * specified time.
+     * 
+     * @param node
+     * @param idx
+     * @param newColour
+     * @param newTime
+     * @throws beast.evolution.operators.ColouredTreeOperator.RecolouringException 
+     */
+    public void insertChange(Node node, int idx, int newColour, double newTime) throws RecolouringException {
+        int count = cTree.getChangeCount(node);
+        
+        if (idx > count)
+            throw new IllegalArgumentException("Index to insertChange() out of range.");
+
+        if (count >= cTree.getMaxBranchColours())
+            throw new RecolouringException(cTree);
+        
+        setChangeCount(node, count+1);
+
+        for (int i=count; i>idx; i--) {
+            setChangeTime(node, i, cTree.getChangeTime(node, i-1));
+            setChangeColour(node, i, cTree.getChangeColour(node, i-1));
+        }
+        
+        setChangeTime(node, idx, newTime);
+        setChangeColour(node, idx, newColour);
+    }
+    
+    /**
+     * Remove the colour change at index idx from the branch above node.
+     * 
+     * @param node
+     * @param idx 
+     */
+    public void removeChange(Node node, int idx) {
+        int count = cTree.getChangeCount(node);
+        
+        if (idx >= count)
+            throw new IllegalArgumentException("Index to removeChange() out of range.");
+        
+        for (int i=idx; i<count-1; i++) {
+            setChangeTime(node, i, cTree.getChangeTime(node, i+1));
+            setChangeColour(node, i, cTree.getChangeColour(node, i+1));
+        }
+        
+        setChangeCount(node, count-1);
+        
+    }
 
     /**
      * Set colour of node.

@@ -24,14 +24,7 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 /**
- * Tests for StructuredCoalescentLikelihood class methods.  Must extend
- * operator, as only operators are allowed to edit state nodes and current
- * approach to building coloured tree involves multiple calls to the
- * setValue() method of the state nodes representing the colouring information.
- * 
- * Possible way around this problem would be to have the initialiser work on
- * temporary arrays would then be used to initialise the state nodes in
- * one go.  (This is what Denise did earlier on..)
+ * Tests for StructuredCoalescentLikelihood class methods.
  *
  * @author Tim Vaughan
  */
