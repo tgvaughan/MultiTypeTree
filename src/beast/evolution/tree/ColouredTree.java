@@ -358,9 +358,10 @@ public class ColouredTree extends CalculationNode implements Loggable {
      */
     private boolean timeIsValid(Node node) {
 
-        if (!node.isRoot())
+        if (!node.isRoot()) {
             // Check consistency of times on branch between node
             // and its parent:
+            
             for (int i = 0; i<getChangeCount(node); i++) {
                 double thisTime = getChangeTime(node, i);
 
@@ -372,23 +373,25 @@ public class ColouredTree extends CalculationNode implements Loggable {
 
                 if (thisTime<prevTime)
                     return false;
-
-                double nextTime;
-                if (i<getChangeCount(node)-1)
-                    nextTime = getChangeTime(node, i+1);
-                else
-                    nextTime = node.getParent().getHeight();
-
-                if (nextTime<thisTime)
-                    return false;
             }
 
-        if (!node.isLeaf())
+            double lastHeight;
+            if (getChangeCount(node)>0)
+                lastHeight = getChangeTime(node,getChangeCount(node)-1);
+            else
+                lastHeight = node.getHeight();
+            
+            if (lastHeight>node.getParent().getHeight())
+                return false;
+            }
+
+        if (!node.isLeaf()) {
             // Check consistency of branches between node and
             // each of its children:
             for (Node child : node.getChildren())
                 if (!timeIsValid(child))
                     return false;
+        }
 
         return true;
     }
