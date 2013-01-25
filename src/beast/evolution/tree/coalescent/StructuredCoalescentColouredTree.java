@@ -61,7 +61,6 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
     public Input<TraitSet> colourTraitSetInput = new Input<TraitSet>(
             "colourTraitSet",
             "Trait set specifying colours of leaf nodes.");
-    
     public Input<TraitSet> timeTraitSetInput = new Input<TraitSet>(
             "timeTraitSet",
             "Trait set specifying ages of leaf nodes.");

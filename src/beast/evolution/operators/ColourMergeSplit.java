@@ -19,8 +19,6 @@ package beast.evolution.operators;
 import beast.core.Description;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
@@ -29,6 +27,9 @@ import java.util.logging.Logger;
         + "described by Ewing et al., Genetics (2004).")
 public class ColourMergeSplit extends ColouredTreeOperator {
 
+    @Override
+    public void initAndValidate() { }
+    
     @Override
     public double proposal() {
         
@@ -156,8 +157,8 @@ public class ColourMergeSplit extends ColouredTreeOperator {
         else
             tmax = node.getParent().getHeight();
         
-        removeChange(node, leftIdx);
-        removeChange(node, rightIdx);        
+        removeChange(left, leftIdx);
+        removeChange(right, rightIdx);        
         setNodeColour(node, leftColourUnder);
         
         double tnew = Randomizer.nextDouble()*(tmax-node.getHeight())

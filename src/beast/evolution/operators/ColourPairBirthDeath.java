@@ -28,11 +28,14 @@ import beast.util.Randomizer;
 public class ColourPairBirthDeath extends ColouredTreeOperator {
 
     @Override
+    public void initAndValidate() { }
+    
+    @Override
     public double proposal() {
         cTree = colouredTreeInput.get();
         tree = cTree.getUncolouredTree();
         
-        int n = tree.getNodeCount();
+        int n = tree.getLeafNodeCount();
         int m = cTree.getTotalNumberofChanges();
         
         // Select sub-edge at random:
@@ -70,24 +73,27 @@ public class ColourPairBirthDeath extends ColouredTreeOperator {
      */
     private double birthProposal(Node node, int edgeNum, int n, int m) {
         
+        int ridx = edgeNum;
+        int sidx = edgeNum-1;
+        
         double ts, tr;
         int oldEdgeColour;
-        if (edgeNum==0) {
+        if (sidx<0) {
             ts = node.getHeight();
             oldEdgeColour = cTree.getNodeColour(node);
         } else {
-            ts = cTree.getChangeTime(node, edgeNum-1);
-            oldEdgeColour = cTree.getChangeColour(node, edgeNum-1);
+            ts = cTree.getChangeTime(node, sidx);
+            oldEdgeColour = cTree.getChangeColour(node, sidx);
         }
 
-        if (edgeNum-1==cTree.getChangeCount(node)-1)
+        if (ridx>cTree.getChangeCount(node)-1)
             tr = node.getParent().getHeight();
         else
-            tr = cTree.getChangeTime(node, edgeNum);
+            tr = cTree.getChangeTime(node, ridx);
 
         int newEdgeColour;
         do {
-            newEdgeColour = Randomizer.nextInt(cTree.getNColours()-1);
+            newEdgeColour = Randomizer.nextInt(cTree.getNColours());
         } while (newEdgeColour == oldEdgeColour);
         
         double tau1 = Randomizer.nextDouble()*(tr-ts) + ts;
@@ -121,35 +127,37 @@ public class ColourPairBirthDeath extends ColouredTreeOperator {
      */
     private double deathProposal(Node node, int edgeNum, int n, int m) {
         
-        if (edgeNum==0 || edgeNum-1==cTree.getChangeCount(node)-1)
+        int idx = edgeNum-1;
+        int sidx = edgeNum-2;
+        int ridx = edgeNum+1;
+        
+        if (sidx<-1 || ridx > cTree.getChangeCount(node))
             return Double.NEGATIVE_INFINITY;
         
         double ts, tr;
         int is, ir;
-        if (edgeNum==1) {
+        if (sidx<0) {
             ts = node.getHeight();
             is = cTree.getNodeColour(node);
         } else {
-            ts = cTree.getChangeTime(node, edgeNum-2);
-            is = cTree.getChangeColour(node, edgeNum-2);
+            ts = cTree.getChangeTime(node, sidx);
+            is = cTree.getChangeColour(node, sidx);
         }
         
-        if (edgeNum+1==cTree.getChangeCount(node)) {
+        if (ridx>cTree.getChangeCount(node)-1)
             tr = node.getParent().getHeight();
-            ir = cTree.getNodeColour(node.getParent());
-        } else {
-            tr = cTree.getChangeTime(node, edgeNum+1);
-            ir = cTree.getChangeColour(node, edgeNum+1);
-        }
+        else
+            tr = cTree.getChangeTime(node, ridx);
+        ir = cTree.getChangeColour(node, ridx-1);
         
         if (is != ir)
             return Double.NEGATIVE_INFINITY;
         
-        removeChange(node, edgeNum-1);
-        removeChange(node, edgeNum-1);
+        removeChange(node, idx);
+        removeChange(node, idx);
         
-        return Math.log(2*(m + 2*n - 2)
-                - Math.log((cTree.getNColours()-1)*(m+2*n-4)*(tr-ts)*(tr-ts)));
+        return Math.log(2*(m + 2*n - 2))
+                - Math.log((cTree.getNColours()-1)*(m+2*n-4)*(tr-ts)*(tr-ts));
     }
     
 }

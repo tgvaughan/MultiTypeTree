@@ -204,9 +204,16 @@ public class ColouredTree extends CalculationNode implements Loggable {
      * @return Total change count.
      */
     public int getTotalNumberofChanges() {
+        
+        int rootNr = tree.getRoot().getNr();
+        
         int changes = 0;
-        for (int i = 0; i<changeCounts.getDimension(); i++)
+        for (int i = 0; i<changeCounts.getDimension(); i++) {
+            if (i==rootNr)
+                continue;
+            
             changes += changeCounts.getValue(i);
+        }
         return changes;
     }
 
@@ -318,7 +325,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
      * @return True if valid, false otherwise.
      */
     public boolean isValid() {
-        return colourIsValid(tree.getRoot())&&timeIsValid(tree.getRoot());
+        return colourIsValid(tree.getRoot()) && timeIsValid(tree.getRoot());
     }
 
     /**
