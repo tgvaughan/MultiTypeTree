@@ -85,7 +85,7 @@
             </log>
         </logger>
 
-        <logger logEvery="10000" fileName="EwingTest.trees" mode="tree">
+        <logger logEvery="1000" fileName="EwingTest.trees" mode="tree">
             <log idref="colouredTree"/>
         </logger>
 

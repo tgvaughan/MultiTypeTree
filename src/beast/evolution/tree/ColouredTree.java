@@ -612,6 +612,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
                     case 0:
                         // Leaf at base of branch
                         treeNode.setNr(leafNrs.get(0));
+                        treeNode.setID(thisFlatNode.getID());
                         leafNrs.remove(0);
                         break;
 
