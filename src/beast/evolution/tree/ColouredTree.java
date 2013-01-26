@@ -289,7 +289,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
     public int getBranchOffset(Node node) {
         return node.getNr()*maxBranchColours;
     }
-
+    
     /**
      * Retrieve final colour on branch between node and its parent.
      *

@@ -6,7 +6,7 @@
         <popSizes spec="RealParameter" value="7.0 7.0"/>
     </model>
 
-    <run spec="MCMC" id="mcmc" chainLength="100000"> 
+    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
         <init spec='ColouredTreeFromNewick'
                       id="colouredTree" 
@@ -38,21 +38,12 @@
         </distribution>
 
 	<!-- Tree operators -->
-	<operator spec='Uniform' weight="1">
-	  <tree idref="tree"/>
+	<operator spec='ColouredWilsonBaldingEasy' weight="1">
+	  <colouredTree idref="colouredTree"/>
 	</operator>
-	<operator spec='SubtreeSlide' weight="1" gaussian="true" size="1.0">
-	  <tree idref="tree"/>
-	</operator>
-	<operator id='narrow' spec='Exchange' isNarrow='true' weight="1">
-	  <tree idref="tree"/>
-	</operator>
-	<operator id='wide' spec='Exchange' isNarrow='false' weight="1">
-	  <tree idref="tree"/>
-	</operator>
-	<operator spec='WilsonBalding' weight="1">
-	  <tree idref="tree"/>
-	</operator>
+    <operator spec='ColouredUniform' weight="1">
+        <colouredTree idref="colouredTree"/>
+    </operator>
 
 	<!-- Colour operators -->
 	<operator spec="ColouredTreeScale" id="CTS"
@@ -85,7 +76,7 @@
             </log>
         </logger>
 
-        <logger logEvery="1000" fileName="EwingTest.trees" mode="tree">
+        <logger logEvery="10000" fileName="EwingTest.trees" mode="tree">
             <log idref="colouredTree"/>
         </logger>
 
