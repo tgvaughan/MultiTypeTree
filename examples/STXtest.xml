@@ -1,5 +1,5 @@
 <beast version='2.0'
-       namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree'>
+       namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent'>
 
     <model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
         <rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
@@ -8,18 +8,16 @@
 
     <run spec="MCMC" id="mcmc" chainLength="20000000"> 
 
-        <init spec='ColouredTreeFromNewick'
+        <init spec='StructuredCoalescentColouredTree'
                       id="colouredTree" 
-                      colourLabel="state" nColours="2" maxBranchColours="100"
-                      figtreeCompatible="true">
+                      nColours="2" maxBranchColours="100"
+                      figtreeCompatible="true"
+              migrationModel="@migmodel" leafColours="1 1 0 0">
             <tree id="tree" spec="Tree"/>
             <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
             <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>
             <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
             <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
-            <input name="newick">
-                ((1[state='0']:1,2[state='0']:1)[state='0']:1,3[state='0']:2)[state='0']:0;
-            </input>
         </init>
       
         <state>

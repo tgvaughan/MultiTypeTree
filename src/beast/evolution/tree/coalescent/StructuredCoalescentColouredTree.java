@@ -522,11 +522,11 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
         // Specify leaf colours:
         IntegerParameter leafColours = new IntegerParameter();
         leafColours.initByName(
-                "dimension", 2,
-                "value", "0 0");
+                "dimension", 3,
+                "value", "1 0 0");
 
         // Generate ensemble:
-        int reps = 100000;
+        int reps = 10000;
         double[] heights = new double[reps];
 
         long startTime = System.currentTimeMillis();

@@ -76,9 +76,6 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
         if (destNode.isRoot()) {
             // FORWARD ROOT MOVE
             
-            // Record probability of current configuration:
-            double logHR = 0.0;
-
             // Record srcNode grandmother height:
             double t_srcNodeG = srcNodeP.getParent().getHeight();
 
@@ -108,18 +105,21 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
             
             // Incorporate HR contribution of tree topology and node
             // height changes:
-            logHR += Math.log(alpha*t_destNode)
+            return Math.log(alpha*t_destNode)
                     +(1.0/alpha)*(newTime/t_destNode-1.0)
                     -Math.log(t_srcNodeG-Math.max(t_srcNode, t_srcNodeS));
 
-            return logHR;
         }
 
         if (srcNodeP.isRoot()) {
             // BACKWARD ROOT MOVE
-
-            // Record probability of current configuration:
-            double logHR = 0.0;
+            
+            // Abort if move would change root colour or truncate colour
+            // changes. (This would be an irreversible move.)
+            if (cTree.getChangeCount(srcNodeS)>0 ||
+                    (cTree.getNodeColour(srcNodeS)
+                    != cTree.getFinalBranchColour(srcNode)))
+                return Double.NEGATIVE_INFINITY;
             
             // Record old srcNode parent height:
             double oldTime = t_srcNodeP;
@@ -142,17 +142,13 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
             
             // Incorporate HR contribution of tree topology and node
             // height changes:
-            logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
+            return Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
                     -Math.log(alpha*t_srcNodeS)
                     -(1.0/alpha)*(oldTime/t_srcNodeS-1.0);
             
-            return logHR;
         }
 
         // NON-ROOT MOVE
-        
-        // Record probability of old configuration:
-        double logHR = 0.0;
 
         // Record srcNode grandmother height:
         double t_srcNodeG = srcNodeP.getParent().getHeight();
@@ -181,10 +177,9 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
 
         // Incorporate HR contribution of tree topology and node
         // height changes:
-        logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
+        return Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
                 -Math.log(t_srcNodeG-Math.max(t_srcNode, t_srcNodeS));
 
-        return logHR;
     }
 
     /**

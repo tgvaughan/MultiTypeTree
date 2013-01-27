@@ -29,7 +29,7 @@ import beast.util.Randomizer;
 public class ColourMergeSplit extends ColouredTreeOperator {
     
     public Input<Boolean> includeRootInput = new Input<Boolean>("includeRoot",
-            "Include root merge/split moves.  Default false.", false);
+            "Include Tim's root merge/split moves.  Default false.", false);
 
     @Override
     public void initAndValidate() { }

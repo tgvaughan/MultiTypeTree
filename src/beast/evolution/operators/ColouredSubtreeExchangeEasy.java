@@ -41,8 +41,6 @@ public class ColouredSubtreeExchangeEasy extends ColouredTreeOperator {
         cTree = colouredTreeInput.get();
         tree = cTree.getUncolouredTree();
         
-        double logHR = 0.0;
-
         // Select source and destination nodes:
         
         Node srcNode, srcNodeParent, destNode, destNodeParent;
@@ -68,8 +66,14 @@ public class ColouredSubtreeExchangeEasy extends ColouredTreeOperator {
                 destNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
             } while(destNode == srcNode
                     || destNode.isRoot()
-                    || destNode.getParent() == srcNode.getParent());
+                    || destNode.getParent() == srcNodeParent);
             destNodeParent = destNode.getParent();
+            
+            // Explicitly reject outrageous node selections:
+            // (Dangerous to make this a condition of destNode selection,
+            // as doing so can lead to infinite loops.)
+            if (srcNodeParent == destNode || destNodeParent == srcNode)
+                return Double.NEGATIVE_INFINITY;
         }
         
         // Reject outright if substitution would result in negative branch
@@ -82,23 +86,12 @@ public class ColouredSubtreeExchangeEasy extends ColouredTreeOperator {
         replace(srcNodeParent, srcNode, destNode);
         replace(destNodeParent, destNode, srcNode);
         
-        // Recolour branches involved:
-        try {
-            logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
-        } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
-        
         // Force rejection if colouring inconsistent:
         if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(destNodeParent)
                 || cTree.getFinalBranchColour(destNode) != cTree.getNodeColour(srcNodeParent))
             return Double.NEGATIVE_INFINITY;
         
-        return logHR;
+        return 0.0;
     }    
     
 }

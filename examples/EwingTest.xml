@@ -1,5 +1,5 @@
 <beast version='2.0'
-       namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree'>
+       namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent'>
 
     <model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
         <rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
@@ -8,18 +8,16 @@
 
     <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
-        <init spec='ColouredTreeFromNewick'
+        <init spec='StructuredCoalescentColouredTree'
                       id="colouredTree" 
                       colourLabel="state" nColours="2" maxBranchColours="100"
-                      figtreeCompatible="true">
+                      figtreeCompatible="true"
+              leafColours="1 0 0" migrationModel="@migmodel">
             <tree id="tree" spec="Tree"/>
             <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
             <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>
             <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
             <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
-            <input name="newick">
-                ((1[state='0']:1,2[state='0']:1)[state='0']:1,3[state='0']:2)[state='0']:0;
-            </input>
         </init>
       
         <state>
@@ -37,13 +35,14 @@
             </distribution>
         </distribution>
 
+
 	<!-- Tree operators -->
-	<operator spec='ColouredWilsonBaldingEasy' weight="1">
-	  <colouredTree idref="colouredTree"/>
-	</operator>
-    <operator spec='ColouredUniform' weight="1">
-        <colouredTree idref="colouredTree"/>
-    </operator>
+	<operator spec='ColouredWilsonBaldingEasy' weight="1"
+              colouredTree="@colouredTree"/>
+	<operator spec='ColouredSubtreeExchangeEasy' weight="1"
+		  colouredTree='@colouredTree' isNarrow="true"/>
+	<operator spec='ColouredUniform' weight="1"
+		  colouredTree='@colouredTree'/>
 
 	<!-- Colour operators -->
 	<operator spec="ColouredTreeScale" id="CTS"
@@ -52,7 +51,8 @@
 	<operator spec="ColourPairBirthDeath" id="PairBirthDeath"
 		  weight="1" colouredTree="@colouredTree"/>
 	<operator spec="ColourMergeSplit" id="mergeSplit"
-		  weight="1" colouredTree="@colouredTree"/>
+		  weight="1" colouredTree="@colouredTree"
+              includeRoot="true"/>
 
         <logger logEvery="1000" fileName="EwingTest.log">
             <model idref='P'/>
