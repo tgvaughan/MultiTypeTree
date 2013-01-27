@@ -12,7 +12,7 @@
                       id="colouredTree" 
                       colourLabel="state" nColours="2" maxBranchColours="100"
                       figtreeCompatible="true"
-              leafColours="1 0 0" migrationModel="@migmodel">
+              leafColours="1 1 0 0" migrationModel="@migmodel">
             <tree id="tree" spec="Tree"/>
             <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
             <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>

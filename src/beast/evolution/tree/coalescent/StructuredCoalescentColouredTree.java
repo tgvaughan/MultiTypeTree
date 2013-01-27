@@ -512,7 +512,6 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
                 "value", "0.0 0.1 0.1 0.0");
         RealParameter popSizes = new RealParameter();
         popSizes.initByName(
-                "dimension", 2,
                 "value", "7.0 7.0");
         MigrationModel migrationModel = new MigrationModel();
         migrationModel.initByName(
@@ -522,8 +521,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
         // Specify leaf colours:
         IntegerParameter leafColours = new IntegerParameter();
         leafColours.initByName(
-                "dimension", 3,
-                "value", "1 0 0");
+                "value", "1 1 0 0");
 
         // Generate ensemble:
         int reps = 10000;
