@@ -873,6 +873,30 @@ public class ColouredTree extends CalculationNode implements Loggable {
     }
 
     /**
+     * Check whether any of the entries concerning Node node are dirty.
+     *
+     * @return True if a Node is dirty.
+     */
+    public Boolean somethingIsDirty(Node node) {
+
+        if (!somethingIsDirty()) return false;
+
+        int nodenr = node.getNr();
+
+        if (changeCounts.isDirty(nodenr) || nodeColours.isDirty(nodenr)) return true;
+
+        Boolean somethingIsDirty = false;
+
+        for (int i=0; i<getChangeCount(node); i++){
+            somethingIsDirty = somethingIsDirty || changeColours.isDirty(nodenr*maxBranchColours + i);
+            somethingIsDirty = somethingIsDirty || changeTimes.isDirty(nodenr*maxBranchColours + i);
+        }
+
+        return somethingIsDirty;
+
+    }
+
+    /**
      * Return string representation of coloured tree.
      *
      * @return Coloured tree string in Newick format.
