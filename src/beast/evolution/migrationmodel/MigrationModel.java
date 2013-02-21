@@ -67,9 +67,12 @@ public class MigrationModel extends CalculationNode {
     private RealParameter rateMatrix, popSizes;
     private double totalPopSize;
     private double mu;
+    private int nColours;
     private DoubleMatrix2D Q, R;
     private EigenvalueDecomposition Qdecomp, Rdecomp;
     private DoubleMatrix2D QVinv, RVinv;
+    
+    private boolean rateMatrixIsSquare;
     
     // Flag to indicate whether EV decompositions need updating.
     private boolean dirty;
@@ -79,9 +82,12 @@ public class MigrationModel extends CalculationNode {
     @Override
     public void initAndValidate() throws Exception {
         
+        popSizes = popSizesInput.get();
+        nColours = popSizes.getDimension();
+        rateMatrix = rateMatrixInput.get();
+        
         if (uniformInitialRateInput.get() != null) {
             
-            int nColours = popSizesInput.get().getDimension();
             double rate = uniformInitialRateInput.get();
             StringBuilder sb = new StringBuilder();
             for (int i=0; i<nColours; i++) {
@@ -98,6 +104,16 @@ public class MigrationModel extends CalculationNode {
                     "value", sb.toString());
         }
         
+        if (rateMatrix.getDimension() == nColours*nColours)
+            rateMatrixIsSquare = true;
+        else {
+            if (rateMatrix.getDimension() != nColours*(nColours-1)) {
+                throw new IllegalArgumentException("Migration matrix has"
+                        + "incorrect number of elements for given deme count.");
+            } else
+                rateMatrixIsSquare = false;
+        }
+        
         dirty = true;
         updateMatrices();
     }
@@ -112,24 +128,11 @@ public class MigrationModel extends CalculationNode {
             return;
 
         popSizes = popSizesInput.get();
-
-        if (rateMatrixInput.get().getDimension() == popSizes.getDimension() * popSizes.getDimension())
-            rateMatrix = rateMatrixInput.get();
-        else if (rateMatrixInput.get().getDimension() == popSizes.getDimension() * (popSizes.getDimension() - 1))
-            addDiagonal(rateMatrixInput.get().getValues(), popSizes.getDimension());
+        rateMatrix = rateMatrixInput.get();
 
         totalPopSize = 0.0;
         for (int i = 0; i < popSizes.getDimension(); i++)
             totalPopSize += popSizes.getArrayValue(i);
-
-        if (rateMatrix.getMinorDimension1() != rateMatrix.getMinorDimension2())
-            throw new IllegalArgumentException("Migration matrix must be square!");
-
-        if (rateMatrix.getMinorDimension1() != popSizes.getDimension())
-            throw new IllegalArgumentException("Side of migration matrix not"
-                    + "equal to length of population size vector.");
-
-        int nColours = getNDemes();
 
         mu = 0.0;
         Q = new DenseDoubleMatrix2D(nColours, nColours);
@@ -167,45 +170,10 @@ public class MigrationModel extends CalculationNode {
     }
 
     /**
-     * Add zeros to the diagonal -
-     *
-     * @Tim: I think we should parametrize the rate matrix as a n*(n-1) matrix
-     * @Denise: Noooo! :-P
-     *
-     * @param dim*(dim-1) rate matrix
-     * @author Denise
-     */
-    void addDiagonal(Double[] matrix, int dim) {
-
-        Double[] squareMatrix = new Double[dim * dim];
-
-        int count = 0;
-        for (int i = 0; i < dim; i++)
-            for (int j = 0; j < dim; j++)
-                if (i == j)
-                    squareMatrix[i * dim + j] = 0.;
-                else {
-                    squareMatrix[i * dim + j] = matrix[count];
-                    count++;
-                }
-
-        rateMatrix = new RealParameter();
-        
-        try {
-            rateMatrix.initByName("value", Arrays.toString(squareMatrix).replaceAll("[\\[\\],]", " "),
-                    "minordimension", 2);
-        } catch (Exception ex) {
-            Logger.getLogger(MigrationModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * Obtain the number of demes in the migration model.
-     *
-     * @return Length of side of migration matrix.
+     * @return number of demes in the migration model.
      */
     public int getNDemes() {
-        return rateMatrix.getMinorDimension1();
+        return nColours;
     }
 
     /**
@@ -214,7 +182,19 @@ public class MigrationModel extends CalculationNode {
      * @return Rate matrix element.
      */
     public double getRate(int i, int j) {
-        return rateMatrix.getMatrixValue(i, j);
+        if (i==j)
+            return 0;
+        
+        if (rateMatrixIsSquare) {
+            return rateMatrix.getValue(i*nColours+j);            
+        } else {
+            if (j>i)
+                j -= 1;
+            return rateMatrix.getValue(i*(nColours-1)+j);            
+        }
+
+
+
     }
 
     /**
@@ -227,9 +207,9 @@ public class MigrationModel extends CalculationNode {
      */
     public double getBackwardRate(int i, int j) {
         if (rateMatrixIsBackward.get())
-            return rateMatrix.getMatrixValue(i, j);
+            return getRate(i, j);
         else 
-            return rateMatrix.getMatrixValue(j, i)
+            return getRate(j, i)
                     * popSizes.getArrayValue(i)
                     / popSizes.getArrayValue(j);
     }
@@ -423,30 +403,6 @@ public class MigrationModel extends CalculationNode {
      */
     public static void main(String[] args) {
 
-//		RealParameter pops = new RealParameter();
-//		pops.initByName(
-//				"dimension", 2,
-//				"value", "7.0 7.0");
-//		RealParameter migmatrix = new RealParameter();
-//		migmatrix.initByName(
-//				"dimension", 4,
-//				"minordimension", 2,
-//				"value", "0.0 1 2 0.0");
-//		MigrationModel mig = new MigrationModel();
-//		mig.initByName(
-//				"popSizes", pops,
-//				"rateMatrix", migmatrix);
-//
-//		System.out.println("Q=" + mig.Q);
-//		System.out.println("mu=" + mig.mu);
-//		System.out.println("R=" + mig.R);
-//
-//		System.out.println("Q^0=" + mig.getQpow(0.0, 1.0));
-
-        MigrationModel mig = new MigrationModel();
-        Double[] matrix = new Double[]{1., 2., 3., 4., 5., 6., 1., 2., 3., 4., 5., 6.};
-        int dim = 4;
-        mig.addDiagonal(matrix, dim);
 
     }
 }

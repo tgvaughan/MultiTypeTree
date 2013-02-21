@@ -521,7 +521,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
         // Specify leaf colours:
         IntegerParameter leafColours = new IntegerParameter();
         leafColours.initByName(
-                "value", "1 1 0 0");
+                "value", "0 0 0");
 
         // Generate ensemble:
         int reps = 10000;
@@ -554,7 +554,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
         System.out.printf("Took %1.2f seconds\n", time / 1000.0);
 
         /*
-        PrintStream outStream = new PrintStream(new File("heights.txt"));
+        PrintStream outStream = new PrintStream("heights.txt");
         outStream.println("h");
         for (int i = 0; i < reps; i++)
             outStream.println(heights[i]);
