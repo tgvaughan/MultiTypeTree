@@ -124,6 +124,12 @@ public class ColouredTree extends CalculationNode implements Loggable {
         // discards:
         nDiscards = 0;
         
+        // Check validity of initial tree:
+        if (!isValid()) {
+            throw new IllegalArgumentException("Initial coloured tree"
+                    + " is not valid.");
+        }
+        
     }
 
     /**
