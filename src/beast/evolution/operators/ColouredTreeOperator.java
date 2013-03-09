@@ -335,24 +335,6 @@ public abstract class ColouredTreeOperator extends Operator {
     }
 
     /**
-     * Sets colour changes along branch between node and its parent.
-     *
-     * @param node
-     * @param colours Vararg list of colour indices.
-     */
-    public void setChangeColours(Node node, int... colours) {
-
-        if (colours.length > cTree.getMaxBranchColours())
-            throw new IllegalArgumentException(
-                    "Maximum number of colour changes along branch exceeded.");
-
-        int offset = node.getNr() * cTree.getMaxBranchColours();
-        for (int i = 0; i < colours.length; i++)
-            cTree.changeColoursInput.get().setValue(offset + i, colours[i]);
-
-    }
-
-    /**
      * Set new time for change which has already been recorded.
      *
      * @param node
@@ -367,23 +349,6 @@ public abstract class ColouredTreeOperator extends Operator {
 
         int offset = node.getNr() * cTree.getMaxBranchColours();
         cTree.changeTimesInput.get().setValue(offset + idx, time);
-    }
-
-    /**
-     * Sets times of colour changes along branch between node and its parent.
-     *
-     * @param node
-     * @param times Vararg list of colour change times.
-     */
-    public void setChangeTimes(Node node, double... times) {
-
-        if (times.length > cTree.getMaxBranchColours())
-            throw new IllegalArgumentException(
-                    "Maximum number of colour changes along branch exceeded.");
-
-        int offset = cTree.getBranchOffset(node);
-        for (int i = 0; i < times.length; i++)
-            cTree.changeTimesInput.get().setValue(offset + i, times[i]);
     }
 
     /**
