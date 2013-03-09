@@ -20,7 +20,6 @@ import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.*;
 import beast.evolution.operators.ColouredTreeModifier;
-import beast.util.Randomizer;
 import com.google.common.collect.Lists;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -148,7 +147,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
     
     /**
      * Obtain sneaky modifier to allow non-operators (e.g. state node
-     * initializers to incrementally create coloured trees.)
+     * initialisers to incrementally create coloured trees.)
      * 
      * @return modifier
      */
@@ -166,7 +165,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
     }
     
     /**
-     * @return true if operators should force reject on poposed trees
+     * @return true if operators should force reject on proposed trees
      * having too many colour changes.
      */
     public boolean discardWhenMaxExceeded() {
@@ -683,105 +682,7 @@ public class ColouredTree extends CalculationNode implements Loggable {
 
         return getTrueNodeCount(node.getLeft());
     }
-
-    /**
-     * Obtain length of sub-branch between node and its parent above time t
-     * which has a particular colour.
-     *
-     * @param node
-     * @param t
-     * @param colour
-     * @return length
-     */
-    public double getColouredSegmentLength(Node node, double t, int colour) {
-
-        if (node.isRoot())
-            throw new IllegalArgumentException("Node argument to"
-                    +"getColouredSegmentLength is not the bottom of a branch.");
-
-        if (t>node.getParent().getHeight())
-            throw new IllegalArgumentException("Time argument ot"
-                    +"getColouredSegmentLength is not on specified branch.");
-
-        // Determine total length of time that sub-branch has chosen colour:
-        int lastColour = getNodeColour(node);
-        double lastTime = node.getHeight();
-
-        double norm = 0.0;
-        for (int i = 0; i<getChangeCount(node); i++) {
-            int thisColour = getChangeColour(node, i);
-            double thisTime = getChangeTime(node, i);
-
-            if (lastColour==colour&&thisTime>t)
-                norm += thisTime-Math.max(t, lastTime);
-
-            lastColour = thisColour;
-            lastTime = thisTime;
-        }
-
-        if (lastColour==colour)
-            norm += node.getParent().getHeight()-Math.max(t, lastTime);
-
-        // Return negative result if colour is not on sub-branch:
-        if (!(norm>0.0))
-            return -1.0;
-
-        return norm;
-    }
-
-    /**
-     * Select a time from a uniform distribution over the times within that
-     * portion of the branch which has an age greater than t as well as the
-     * specified colour. Requires pre-calculation of total length of sub-branch
-     * following t having specified colour.
-     *
-     * @param node
-     * @param t
-     * @param colour
-     * @param norm Total length of sub-branch having specified colour.
-     * @return Randomly selected time or -1 if colour does not exist on branch
-     * at age greater than t.
-     */
-    public double chooseTimeWithColour(Node node, double t, int colour,
-            double norm) {
-
-        if (node.isRoot())
-            throw new IllegalArgumentException("Node argument to"
-                    +"chooseTimeWithColour is not the bottom of a branch.");
-
-        if (t>node.getParent().getHeight()||t<node.getHeight())
-            throw new IllegalArgumentException("Time argument to"
-                    +"chooseTimeWithColour is not on specified branch.");
-
-        // Select random time within appropriately coloured region:
-        double alpha = norm*Randomizer.nextDouble();
-
-        // Convert to absolute time:
-        int lastColour = getNodeColour(node);
-        double lastTime = node.getHeight();
-
-        double tChoice = t;
-        for (int i = 0; i<getChangeCount(node); i++) {
-            int thisColour = getChangeColour(node, i);
-            double thisTime = getChangeTime(node, i);
-
-            if (lastColour==colour&&thisTime>t)
-                alpha -= thisTime-Math.max(t, lastTime);
-
-            if (alpha<0) {
-                tChoice = thisTime+alpha;
-                break;
-            }
-
-            lastColour = thisColour;
-            lastTime = thisTime;
-        }
-
-        if (alpha>0)
-            tChoice = alpha+lastTime;
-
-        return tChoice;
-    }
+    
 
     /**
      * Count how many tips there are of each colour.
