@@ -25,7 +25,7 @@ import beast.util.Randomizer;
  */
 @Description("Recolours a randomly chosen node and its attached branches. "
         + "This variant uses an unconditioned random walk for branch recolouring.")
-public class NodeRecolourRandom extends RandomRecolourOperator {
+public class NodeRecolourRandom extends RandomRetypeOperator {
     
     @Override
     public void initAndValidate() { }

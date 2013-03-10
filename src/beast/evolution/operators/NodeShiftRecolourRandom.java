@@ -29,7 +29,7 @@ import beast.util.Randomizer;
         + " uniformly between the parent and oldest child heights and"
         + " recolours the modified branches.  Additionally, this operator"
         + " can act on the root node.")
-public class NodeShiftRecolourRandom extends RandomRecolourOperator {
+public class NodeShiftRecolourRandom extends RandomRetypeOperator {
     
     public Input<Boolean> rootOnlyInput = new Input<Boolean>("rootOnly",
             "Always select root node for height adjustment.", false);

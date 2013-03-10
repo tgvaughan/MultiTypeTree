@@ -30,7 +30,7 @@ import beast.util.Randomizer;
 @Description("A subtree slide operator for coloured trees. This version uses"
         + " an unconditioned random walk amongst demes to recolour altered"
         + " branches.")
-public class ColouredSubtreeSlideRandom extends RandomRecolourOperator {
+public class ColouredSubtreeSlideRandom extends RandomRetypeOperator {
 
     public Input<Double> rootSlideParamInput = new Input<Double>("rootSlideParam",
             "Root sliding is restricted to [sister.height,root.height+rootSlideParam]",

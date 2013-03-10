@@ -30,7 +30,7 @@ import beast.util.Randomizer;
         + " be very inefficient as this operator requires recolouring of"
         + " two branches, meaning that the acceptance probability goes as"
         + " the _square_ of the inverse of the number of colours.")
-public class ColouredSubtreeExchangeRandom extends RandomRecolourOperator {
+public class ColouredSubtreeExchangeRandom extends RandomRetypeOperator {
     
     public Input<Boolean> isNarrowInput = new Input<Boolean>("isNarrow",
             "Whether or not to use narrow exchange. (Default true.)", true);

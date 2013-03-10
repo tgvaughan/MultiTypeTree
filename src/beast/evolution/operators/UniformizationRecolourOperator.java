@@ -18,6 +18,7 @@ package beast.evolution.operators;
 
 import beast.core.Input;
 import beast.evolution.migrationmodel.MigrationModel;
+import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 import java.util.Arrays;
@@ -48,18 +49,18 @@ public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperat
      * @param srcNode
      * @return Probability of new state.
      */
-    protected double recolourBranch(Node srcNode) throws RecolouringException {
+    protected double recolourBranch(MultiTypeNode srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
-        Node srcNodeP = srcNode.getParent();
+        MultiTypeNode srcNodeP = srcNode.getParent();
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeP = srcNodeP.getHeight();
 
         double L = t_srcNodeP-t_srcNode;
 
-        int col_srcNode = mtTree.getNodeColour(srcNode);
-        int col_srcNodeP = mtTree.getNodeColour(srcNodeP);
+        int col_srcNode = srcNode.getNodeType();
+        int col_srcNodeP = srcNodeP.getNodeType();
 
         // Select number of virtual events:
         double Pba = migrationModel.getQexpElement(L, col_srcNodeP, col_srcNode);
@@ -96,7 +97,7 @@ public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperat
             double u2 = Randomizer.nextDouble()
                     *migrationModel.getRpowElement(i, 1.0, lastCol, col_srcNode);
             int c;
-            for (c = 0; c<mtTree.getNColours(); c++) {
+            for (c = 0; c<mtTree.getNTypes(); c++) {
                 u2 -= migrationModel.getRelement(lastCol, c)
                         *migrationModel.getRpowElement(i-1, 1.0, c, col_srcNode);
                 if (u2<0.0)
@@ -111,7 +112,7 @@ public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperat
 
         // Add non-virtual colour changes to branch, calculating probability
         // of path conditional on start colour:
-        setChangeCount(srcNode, 0);
+        srcNode.clearChanges();
         lastCol = col_srcNode;
         double lastTime = t_srcNode;
         for (int i = 0; i<nVirt; i++) {
@@ -125,7 +126,7 @@ public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperat
             if (nextCol!=lastCol) {
 
                 // Add change to branch:
-                addChange(srcNode, nextCol, times[i]);
+                srcNode.addChange(nextCol, times[i]);
 
                 // Add probability contribution:
                 logProb += migrationModel.getQelement(lastCol, lastCol)*(times[i]-lastTime)
@@ -152,24 +153,24 @@ public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperat
      * @param srcNode
      * @return Probability of new state.
      */
-    protected double recolourRootBranches(Node srcNode) throws RecolouringException {
+    protected double recolourRootBranches(MultiTypeNode srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
         double logProb = 0.0;
 
-        Node srcNodeP = srcNode.getParent();
-        Node srcNodeS = getOtherChild(srcNodeP, srcNode);
+        MultiTypeNode srcNodeP = srcNode.getParent();
+        MultiTypeNode srcNodeS = getOtherChild(srcNodeP, srcNode);
 
         // Select new root colour:
         double u = Randomizer.nextDouble()*migrationModel.getTotalPopSize();
         int rootCol;
-        for (rootCol = 0; rootCol<mtTree.getNColours(); rootCol++) {
+        for (rootCol = 0; rootCol<mtTree.getNTypes(); rootCol++) {
             u -= migrationModel.getPopSize(rootCol);
             if (u<0)
                 break;
         }
-        setNodeColour(srcNodeP, rootCol);
+        srcNodeP.setNodeType(rootCol);
 
         // Incorporate probability of choosing new root colour:
         logProb += Math.log(migrationModel.getPopSize(rootCol)
@@ -189,25 +190,25 @@ public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperat
      * @param srcNode
      * @return Path probability.
      */
-    protected double getBranchColourProb(Node srcNode) {
+    protected double getBranchColourProb(MultiTypeNode srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
         double logProb = 0.0;
 
-        Node srcNodeP = srcNode.getParent();
+        MultiTypeNode srcNodeP = srcNode.getParent();
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeP = srcNodeP.getHeight();
         double L = t_srcNodeP-t_srcNode;
-        int col_srcNode = mtTree.getNodeColour(srcNode);
-        int col_srcNodeP = mtTree.getNodeColour(srcNodeP);
+        int col_srcNode = srcNode.getNodeType();
+        int col_srcNodeP = srcNodeP.getNodeType();
 
         // Probability of branch conditional on start colour:
         double lastTime = t_srcNode;
         int lastCol = col_srcNode;
-        for (int i = 0; i<mtTree.getChangeCount(srcNode); i++) {
-            double thisTime = mtTree.getChangeTime(srcNode, i);
-            int thisCol = mtTree.getChangeColour(srcNode, i);
+        for (int i = 0; i<srcNode.getChangeCount(); i++) {
+            double thisTime = srcNode.getChangeTime(i);
+            int thisCol = srcNode.getChangeType(i);
 
             logProb += (thisTime-lastTime)*migrationModel.getQelement(lastCol, lastCol)
                     +Math.log(migrationModel.getQelement(thisCol, lastCol));
@@ -232,15 +233,15 @@ public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperat
      * @param srcNode
      * @return
      */
-    protected double getRootBranchColourProb(Node srcNode) {
+    protected double getRootBranchColourProb(MultiTypeNode srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
         double logProb = 0.0;
 
-        Node srcNodeP = srcNode.getParent();
-        Node srcNodeS = getOtherChild(srcNodeP, srcNode);
-        int col_srcNodeP = mtTree.getNodeColour(srcNodeP);
+        MultiTypeNode srcNodeP = srcNode.getParent();
+        MultiTypeNode srcNodeS = getOtherChild(srcNodeP, srcNode);
+        int col_srcNodeP = srcNodeP.getNodeType();
 
         // Probability of choosing root colour:
         logProb += Math.log(migrationModel.getPopSize(col_srcNodeP)

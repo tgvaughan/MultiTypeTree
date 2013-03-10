@@ -34,7 +34,7 @@ import beast.util.Randomizer;
 +"See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
 +"This version generates random colouring along branches altered by"
 +"the operator.")
-public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
+public class ColouredWilsonBaldingRandom extends RandomRetypeOperator {
 
     public Input<Double> alphaInput = new Input<Double>("alpha",
             "Root height proposal parameter", .1);
