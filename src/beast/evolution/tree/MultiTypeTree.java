@@ -81,6 +81,8 @@ public class MultiTypeTree extends Tree {
         storedMultiTypeNodes = new MultiTypeNode[nodeCount];
         MultiTypeNode copy = multiTypeRoot.copy();
         listNodes(copy, storedMultiTypeNodes);
+        
+        super.initArrays();
     }
 
     /**
@@ -137,7 +139,7 @@ public class MultiTypeTree extends Tree {
         }
         m_sID = mtTree.m_sID;
         multiTypeRoot = mtNodes[mtTree.multiTypeRoot.getNr()];
-        multiTypeRoot.assignFrom(mtNodes, mtTree.root);
+        multiTypeRoot.assignFrom(mtNodes, mtTree.multiTypeRoot);
         multiTypeRoot.multiTypeParent = null;
         multiTypeRoot.m_Parent = null;
         root = multiTypeRoot;
@@ -440,6 +442,7 @@ public class MultiTypeTree extends Tree {
 
         // Assign tree topology:
         assignFromWithoutID(new MultiTypeTree(newRoot));
+        initArrays();
     }
     
 

@@ -340,11 +340,12 @@ public class MultiTypeNode extends Node {
      * @param leftChild 
      */
     public void setLeft(MultiTypeNode leftChild) {
-		if (multiTypeChildren.isEmpty()) {
+		if (multiTypeChildren.isEmpty())
 	    	multiTypeChildren.add(leftChild);
-		} else {
+		else
 			multiTypeChildren.set(0, leftChild);
-    	}
+
+        super.setLeft(leftChild);
 	}
     
     /**
@@ -356,13 +357,18 @@ public class MultiTypeNode extends Node {
 		switch (multiTypeChildren.size()) {
 		case 0:
 	    	multiTypeChildren.add(null);
+            children.clear();
+            children.add(null);
 		case 1:
 	    	multiTypeChildren.add(rightChild);
+            children.add(rightChild);
 	    	break;
 		default:
 			multiTypeChildren.set(1, rightChild);
 	    	break;
     	}
+        
+        super.setRight(rightChild);
 	}
     
     /**
@@ -375,19 +381,47 @@ public class MultiTypeNode extends Node {
         node.m_iLabel = m_iLabel;
         node.m_sMetaData = m_sMetaData;
         node.m_Parent = null;
+        node.multiTypeParent = null;
         node.m_sID = m_sID;
         node.nTypeChanges = nTypeChanges;
         node.changeTimes.addAll(changeTimes);
         node.changeTypes.addAll(changeTypes);
         if (getLeft() != null) {
             node.setLeft(getLeft().copy());
-            node.getLeft().m_Parent = node;
+            node.getLeft().setParent(node);
             if (getRight() != null) {
                 node.setRight(getRight().copy());
-                node.getRight().m_Parent = node;
+                node.getRight().setParent(node);
             }
         }
         return node;
+    }
+    
+    /**
+     * assign values from a tree in array representation *
+     */
+    public void assignFrom(MultiTypeNode[] nodes, MultiTypeNode node) {
+        m_fHeight = node.m_fHeight;
+        m_iLabel = node.m_iLabel;
+        m_sMetaData = node.m_sMetaData;
+        m_Parent = null;
+        multiTypeParent = null;
+        m_sID = node.m_sID;
+        nTypeChanges = node.nTypeChanges;
+        changeTimes.addAll(node.changeTimes);
+        changeTypes.addAll(node.changeTypes);
+        if (node.getLeft() != null) {
+            setLeft(nodes[node.getLeft().getNr()]);
+            getLeft().assignFrom(nodes, node.getLeft());
+            getLeft().m_Parent = this;
+            getLeft().multiTypeParent = this;
+            if (node.getRight() != null) {
+                setRight(nodes[node.getRight().getNr()]);
+                getRight().assignFrom(nodes, node.getRight());
+                getRight().m_Parent = this;
+                getRight().multiTypeParent = this;
+            }
+        }
     }
     
 }
