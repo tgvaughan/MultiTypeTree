@@ -19,17 +19,13 @@ package beast.evolution.tree.coalescent;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
-import beast.core.State;
-import beast.core.StateNode;
-import beast.core.StateNodeInitialiser;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.migrationmodel.MigrationModel;
-import beast.evolution.operators.ColouredTreeModifier;
-import beast.evolution.tree.ColouredTree;
+import beast.evolution.tree.MultiTypeNode;
+import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.TraitSet;
-import beast.evolution.tree.Tree;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
@@ -39,14 +35,14 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * A coloured tree generated randomly from leaf colours and a migration matrix
+ * A multi-type tree generated randomly from leaf types and a migration matrix
  * with fixed population sizes.
  *
  * @author Tim Vaughan
  */
-@Description("A coloured tree generated randomly from leaf colours and"
+@Description("A multi-type tree generated randomly from leaf types and"
 + "a migration matrix with fixed population sizes.")
-public class StructuredCoalescentColouredTree extends ColouredTree implements StateNodeInitialiser {
+public class StructuredCoalescentTree extends MultiTypeTree {
 
     /*
      * Plugin inputs:
@@ -55,12 +51,12 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
             "migrationModel",
             "Migration model to use in simulator.",
             Validate.REQUIRED);
-    public Input<IntegerParameter> leafColoursInput = new Input<IntegerParameter>(
-            "leafColours",
-            "Colours of leaf nodes.");
-    public Input<TraitSet> colourTraitSetInput = new Input<TraitSet>(
-            "colourTraitSet",
-            "Trait set specifying colours of leaf nodes.");
+    public Input<IntegerParameter> leafTypesInput = new Input<IntegerParameter>(
+            "leafTypes",
+            "Types of leaf nodes.");
+    public Input<TraitSet> typeTraitSetInput = new Input<TraitSet>(
+            "typeTraitSet",
+            "Trait set specifying types of leaf nodes.");
     public Input<TraitSet> timeTraitSetInput = new Input<TraitSet>(
             "timeTraitSet",
             "Trait set specifying ages of leaf nodes.");
@@ -69,9 +65,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
      */
     protected MigrationModel migrationModel;
     
-    private ColouredTreeModifier modifier;
-    
-    private List<Integer> leafColours;
+    private List<Integer> leafTypes;
     private List<String> leafNames;
     private List<Double> leafTimes;
     private int nLeaves;
@@ -83,7 +77,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
     private abstract class SCEvent {
 
         double time;
-        int fromColour, toColour;
+        int fromType, toType;
 
         boolean isCoalescence() {
             return true;
@@ -92,17 +86,17 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
 
     private class CoalescenceEvent extends SCEvent {
 
-        public CoalescenceEvent(int colour, double time) {
-            this.fromColour = colour;
+        public CoalescenceEvent(int type, double time) {
+            this.fromType = type;
             this.time = time;
         }
     }
 
     private class MigrationEvent extends SCEvent {
 
-        public MigrationEvent(int fromColour, int toColour, double time) {
-            this.fromColour = fromColour;
-            this.toColour = toColour;
+        public MigrationEvent(int fromType, int toType, double time) {
+            this.fromType = fromType;
+            this.toType = toType;
             this.time = time;
         }
     }
@@ -113,43 +107,37 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
         }
     }
     
-    public StructuredCoalescentColouredTree() { }
+    public StructuredCoalescentTree() { }
 
     @Override
     public void initAndValidate() throws Exception {
         
         super.initAndValidate();
-        
-        // Get modifier instance
-        modifier = new ColouredTreeModifier(this);
 
         // Obtain required parameters from inputs:
-        nColours = nColoursInput.get();
-        colourLabel = colourLabelInput.get();
-        maxBranchColours = maxBranchColoursInput.get();
         migrationModel = migrationModelInput.get();
 
         // Obtain leaf colours from explicit input or alignment:
-        leafColours = Lists.newArrayList();
+        leafTypes = Lists.newArrayList();
         leafNames = Lists.newArrayList();
-        if (leafColoursInput.get() != null) {            
-            for (int i=0; i<leafColoursInput.get().getDimension(); i++) {
-                leafColours.add(leafColoursInput.get().getValue(i));
+        if (leafTypesInput.get() != null) {            
+            for (int i=0; i<leafTypesInput.get().getDimension(); i++) {
+                leafTypes.add(leafTypesInput.get().getValue(i));
                 leafNames.add(String.valueOf(i));
             }
         } else {
-            if (colourTraitSetInput.get() == null)
+            if (typeTraitSetInput.get() == null)
                 throw new IllegalArgumentException("Either leafColours or "
                         + "trait set must be provided.");
 
             // Fill leaf colour array:
-            for (int i = 0; i<colourTraitSetInput.get().m_taxa.get().asStringList().size(); i++) {
-                leafColours.add((int)colourTraitSetInput.get().getValue(i));
-                leafNames.add(colourTraitSetInput.get().m_taxa.get().asStringList().get(i));
+            for (int i = 0; i<typeTraitSetInput.get().m_taxa.get().asStringList().size(); i++) {
+                leafTypes.add((int)typeTraitSetInput.get().getValue(i));
+                leafNames.add(typeTraitSetInput.get().m_taxa.get().asStringList().get(i));
             }
         }
         
-        nLeaves = leafColours.size();
+        nLeaves = leafTypes.size();
         
         // Set leaf times if specified:
         leafTimes = Lists.newArrayList();
@@ -165,28 +153,13 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
                 leafTimes.add(timeTraitSetInput.get().getValue(i));
         }
         
-        // Hack to deal with StateNodes that haven't been attached to
-        // a state yet.
-        if (changeColours.getState() == null) {
-            State state = new State();
-            state.initByName(
-                    "stateNode", changeColours,
-                    "stateNode", changeTimes,
-                    "stateNode", changeCounts,
-                    "stateNode", nodeColours);
-            state.initialise();
-        }
-
-        // Allocate arrays for recording colour change information:
-        int nNodes = 2 * leafColours.size() - 1;
-        initParameters(nNodes);
 
         // Construct tree and assign to input plugin:
-        tree.assignFromWithoutID(new Tree(simulateTree()));
+        assignFromWithoutID(new MultiTypeTree(simulateTree()));
 
         // Ensure colouring is internally consistent:
-        if (!isValid())
-            throw new Exception("Inconsistent colour assignment.");
+        //if (!isValid())
+        //    throw new Exception("Inconsistent colour assignment.");
     }
 
     /**
@@ -196,36 +169,36 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
      * @param activeNodes
      * @return Root node of generated tree.
      */
-    private Node simulateTree() throws Exception {
+    private MultiTypeNode simulateTree() throws Exception {
 
         // Initialise node creation counter:
         int nextNodeNr = 0;
 
         // Initialise node lists:
-        List<List<Node>> activeNodes = Lists.newArrayList();
-        List<List<Node>> inactiveNodes = Lists.newArrayList();
-        for (int i = 0; i < nColours; i++) {
-            activeNodes.add(new ArrayList<Node>());
-            inactiveNodes.add(new ArrayList<Node>());
+        List<List<MultiTypeNode>> activeNodes = Lists.newArrayList();
+        List<List<MultiTypeNode>> inactiveNodes = Lists.newArrayList();
+        for (int i = 0; i < nTypes; i++) {
+            activeNodes.add(new ArrayList<MultiTypeNode>());
+            inactiveNodes.add(new ArrayList<MultiTypeNode>());
         }
 
         // Add nodes to inactive nodes list:
         for (int l = 0; l < nLeaves; l++) {
-            Node node = new Node();
+            MultiTypeNode node = new MultiTypeNode();
             node.setNr(nextNodeNr);
             node.setID(leafNames.get(l));
-            inactiveNodes.get(leafColours.get(l)).add(node);
-            modifier.setNodeHeight(node, leafTimes.get(l));
-            modifier.setNodeColour(node, leafColours.get(l));
+            inactiveNodes.get(leafTypes.get(l)).add(node);
+            node.setHeight(leafTimes.get(l));
+            node.setNodeType(leafTypes.get(l));
 
             nextNodeNr++;
         }
         
         // Sort nodes in inactive nodes lists in order of increasing age:
-        for (int i=0; i<nColours; i++) {
-            Collections.sort(inactiveNodes.get(i), new Comparator<Node>() {
+        for (int i=0; i<nTypes; i++) {
+            Collections.sort(inactiveNodes.get(i), new Comparator<MultiTypeNode>() {
                 @Override
-                public int compare(Node node1, Node node2) {
+                public int compare(MultiTypeNode node1, MultiTypeNode node2) {
                     double dt = node1.getHeight()-node2.getHeight();
                     if (dt<0)
                         return -1;
@@ -261,23 +234,23 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
                     totalProp, t);
 
             // Step 3: Handle activation of nodes:
-            Node nextNode = null;
-            int nextNodeCol = -1;
+            MultiTypeNode nextNode = null;
+            int nextNodeType = -1;
             double nextTime = Double.POSITIVE_INFINITY;
-            for (int i=0; i<nColours; i++) {
+            for (int i=0; i<nTypes; i++) {
                 if (inactiveNodes.get(i).isEmpty())
                     continue;
                 
                 if (inactiveNodes.get(i).get(0).getHeight()<nextTime) {
                     nextNode = inactiveNodes.get(i).get(0);
                     nextTime = nextNode.getHeight();
-                    nextNodeCol = i;
+                    nextNodeType = i;
                 }
             }
             if (nextTime < event.time) {
                 t = nextTime;
-                activeNodes.get(nextNodeCol).add(nextNode);
-                inactiveNodes.get(nextNodeCol).remove(0);
+                activeNodes.get(nextNodeType).add(nextNode);
+                inactiveNodes.get(nextNodeType).remove(0);
                 continue;
             }
             
@@ -289,7 +262,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
         }
 
         // Return sole remaining active node as root:
-        for (List<Node> nodeList : activeNodes)
+        for (List<MultiTypeNode> nodeList : activeNodes)
             if (!nodeList.isEmpty())
                 return nodeList.get(0);
 
@@ -308,7 +281,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
      * @return Total reaction propensity.
      */
     private double updatePropensities(List<List<Double>> migrationProp,
-            List<Double> coalesceProp, List<List<Node>> activeNodes) {
+            List<Double> coalesceProp, List<List<MultiTypeNode>> activeNodes) {
 
         double totalProp = 0.0;
 
@@ -342,10 +315,10 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
      * @param activeNodes
      * @return Number of active nodes remaining.
      */
-    private int totalNodesRemaining(List<List<Node>> activeNodes) {
+    private int totalNodesRemaining(List<List<MultiTypeNode>> activeNodes) {
         int result = 0;
 
-        for (List<Node> nodeList : activeNodes)
+        for (List<MultiTypeNode> nodeList : activeNodes)
             result += nodeList.size();
 
         return result;
@@ -403,48 +376,48 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
      * @param nextNodeNr Integer identifier of last node added to tree.
      * @return Updated nextNodeNr.
      */
-    private int updateTree(List<List<Node>> activeNodes, SCEvent event,
+    private int updateTree(List<List<MultiTypeNode>> activeNodes, SCEvent event,
             int nextNodeNr) {
 
         if (event instanceof CoalescenceEvent) {
 
             // Randomly select node pair with chosen colour:
-            Node daughter = selectRandomNode(activeNodes.get(event.fromColour));
-            Node son = selectRandomSibling(
-                    activeNodes.get(event.fromColour), daughter);
+            MultiTypeNode daughter = selectRandomNode(activeNodes.get(event.fromType));
+            MultiTypeNode son = selectRandomSibling(
+                    activeNodes.get(event.fromType), daughter);
 
             // Create new parent node with appropriate ID and time:
-            Node parent = new Node();
+            MultiTypeNode parent = new MultiTypeNode();
             parent.setNr(nextNodeNr);
             parent.setID(String.valueOf(nextNodeNr));
-            modifier.setNodeHeight(parent, event.time);
+            parent.setHeight(event.time);
             nextNodeNr++;
 
             // Connect new parent to children:
-            modifier.setNodeChildLeft(parent, daughter);
-            modifier.setNodeChildRight(parent, son);
-            modifier.setNodeParent(son, parent);
-            modifier.setNodeParent(daughter, parent);
+            parent.setLeft(daughter);
+            parent.setRight(son);
+            son.setParent(parent);
+            daughter.setParent(parent);
 
             // Ensure new parent is set to correct colour:
-            modifier.setNodeColour(parent, event.fromColour);
+            parent.setNodeType(event.fromType);
 
             // Update activeNodes:
-            activeNodes.get(event.fromColour).remove(son);
-            int idx = activeNodes.get(event.fromColour).indexOf(daughter);
-            activeNodes.get(event.fromColour).set(idx, parent);
+            activeNodes.get(event.fromType).remove(son);
+            int idx = activeNodes.get(event.fromType).indexOf(daughter);
+            activeNodes.get(event.fromType).set(idx, parent);
 
         } else {
 
             // Randomly select node with chosen colour:
-            Node migrator = selectRandomNode(activeNodes.get(event.fromColour));
+            MultiTypeNode migrator = selectRandomNode(activeNodes.get(event.fromType));
 
             // Record colour change in change lists:
-            modifier.addChange(migrator, event.toColour, event.time);
+            migrator.addChange(event.toType, event.time);
 
             // Update activeNodes:
-            activeNodes.get(event.fromColour).remove(migrator);
-            activeNodes.get(event.toColour).add(migrator);
+            activeNodes.get(event.fromType).remove(migrator);
+            activeNodes.get(event.toType).add(migrator);
 
         }
 
@@ -458,7 +431,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
      * @param nodeList
      * @return A randomly selected node.
      */
-    private Node selectRandomNode(List<Node> nodeList) {
+    private MultiTypeNode selectRandomNode(List<MultiTypeNode> nodeList) {
         return nodeList.get(Randomizer.nextInt(nodeList.size()));
     }
 
@@ -469,7 +442,7 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
      * @param node
      * @return Randomly selected node.
      */
-    private Node selectRandomSibling(List<Node> nodeList, Node node) {
+    private MultiTypeNode selectRandomSibling(List<MultiTypeNode> nodeList, Node node) {
 
         int n = Randomizer.nextInt(nodeList.size() - 1);
         int idxToAvoid = nodeList.indexOf(node);
@@ -479,22 +452,6 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
         return nodeList.get(n);
     }
 
-        
-    @Override
-    public void initStateNodes() { }
-
-    @Override
-    public List<StateNode> getInitialisedStateNodes() {
-        List<StateNode> statenodes = new ArrayList<StateNode>();
-
-        statenodes.add(treeInput.get());
-        statenodes.add(changeColoursInput.get());
-        statenodes.add(changeTimesInput.get());
-        statenodes.add(changeCountsInput.get());
-        statenodes.add(nodeColoursInput.get());
-
-        return statenodes;
-    }    
     
     /**
      * Generates an ensemble of trees from the structured coalescent for testing
@@ -518,13 +475,13 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
                 "rateMatrix", rateMatrix,
                 "popSizes", popSizes);
 
-        // Specify leaf colours:
-        IntegerParameter leafColours = new IntegerParameter();
-        leafColours.initByName(
-                "value", "0 0 0");
+        // Specify leaf types:
+        IntegerParameter leafTypes = new IntegerParameter();
+        leafTypes.initByName(
+                "value", "1 0 0");
 
         // Generate ensemble:
-        int reps = 10000;
+        int reps = 100000;
         double[] heights = new double[reps];
 
         long startTime = System.currentTimeMillis();
@@ -534,15 +491,14 @@ public class StructuredCoalescentColouredTree extends ColouredTree implements St
             if (i % 1000 == 0)
                 System.out.format("%d reps done\n", i);
 
-            StructuredCoalescentColouredTree sctree;
-            sctree = new StructuredCoalescentColouredTree();
+            StructuredCoalescentTree sctree;
+            sctree = new StructuredCoalescentTree();
             sctree.initByName(
                     "migrationModel", migrationModel,
-                    "leafColours", leafColours,
-                    "nColours", 2,
-                    "maxBranchColours", 50);
+                    "leafTypes", leafTypes,
+                    "nTypes", 2);
 
-            heights[i] = sctree.getUncolouredTree().getRoot().getHeight();
+            heights[i] = sctree.getRoot().getHeight();
         }
 
         long time = System.currentTimeMillis() - startTime;

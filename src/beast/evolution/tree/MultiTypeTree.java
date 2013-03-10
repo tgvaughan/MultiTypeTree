@@ -19,6 +19,7 @@ package beast.evolution.tree;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.State;
+import beast.core.StateNode;
 import com.google.common.collect.Lists;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -54,14 +55,21 @@ public class MultiTypeTree extends Tree {
      * Non-input fields:
      */
     protected String typeLabel;
-    protected Integer nTypes;
+    protected int nTypes;
     protected MultiTypeNode multiTypeRoot;
     
     protected MultiTypeNode[] multiTypeNodes;
     protected MultiTypeNode[] storedMultiTypeNodes;
     
+    public MultiTypeTree() { };
+    
+    public MultiTypeTree(MultiTypeNode rootNode) {
+        setRoot(rootNode);
+        initArrays();
+    }
+    
     @Override
-    public void initAndValidate() {
+    public void initAndValidate() throws Exception {
         typeLabel = typeLabelInput.get();
         nTypes = nTypesInput.get();
     }
@@ -70,7 +78,7 @@ public class MultiTypeTree extends Tree {
     protected void initArrays() {
         // initialise tree-as-array representation + its stored variant
         multiTypeNodes = new MultiTypeNode[nodeCount];
-        listNodes(root, multiTypeNodes);
+        listNodes(multiTypeRoot, multiTypeNodes);
         storedMultiTypeNodes = new MultiTypeNode[nodeCount];
         MultiTypeNode copy = multiTypeRoot.copy();
         listNodes(copy, storedMultiTypeNodes);
@@ -116,6 +124,38 @@ public class MultiTypeTree extends Tree {
         tree.nTypes = nTypes;
         tree.typeLabel = typeLabel;
         return tree;
+    }
+    
+    /**
+     * copy of all values from existing tree *
+     */
+    @Override
+    public void assignFrom(StateNode other) {
+        MultiTypeTree mtTree = (MultiTypeTree) other;
+        MultiTypeNode[] mtNodes = new MultiTypeNode[mtTree.getNodeCount()];
+        for (int i = 0; i < mtTree.getNodeCount(); i++) {
+            mtNodes[i] = new MultiTypeNode();
+        }
+        m_sID = mtTree.m_sID;
+        multiTypeRoot = mtNodes[mtTree.multiTypeRoot.getNr()];
+        multiTypeRoot.assignFrom(mtNodes, mtTree.root);
+        multiTypeRoot.multiTypeParent = null;
+        multiTypeRoot.m_Parent = null;
+        root = multiTypeRoot;
+        
+        nodeCount = mtTree.nodeCount;
+        internalNodeCount = mtTree.internalNodeCount;
+        leafNodeCount = mtTree.leafNodeCount;
+        initArrays();
+    }
+    
+    /**
+     * Retrieve total number of allowed types on tree.
+     * 
+     * @return total type/deme count.
+     */
+    public int getNTypes() {
+        return nTypes;
     }
     
     @Override

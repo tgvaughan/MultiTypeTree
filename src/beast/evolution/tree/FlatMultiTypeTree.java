@@ -26,19 +26,19 @@ import beast.core.*;
  * @author Tim Vaughan
  */
 @Description("A standard BEAST tree representation of a TreeColour object.")
-public class FlatColouredTree extends Tree {
+public class FlatMultiTypeTree extends Tree {
 
-	public Input<ColouredTree> colouredTreeInput = new Input<ColouredTree>(
-			"colouredTree", "Coloured tree to flatten.");
+	public Input<MultiTypeTree> multiTypeTreeInput = new Input<MultiTypeTree>(
+			"multiType", "Multi-type tree to flatten.");
 
-	protected ColouredTree colouredTree;
+	protected MultiTypeTree multiTypeTree;
 
-	public FlatColouredTree() {};
+	public FlatMultiTypeTree() {};
 
 	@Override
 	public void initAndValidate() {
-		colouredTree = colouredTreeInput.get();
-		setRoot(colouredTree.getFlattenedTree().getRoot());
+		multiTypeTree = multiTypeTreeInput.get();
+		setRoot(multiTypeTree.getFlattenedTree().getRoot());
 		initArrays();
 	}
 	

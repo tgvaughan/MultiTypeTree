@@ -121,6 +121,15 @@ public class MultiTypeNode extends Node {
         nTypeChanges += 1;
     }
     
+    /**
+     * Remove all type changes from branch above node.
+     */
+    public void clearChanges() {
+        changeTypes.clear();
+        changeTimes.clear();
+        nTypeChanges = 0;
+    }
+    
     /***************************
      * Method ported from Node *
      ***************************/

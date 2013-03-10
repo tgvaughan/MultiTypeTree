@@ -12,8 +12,8 @@ import java.util.List;
  *         Time: 3:03:07 PM
  */
 
-@Description("Class to initialize a ColouredTree from single child newick tree with colour metadata")
-public class ColouredTreeFromNewick extends ColouredTree implements StateNodeInitialiser {
+@Description("Class to initialize a MultiTypeTree from single child newick tree with type metadata")
+public class MultiTypeTreeFromNewick extends MultiTypeTree {
 
     public Input<String> newickStringInput = new Input<String>("newick",
             "Tree in Newick format.", Validate.REQUIRED);
@@ -32,25 +32,5 @@ public class ColouredTreeFromNewick extends ColouredTree implements StateNodeIni
         Tree flatTree = parser;
         
         initFromFlatTree(flatTree);
-        initStateNodes();
-    }
-
-
-    @Override
-    public void initStateNodes()  { }
-
-    @Override
-    public List<StateNode> getInitialisedStateNodes() {
-
-        List<StateNode> statenodes = new ArrayList<StateNode>();
-
-        statenodes.add(treeInput.get());
-        statenodes.add(changeColoursInput.get());
-        statenodes.add(changeTimesInput.get());
-        statenodes.add(changeCountsInput.get());
-        statenodes.add(nodeColoursInput.get());
-
-        return statenodes;
-
     }
 }

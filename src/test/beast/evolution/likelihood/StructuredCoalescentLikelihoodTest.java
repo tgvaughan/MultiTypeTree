@@ -19,7 +19,7 @@ package test.beast.evolution.likelihood;
 import beast.core.parameter.RealParameter;
 import beast.evolution.likelihood.StructuredCoalescentLikelihood;
 import beast.evolution.migrationmodel.MigrationModel;
-import beast.evolution.tree.ColouredTreeFromNewick;
+import beast.evolution.tree.MultiTypeTreeFromNewick;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -42,7 +42,7 @@ public class StructuredCoalescentLikelihoodTest {
                         "(((A[state=1]:0.25)[state=0]:0.25,B[state=0]:0.5)[state=0]:1.5,"
                         + "(C[state=0]:1.0,D[state=0]:1.0)[state=0]:1.0)[state=0]:0.0;";
 
-		ColouredTreeFromNewick ctree = new ColouredTreeFromNewick();
+		MultiTypeTreeFromNewick ctree = new MultiTypeTreeFromNewick();
 		ctree.initByName(
                         "newick", newickStr,
                         "colourLabel", "state",
