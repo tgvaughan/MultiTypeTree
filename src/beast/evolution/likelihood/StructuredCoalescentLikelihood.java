@@ -50,7 +50,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
     protected MultiTypeTree mtTree;
     protected boolean checkValidity;
 
-    private enum SCEventType {
+    private enum SCEventKind {
 
         COALESCE, MIGRATE, SAMPLE
     };
@@ -58,8 +58,8 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
     private class SCEvent {
 
         double time;
-        int colour, destColour;
-        SCEventType type;
+        int type, destType;
+        SCEventKind kind;
         MultiTypeNode node;
     }
     private List<SCEvent> eventList;
@@ -114,15 +114,15 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
             }
 
             // Event contribution:
-            switch (event.type) {
+            switch (event.kind) {
                 case COALESCE:
-                    double N = migrationModel.getPopSize(event.colour);
+                    double N = migrationModel.getPopSize(event.type);
                     logP += Math.log(1.0/N);
                     break;
 
                 case MIGRATE:
                     double m = migrationModel
-                            .getBackwardRate(event.destColour, event.colour);
+                            .getBackwardRate(event.destType, event.type);
                     logP += Math.log(m);
                     break;
 
@@ -173,16 +173,16 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
                         // Next event is a sample
                         if (node.getHeight()>nextEvent.time) {
                             nextEvent.time = node.getHeight();
-                            nextEvent.type = SCEventType.SAMPLE;
-                            nextEvent.colour = node.getNodeType();
+                            nextEvent.kind = SCEventKind.SAMPLE;
+                            nextEvent.type = node.getNodeType();
                             nextEvent.node = node;
                         }
                     } else {
                         // Next event is a coalescence
                         if (node.getHeight()>nextEvent.time) {
                             nextEvent.time = node.getHeight();
-                            nextEvent.type = SCEventType.COALESCE;
-                            nextEvent.colour = node.getNodeType();
+                            nextEvent.kind = SCEventKind.COALESCE;
+                            nextEvent.type = node.getNodeType();
                             nextEvent.node = node;
                         }
                     }
@@ -191,18 +191,18 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
                     double thisChangeTime = node.getChangeTime(changeIdx.get(node));
                     if (thisChangeTime>nextEvent.time) {
                         nextEvent.time = thisChangeTime;
-                        nextEvent.type = SCEventType.MIGRATE;
-                        nextEvent.destColour = node.getChangeType(changeIdx.get(node));
+                        nextEvent.kind = SCEventKind.MIGRATE;
+                        nextEvent.destType = node.getChangeType(changeIdx.get(node));
                         if (changeIdx.get(node)>0)
-                            nextEvent.colour = node.getChangeType(changeIdx.get(node)-1);
+                            nextEvent.type = node.getChangeType(changeIdx.get(node)-1);
                         else
-                            nextEvent.colour = node.getNodeType();
+                            nextEvent.type = node.getNodeType();
                         nextEvent.node = node;
                     }
                 }
 
             // Update active node list (changeIdx) and lineage count appropriately:
-            switch (nextEvent.type) {
+            switch (nextEvent.kind) {
                 case COALESCE:
                     MultiTypeNode leftChild = nextEvent.node.getLeft();
                     MultiTypeNode rightChild = nextEvent.node.getRight();
@@ -210,17 +210,17 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
                     changeIdx.remove(nextEvent.node);
                     changeIdx.put(leftChild, leftChild.getChangeCount()-1);
                     changeIdx.put(rightChild, rightChild.getChangeCount()-1);
-                    lineageCount[nextEvent.colour]++;
+                    lineageCount[nextEvent.type]++;
                     break;
 
                 case SAMPLE:
                     changeIdx.remove(nextEvent.node);
-                    lineageCount[nextEvent.colour]--;
+                    lineageCount[nextEvent.type]--;
                     break;
 
                 case MIGRATE:
-                    lineageCount[nextEvent.destColour]--;
-                    lineageCount[nextEvent.colour]++;
+                    lineageCount[nextEvent.destType]--;
+                    lineageCount[nextEvent.type]++;
                     int oldIdx = changeIdx.get(nextEvent.node);
                     changeIdx.put(nextEvent.node, oldIdx-1);
                     break;

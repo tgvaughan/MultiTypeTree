@@ -386,6 +386,7 @@ public class MultiTypeNode extends Node {
         node.nTypeChanges = nTypeChanges;
         node.changeTimes.addAll(changeTimes);
         node.changeTypes.addAll(changeTypes);
+        node.nodeType = nodeType;
         if (getLeft() != null) {
             node.setLeft(getLeft().copy());
             node.getLeft().setParent(node);
@@ -410,6 +411,7 @@ public class MultiTypeNode extends Node {
         nTypeChanges = node.nTypeChanges;
         changeTimes.addAll(node.changeTimes);
         changeTypes.addAll(node.changeTypes);
+        nodeType = node.nodeType;
         if (node.getLeft() != null) {
             setLeft(nodes[node.getLeft().getNr()]);
             getLeft().assignFrom(nodes, node.getLeft());
