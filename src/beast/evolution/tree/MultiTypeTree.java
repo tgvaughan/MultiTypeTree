@@ -18,12 +18,10 @@ package beast.evolution.tree;
 
 import beast.core.Description;
 import beast.core.Input;
-import beast.core.State;
 import beast.core.StateNode;
 import com.google.common.collect.Lists;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -31,7 +29,7 @@ import java.util.List;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 @Description("A multi-type phylogenetic tree.")
-public class MultiTypeTree extends Tree {
+public final class MultiTypeTree extends Tree {
     
     /*
      * Plugin inputs:
@@ -185,6 +183,30 @@ public class MultiTypeTree extends Tree {
     @Override
     public MultiTypeNode getNode(int iNodeNr) {
         return multiTypeNodes[iNodeNr];
+    }
+    
+    /**
+     * @return a list of external (leaf) nodes contained in this tree
+     */
+    public List<MultiTypeNode> getExternalMultiTypeNodes() {
+        ArrayList<MultiTypeNode> externalNodes = new ArrayList<MultiTypeNode>();
+        for (int i = 0; i < getNodeCount(); i++) {
+            MultiTypeNode node = getNode(i);
+            if (node.isLeaf()) externalNodes.add(node);
+        }
+        return externalNodes;
+    }
+
+    /**
+     * @return a list of internal (ancestral) nodes contained in this tree, including the root node
+     */
+    public List<MultiTypeNode> getInternalMultiTypeNodes() {
+        ArrayList<MultiTypeNode> internalNodes = new ArrayList<MultiTypeNode>();
+        for (int i = 0; i < getNodeCount(); i++) {
+            MultiTypeNode node = getNode(i);
+            if (!node.isLeaf()) internalNodes.add(node);
+        }
+        return internalNodes;
     }
     
     /**

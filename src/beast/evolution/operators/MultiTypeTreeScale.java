@@ -19,9 +19,8 @@ package beast.evolution.operators;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.parameter.BooleanParameter;
-import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.Node;
+import beast.evolution.tree.MultiTypeNode;
 import beast.util.Randomizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,7 @@ import java.util.List;
 @Description("Scale operator for coloured trees.  Also allows additional "
         + "scalar parameters to be rescaled (either forward or inversely) "
         + "at the same time.")
-public class ColouredTreeScale extends MultiTypeTreeOperator {
+public class MultiTypeTreeScale extends MultiTypeTreeOperator {
     
     public Input<List<RealParameter>> parametersInput =
             new Input<List<RealParameter>>("parameter",
@@ -113,7 +112,6 @@ public class ColouredTreeScale extends MultiTypeTreeOperator {
     public double proposal() {
 
         mtTree = multiTypeTreeInput.get();
-        tree = mtTree.getUncolouredTree();
 
         // Choose scale factor:
         double u = Randomizer.nextDouble();
@@ -125,49 +123,49 @@ public class ColouredTreeScale extends MultiTypeTreeOperator {
         
         // Scale colour change times on external branches:        
         if (!useOldTreeScalerInput.get()) {
-            for (Node leaf : tree.getExternalNodes()) {
+            for (MultiTypeNode leaf : mtTree.getExternalMultiTypeNodes()) {
                 double lold = leaf.getParent().getHeight()-leaf.getHeight();
                 double lnew = f*leaf.getParent().getHeight()-leaf.getHeight();            
                 
-                for (int c=0; c<mtTree.getChangeCount(leaf); c++) {
-                    double oldTime = mtTree.getChangeTime(leaf, c);
+                for (int c=0; c<leaf.getChangeCount(); c++) {
+                    double oldTime = leaf.getChangeTime(c);
                     double newTime = leaf.getHeight()
                             + (oldTime-leaf.getHeight())*lnew/lold;
-                    setChangeTime(leaf, c, newTime);
+                    leaf.setChangeTime(c, newTime);
                 }
                 
-                logHR += mtTree.getChangeCount(leaf)*Math.log(lnew/lold);
+                logHR += leaf.getChangeCount()*Math.log(lnew/lold);
             }
         } else {
-            for (Node leaf : tree.getExternalNodes()) {
-                for (int c = 0; c<mtTree.getChangeCount(leaf); c++) {
-                    double oldTime = mtTree.getChangeTime(leaf, c);
-                    setChangeTime(leaf, c, f*oldTime);
+            for (MultiTypeNode leaf : mtTree.getExternalMultiTypeNodes()) {
+                for (int c = 0; c<leaf.getChangeCount(); c++) {
+                    double oldTime = leaf.getChangeTime(c);
+                    leaf.setChangeTime(c, f*oldTime);
                     logHR += logf;
                 }
             }
         }
 
         // Scale internal node heights and colour change times:
-        for (Node node : tree.getInternalNodes()) {
+        for (MultiTypeNode node : mtTree.getInternalMultiTypeNodes()) {
             
             node.setHeight(node.getHeight()*f);
             logHR += logf;
             
-            for (int c = 0; c<mtTree.getChangeCount(node); c++) {
-                double oldTime = mtTree.getChangeTime(node, c);
-                setChangeTime(node, c, f*oldTime);
+            for (int c = 0; c<node.getChangeCount(); c++) {
+                double oldTime = node.getChangeTime(c);
+                node.setChangeTime(c, f*oldTime);
                 logHR += logf;
             }
         }
         
         // Ensure reject invalid tree scalings:
         if (f<1.0) {
-            for (Node leaf : tree.getExternalNodes()) {
+            for (MultiTypeNode leaf : mtTree.getExternalMultiTypeNodes()) {
                 if (leaf.getParent().getHeight()<leaf.getHeight())
                     return Double.NEGATIVE_INFINITY;
                 
-                if (mtTree.getChangeCount(leaf)>0 && mtTree.getChangeTime(leaf, 0)<leaf.getHeight())
+                if (leaf.getChangeCount()>0 && leaf.getChangeTime(0)<leaf.getHeight())
                     if (useOldTreeScalerInput.get())
                         throw new IllegalStateException("Scaled colour change time "
                                 + "has dipped below age of leaf - this should never "

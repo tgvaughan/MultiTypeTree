@@ -131,6 +131,25 @@ public class MultiTypeNode extends Node {
     }
     
     /**
+     * Change time at which type change idx occurs.
+     * 
+     * @param idx Index of type-change to modify.
+     * @param newTime New time of type-change.
+     */
+    public void setChangeTime(int idx, double newTime) {
+        changeTimes.set(idx, newTime);
+    }
+    
+    /**
+     * Change destination type of type change idx.
+     * @param idx Index of type-change to modify.
+     * @param newType New destination type of type-change.
+     */
+    public void setChangeType(int idx, int newType) {
+        changeTypes.set(idx, newType);
+    }
+    
+    /**
      * Truncate type change lists so that a maximum of newNChanges remain.
      * Does nothing if newNChanges>= the current value.
      * 
