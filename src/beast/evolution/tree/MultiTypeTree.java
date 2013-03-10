@@ -63,6 +63,7 @@ public class MultiTypeTree extends Tree {
     
     public MultiTypeTree(MultiTypeNode rootNode) {
         setRoot(rootNode);
+        nodeCount = rootNode.getNodeCount();
         initArrays();
     }
     
@@ -207,6 +208,11 @@ public class MultiTypeTree extends Tree {
             if (!node.isLeaf()) internalNodes.add(node);
         }
         return internalNodes;
+    }
+
+    @Override
+    public int getNodeCount() {
+        return multiTypeRoot.getNodeCount();
     }
     
     /**
@@ -355,8 +361,8 @@ public class MultiTypeTree extends Tree {
 
         // Populate active node lists with root:
         activeFlatTreeNodes.add(flatTree.getRoot());
-        multiTypeRoot = new MultiTypeNode();
-        activeTreeNodes.add(multiTypeRoot);
+        MultiTypeNode newRoot = new MultiTypeNode();
+        activeTreeNodes.add(newRoot);
 
         while (!activeFlatTreeNodes.isEmpty()) {
 
@@ -433,7 +439,7 @@ public class MultiTypeTree extends Tree {
         }
 
         // Assign tree topology:
-        assignFromWithoutID(new Tree(root));
+        assignFromWithoutID(new MultiTypeTree(newRoot));
     }
     
 

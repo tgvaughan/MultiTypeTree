@@ -279,7 +279,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
         StructuredCoalescentLikelihood likelihood = new StructuredCoalescentLikelihood();
         likelihood.initByName(
                 "migrationModel", migrationModel,
-                "colouredTree", mtTree);
+                "multiTypeTree", mtTree);
 
         double expResult = -16.52831;  // Calculated by hand
         double result = likelihood.calculateLogP();

@@ -214,6 +214,13 @@ public class MultiTypeNode extends Node {
         return multiTypeChildren;
     }
     
+    /**
+     * Create list of children of this node represented as regular
+     * (rather than multitype) nodes.  Ok for reading, but this can't
+     * be used to modify the tree topology.
+     * 
+     * @return _New_ list of child nodes.
+     */
     @Override
     public List<Node> getChildren() {
         return new ArrayList<Node>(multiTypeChildren);
@@ -297,6 +304,18 @@ public class MultiTypeNode extends Node {
     }
     
     /**
+     * @return count number of nodes in beast.tree, starting with current node *
+     */
+    @Override
+    public int getNodeCount() {
+        int nodes = 1;
+        for (MultiTypeNode child : multiTypeChildren) {
+        	nodes += child.getNodeCount();
+        }
+        return nodes;
+    }
+    
+    /**
      * Let tree know that it's been modified.
      */
     private void startEditing() {
@@ -315,6 +334,36 @@ public class MultiTypeNode extends Node {
         m_Parent = newParent;
     }
     
+    /**
+     * Set new left-hand child for this node.
+     * 
+     * @param leftChild 
+     */
+    public void setLeft(MultiTypeNode leftChild) {
+		if (multiTypeChildren.isEmpty()) {
+	    	multiTypeChildren.add(leftChild);
+		} else {
+			multiTypeChildren.set(0, leftChild);
+    	}
+	}
+    
+    /**
+     * Set new right-hand child for this node.
+     * 
+     * @param rightChild 
+     */
+    public void setRight(MultiTypeNode rightChild) {
+		switch (multiTypeChildren.size()) {
+		case 0:
+	    	multiTypeChildren.add(null);
+		case 1:
+	    	multiTypeChildren.add(rightChild);
+	    	break;
+		default:
+			multiTypeChildren.set(1, rightChild);
+	    	break;
+    	}
+	}
     
     /**
      * @return (deep) copy of node
