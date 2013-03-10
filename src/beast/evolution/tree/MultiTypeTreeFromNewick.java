@@ -13,7 +13,7 @@ import java.util.List;
  */
 
 @Description("Class to initialize a MultiTypeTree from single child newick tree with type metadata")
-public class MultiTypeTreeFromNewick extends MultiTypeTree {
+public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeInitialiser {
 
     public Input<String> newickStringInput = new Input<String>("newick",
             "Tree in Newick format.", Validate.REQUIRED);
@@ -32,5 +32,17 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree {
         Tree flatTree = parser;
         
         initFromFlatTree(flatTree);
+    }
+
+    @Override
+    public void initStateNodes() {
+    }
+
+    @Override
+    public List<StateNode> getInitialisedStateNodes() {
+        List<StateNode> stateNodeList = new ArrayList<StateNode>();
+        stateNodeList.add(this);
+        
+        return stateNodeList;
     }
 }

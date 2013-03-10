@@ -25,23 +25,23 @@
 
             <distribution id='scLikelihood' spec="StructuredCoalescentLikelihood">
                 <migrationModel idref="migmodel"/>
-                <colouredTree idref="colouredTree"/>
+                <multiTypeTree idref="tree"/>
             </distribution>
 
         </distribution>
 
-        <operator spec='ColouredWilsonBalding' id="CWB"
-                  weight="1.0" colouredTree="@colouredTree"
+        <operator spec='TypedWilsonBalding' id="TWB"
+                  weight="1.0" multiTypeTree="@tree"
                   migrationModel="@migmodel" alpha="0.2" />
 
-        <logger logEvery="1000" fileName="CWBtest.log">
+        <logger logEvery="1000" fileName="TWBtest.log">
             <model idref='P'/>
             <log idref="P"/>
             <log spec='TreeHeightLogger'>
                 <tree idref="tree"/>
             </log>
-            <log spec='ColourChangeCountLogger'>
-                <colouredTree idref="colouredTree"/>
+            <log spec='TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
@@ -51,8 +51,8 @@
             <log spec='TreeHeightLogger' >
                 <tree idref="tree"/>
             </log>
-            <log spec='ColourChangeCountLogger'>
-                <colouredTree idref="colouredTree"/>
+            <log spec='TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
             </log>
         </logger>
 

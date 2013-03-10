@@ -34,12 +34,12 @@ import java.util.List;
 public class TypeChangeCountLogger extends Plugin implements Loggable {
 
     public Input<MultiTypeTree> multiTypeTreeInput = new Input<MultiTypeTree>(
-            "colouredTree",
-            "Coloured tree to log",
+            "multiTypeTree",
+            "Multi-type tree to log",
             Validate.REQUIRED);
     public Input<Boolean> logEachDirectionInput = new Input<Boolean>(
             "logEachDirection",
-            "Whether to log number of changes between each colour pair.",
+            "Whether to log number of changes between each type pair.",
             false);
     MultiTypeTree mtTree;
     boolean logEachDirection;
