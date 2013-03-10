@@ -29,7 +29,7 @@ import java.util.List;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 @Description("A multi-type phylogenetic tree.")
-public final class MultiTypeTree extends Tree {
+public class MultiTypeTree extends Tree {
     
     /*
      * Plugin inputs:
@@ -73,7 +73,7 @@ public final class MultiTypeTree extends Tree {
     }
     
     @Override
-    protected void initArrays() {
+    protected final void initArrays() {
         // initialise tree-as-array representation + its stored variant
         multiTypeNodes = new MultiTypeNode[nodeCount];
         listNodes(multiTypeRoot, multiTypeNodes);
@@ -165,7 +165,7 @@ public final class MultiTypeTree extends Tree {
      * Set new root of multi-type tree.
      * @param root New root node.
      */
-    public void setRoot(MultiTypeNode root) {
+    public final void setRoot(MultiTypeNode root) {
         this.multiTypeRoot = root;
         this.root = root;
         nodeCount = this.root.getNodeCount();

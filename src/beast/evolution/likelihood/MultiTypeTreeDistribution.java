@@ -18,7 +18,7 @@ package beast.evolution.likelihood;
 
 import beast.core.*;
 import beast.core.Input.Validate;
-import beast.evolution.tree.ColouredTree;
+import beast.evolution.tree.MultiTypeTree;
 import java.util.List;
 import java.util.Random;
 
@@ -26,9 +26,9 @@ import java.util.Random;
  *
  * @author Tim Vaughan
  */
-public class ColouredTreeDistribution extends Distribution {
+public class MultiTypeTreeDistribution extends Distribution {
 
-	public Input<ColouredTree> m_ctree = new Input<ColouredTree>("colouredTree",
+	public Input<MultiTypeTree> mtTreeInput = new Input<MultiTypeTree>("multiTypeTree",
 			"Multi-type tree.", Validate.REQUIRED);
 
 
