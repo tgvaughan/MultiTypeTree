@@ -32,6 +32,9 @@ public class MultiTypeNode extends Node {
     List<Double> changeTimes = new ArrayList<Double>();
     int nodeType = 0;
     
+    List<MultiTypeNode> multiTypeChildren = new ArrayList<MultiTypeNode>();
+    MultiTypeNode multiTypeParent = null;
+    
     /**
      * Retrieve the total number of changes on the branch above this node.
      * @return type change count
@@ -86,14 +89,15 @@ public class MultiTypeNode extends Node {
         else
             return getHeight();
     }
-    
+
     /**
-     * Let tree know that it's been modified.
+     * Obtain type value at this node.  (Used for caching or for specifying
+     * type changes at nodes.)
+     * 
+     * @return type value at this node
      */
-    private void startEditing() {
-        if (m_tree != null && m_tree.getState() != null) {
-            m_tree.startEditing(null);
-        }
+    public int getNodeType() {
+        return nodeType;
     }
     
     /**
@@ -115,6 +119,150 @@ public class MultiTypeNode extends Node {
         changeTypes.add(newType);
         changeTimes.add(time);
         nTypeChanges += 1;
+    }
+    
+    /***************************
+     * Method ported from Node *
+     ***************************/
+    
+    @Override
+    public MultiTypeNode getParent() {
+        return multiTypeParent;
+    }
+    
+    /**
+     * Return list of children of this multi-type tree node.
+     * @return 
+     */
+    public List<MultiTypeNode> getMultiTypeChildren() {
+        return multiTypeChildren;
+    }
+    
+    @Override
+    public List<Node> getChildren() {
+        return new ArrayList<Node>(multiTypeChildren);
+    }
+    
+    @Override
+    public MultiTypeNode getLeft() {
+		if (multiTypeChildren.isEmpty()) {
+			return null;
+		}
+		return multiTypeChildren.get(0);
+	}
+    
+    @Override
+    public MultiTypeNode getRight() {
+		if (multiTypeChildren.size() <= 1) {
+			return null;
+		}
+		return multiTypeChildren.get(1);
+	}
+    
+    @Override
+    public boolean isLeaf() {
+        return multiTypeChildren.isEmpty();
+    }
+    
+    @Override
+    public boolean isRoot() {
+        return multiTypeParent == null;
+    }
+    
+    /**
+     * get all child node under this node, if this node is leaf then list.size() = 0.
+     *
+     * @return
+     */
+    public List<MultiTypeNode> getAllMultiTypeChildNodes() {
+        List<MultiTypeNode> childNodes = new ArrayList<MultiTypeNode>();
+        if (!this.isLeaf()) getAllMultiTypeChildNodes(childNodes);
+        return childNodes;
+    }
+    
+    @Override
+    public List<Node> getAllChildNodes() {
+        return new ArrayList<Node>(getAllMultiTypeChildNodes());
+    }
+
+    // recursive
+    public void getAllMultiTypeChildNodes(List<MultiTypeNode> childNodes) {
+        childNodes.add(this);
+        if (!this.isLeaf()) {
+            getRight().getAllMultiTypeChildNodes(childNodes);
+            getLeft().getAllMultiTypeChildNodes(childNodes);
+        }
+    }
+
+    /**
+     * get all leaf node under this node, if this node is leaf then list.size() = 0.
+     *
+     * @return
+     */
+    public List<MultiTypeNode> getAllMultiTypeLeafNodes() {
+        List<MultiTypeNode> leafNodes = new ArrayList<MultiTypeNode>();
+        if (!this.isLeaf()) getAllMultiTypeLeafNodes(leafNodes);
+        return leafNodes;
+    }
+    
+    @Override
+    public List<Node> getAllLeafNodes() {
+        return new ArrayList<Node>(getAllMultiTypeLeafNodes());
+    }
+
+    // recursive
+    public void getAllMultiTypeLeafNodes(List<MultiTypeNode> leafNodes) {
+        if (this.isLeaf()) {
+            leafNodes.add(this);
+        } else {
+            getRight().getAllMultiTypeLeafNodes(leafNodes);
+            getLeft().getAllMultiTypeLeafNodes(leafNodes);
+        }
+    }
+    
+    /**
+     * Let tree know that it's been modified.
+     */
+    private void startEditing() {
+        if (m_tree != null && m_tree.getState() != null) {
+            m_tree.startEditing(null);
+        }
+    }
+    
+    /**
+     * Set a new parent for this multi-type node.
+     * @param newParent 
+     */
+    public void setParent(MultiTypeNode newParent) {
+        startEditing();
+        multiTypeParent = newParent;
+        m_Parent = newParent;
+    }
+    
+    
+    /**
+     * @return (deep) copy of node
+     */
+    @Override
+    public MultiTypeNode copy() {
+        MultiTypeNode node = new MultiTypeNode();
+        node.m_fHeight = m_fHeight;
+        node.m_iLabel = m_iLabel;
+        node.m_sMetaData = m_sMetaData;
+        node.m_Parent = null;
+        node.m_sID = m_sID;
+        node.nTypeChanges = nTypeChanges;
+        node.changeTimes.addAll(changeTimes);
+        node.changeTypes.addAll(changeTypes);
+        if (getLeft() != null) {
+            node.setLeft(getLeft().copy());
+            node.getLeft().m_Parent = node;
+            if (getRight() != null) {
+                node.setRight(getRight().copy());
+                node.getRight().m_Parent = node;
+            }
+        }
+        return node;
     }
     
 }
