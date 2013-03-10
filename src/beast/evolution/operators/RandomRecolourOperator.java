@@ -26,7 +26,7 @@ import beast.util.Randomizer;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public abstract class RandomRecolourOperator extends ColouredTreeOperator {
+public abstract class RandomRecolourOperator extends MultiTypeTreeOperator {
 
     public Input<Double> muInput = new Input<Double>("mu",
             "Migration rate for proposal distribution", Input.Validate.REQUIRED);
@@ -46,7 +46,7 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeParent = srcNodeParent.getHeight();
 
-        int srcNodeCol = cTree.getNodeColour(srcNode);
+        int srcNodeCol = mtTree.getNodeColour(srcNode);
 
         // Clear existing changes in preparation for adding replacements:
         setChangeCount(srcNode, 0);
@@ -61,7 +61,7 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
             if (t < t_srcNodeParent) {
 
                 // Select new colour:
-                int newCol = Randomizer.nextInt(cTree.getNColours() - 1);
+                int newCol = Randomizer.nextInt(mtTree.getNColours() - 1);
                 if (newCol >= lastCol)
                     newCol += 1;
                 addChange(srcNode, newCol, t);
@@ -72,7 +72,7 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
 
         // Return log of branch colour probability:
         return -mu*(t_srcNodeParent - t_srcNode)
-                + cTree.getChangeCount(srcNode)*Math.log(mu/(cTree.getNColours()-1));
+                + mtTree.getChangeCount(srcNode)*Math.log(mu/(mtTree.getNColours()-1));
 
     }
 
@@ -95,7 +95,7 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
         double logP = recolourBranch(srcNode);
 
         // Adjust colour of root node:
-        setNodeColour(root, cTree.getFinalBranchColour(srcNode));
+        setNodeColour(root, mtTree.getFinalBranchColour(srcNode));
 
         return logP + recolourBranch(srcNodeSister);
     }
@@ -112,8 +112,8 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
         double mu = muInput.get();
         double T = srcNode.getParent().getHeight()
                 - srcNode.getHeight();
-        int n = cTree.getChangeCount(srcNode);
-        int N = cTree.getNColours();
+        int n = mtTree.getChangeCount(srcNode);
+        int N = mtTree.getNColours();
 
         if (N == 0)
             return 0.0;
@@ -135,9 +135,9 @@ public abstract class RandomRecolourOperator extends ColouredTreeOperator {
         double T = 2.0 * srcNode.getParent().getHeight()
                 - srcNode.getHeight()
                 - srcNodeS.getHeight();
-        int n = cTree.getChangeCount(srcNode)
-                + cTree.getChangeCount(srcNodeS);
-        int N = cTree.getNColours();
+        int n = mtTree.getChangeCount(srcNode)
+                + mtTree.getChangeCount(srcNodeS);
+        int N = mtTree.getNColours();
 
         if (N == 0)
             return 0.0;

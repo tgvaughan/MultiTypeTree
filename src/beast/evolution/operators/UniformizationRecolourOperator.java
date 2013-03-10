@@ -28,7 +28,7 @@ import java.util.Arrays;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public abstract class UniformizationRecolourOperator extends ColouredTreeOperator {
+public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperator {
     
     public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
             "migrationModel",
@@ -58,8 +58,8 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
 
         double L = t_srcNodeP-t_srcNode;
 
-        int col_srcNode = cTree.getNodeColour(srcNode);
-        int col_srcNodeP = cTree.getNodeColour(srcNodeP);
+        int col_srcNode = mtTree.getNodeColour(srcNode);
+        int col_srcNodeP = mtTree.getNodeColour(srcNodeP);
 
         // Select number of virtual events:
         double Pba = migrationModel.getQexpElement(L, col_srcNodeP, col_srcNode);
@@ -96,7 +96,7 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
             double u2 = Randomizer.nextDouble()
                     *migrationModel.getRpowElement(i, 1.0, lastCol, col_srcNode);
             int c;
-            for (c = 0; c<cTree.getNColours(); c++) {
+            for (c = 0; c<mtTree.getNColours(); c++) {
                 u2 -= migrationModel.getRelement(lastCol, c)
                         *migrationModel.getRpowElement(i-1, 1.0, c, col_srcNode);
                 if (u2<0.0)
@@ -164,7 +164,7 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
         // Select new root colour:
         double u = Randomizer.nextDouble()*migrationModel.getTotalPopSize();
         int rootCol;
-        for (rootCol = 0; rootCol<cTree.getNColours(); rootCol++) {
+        for (rootCol = 0; rootCol<mtTree.getNColours(); rootCol++) {
             u -= migrationModel.getPopSize(rootCol);
             if (u<0)
                 break;
@@ -199,15 +199,15 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeP = srcNodeP.getHeight();
         double L = t_srcNodeP-t_srcNode;
-        int col_srcNode = cTree.getNodeColour(srcNode);
-        int col_srcNodeP = cTree.getNodeColour(srcNodeP);
+        int col_srcNode = mtTree.getNodeColour(srcNode);
+        int col_srcNodeP = mtTree.getNodeColour(srcNodeP);
 
         // Probability of branch conditional on start colour:
         double lastTime = t_srcNode;
         int lastCol = col_srcNode;
-        for (int i = 0; i<cTree.getChangeCount(srcNode); i++) {
-            double thisTime = cTree.getChangeTime(srcNode, i);
-            int thisCol = cTree.getChangeColour(srcNode, i);
+        for (int i = 0; i<mtTree.getChangeCount(srcNode); i++) {
+            double thisTime = mtTree.getChangeTime(srcNode, i);
+            int thisCol = mtTree.getChangeColour(srcNode, i);
 
             logProb += (thisTime-lastTime)*migrationModel.getQelement(lastCol, lastCol)
                     +Math.log(migrationModel.getQelement(thisCol, lastCol));
@@ -240,7 +240,7 @@ public abstract class UniformizationRecolourOperator extends ColouredTreeOperato
 
         Node srcNodeP = srcNode.getParent();
         Node srcNodeS = getOtherChild(srcNodeP, srcNode);
-        int col_srcNodeP = cTree.getNodeColour(srcNodeP);
+        int col_srcNodeP = mtTree.getNodeColour(srcNodeP);
 
         // Probability of choosing root colour:
         logProb += Math.log(migrationModel.getPopSize(col_srcNodeP)

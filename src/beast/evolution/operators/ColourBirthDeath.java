@@ -23,18 +23,18 @@ import beast.core.Description;
  */
 @Description("Implements the colour change (migration) birth/death move "
         + "described by Ewing et al., Genetics (2004).")
-public class ColourBirthDeath extends ColouredTreeOperator {
+public class ColourBirthDeath extends MultiTypeTreeOperator {
 
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         
         // This move only works for more than 2 demes:
-        if (cTree.getNColours()<=2)
+        if (mtTree.getNColours()<=2)
             return Double.NEGATIVE_INFINITY;
 
-        int m = cTree.getTotalNumberofChanges() + tree.getNodeCount() - 1;
+        int m = mtTree.getTotalNumberofChanges() + tree.getNodeCount() - 1;
         
         return 0;
     }

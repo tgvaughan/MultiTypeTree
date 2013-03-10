@@ -46,8 +46,8 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
 
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         alpha = alphaInput.get();
 
         // Check that operator can be applied to tree:
@@ -92,7 +92,7 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
             try {
                 disconnectBranch(srcNode);
             } catch (RecolouringException ex) {
-                if (cTree.discardWhenMaxExceeded()) {
+                if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();
                     return Double.NEGATIVE_INFINITY;
                 } else
@@ -106,7 +106,7 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
             try {
                 logHR -= recolourRootBranches(srcNode);
             } catch (RecolouringException ex) {
-                if (cTree.discardWhenMaxExceeded()) {
+                if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();
                     return Double.NEGATIVE_INFINITY;
                 } else
@@ -114,7 +114,7 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
             }
             
             // Abort if colouring inconsistent:
-            if (cTree.getNodeColour(srcNodeP) != cTree.getFinalBranchColour(destNode))
+            if (mtTree.getNodeColour(srcNodeP) != mtTree.getFinalBranchColour(destNode))
                 return Double.NEGATIVE_INFINITY;
             
             // Incorporate HR contribution of tree topology and node
@@ -152,7 +152,7 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
             try {
                 logHR -= recolourBranch(srcNode);
             } catch (RecolouringException ex) {
-                if (cTree.discardWhenMaxExceeded()) {
+                if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();
                     return Double.NEGATIVE_INFINITY;
                 } else
@@ -160,7 +160,7 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
             }
             
             // Abort if new colouring is inconsistent:
-            if (cTree.getNodeColour(srcNodeP) != cTree.getFinalBranchColour(srcNode))
+            if (mtTree.getNodeColour(srcNodeP) != mtTree.getFinalBranchColour(srcNode))
                 return Double.NEGATIVE_INFINITY;
             
             // Incorporate HR contribution of tree topology and node
@@ -190,7 +190,7 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
         try {
             disconnectBranch(srcNode);
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else
@@ -202,7 +202,7 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
         try {
             logHR -= recolourBranch(srcNode);
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else
@@ -210,7 +210,7 @@ public class ColouredWilsonBaldingRandom extends RandomRecolourOperator {
         }
         
         // Reject outright if new colouring inconsistent:
-        if (cTree.getNodeColour(srcNodeP) != cTree.getFinalBranchColour(srcNode))
+        if (mtTree.getNodeColour(srcNodeP) != mtTree.getFinalBranchColour(srcNode))
             return Double.NEGATIVE_INFINITY;
 
         // Incorporate HR contribution of tree topology and node

@@ -30,7 +30,7 @@ import beast.evolution.tree.Node;
  * 
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class ColouredTreeModifier extends ColouredTreeOperator {
+public class ColouredTreeModifier extends MultiTypeTreeOperator {
             
     /**
      * Constructor for a ColouredTreeModifier object.  
@@ -38,7 +38,7 @@ public class ColouredTreeModifier extends ColouredTreeOperator {
      * @param cTree Tree that will be the focus of this operator.
      */
     public ColouredTreeModifier(ColouredTree cTree) {
-        this.cTree = cTree;
+        this.mtTree = cTree;
         this.tree = cTree.getUncolouredTree();
     }
 

@@ -8,7 +8,7 @@ import beast.util.Randomizer;
 @Description("Randomly selects true internal tree node (i.e. not the root) and"
         + " moves node height uniformly in interval restricted by the node's"
         + " parent and children.")
-public class ColouredUniform extends ColouredTreeOperator {
+public class ColouredUniform extends MultiTypeTreeOperator {
 
     @Override
     public void initAndValidate() {
@@ -22,8 +22,8 @@ public class ColouredUniform extends ColouredTreeOperator {
     @Override
     public double proposal() {
 
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
 
         // randomly select internal node
         final int nNodeCount = tree.getNodeCount();
@@ -34,14 +34,14 @@ public class ColouredUniform extends ColouredTreeOperator {
         } while (node.isRoot() || node.isLeaf());
 
         // upper is first node colour change, if there is one, otherwise it's parent height
-        final double fUpper = (cTree.getChangeCount(node) > 0)? (cTree.getChangeTime(node,0)) : node.getParent().getHeight();
+        final double fUpper = (mtTree.getChangeCount(node) > 0)? (mtTree.getChangeTime(node,0)) : node.getParent().getHeight();
 
         // lower is maximum of childrens' last node colour change, if there are any, otherwise of their heights         
         Node left = node.getLeft();
         Node right = node.getRight();
-        int lCount = cTree.getChangeCount(left);
-        int rCount = cTree.getChangeCount(right);
-        final double fLower = Math.max((lCount>0? (cTree.getChangeTime(left, lCount-1)) :left.getHeight()), ( rCount>0? (cTree.getChangeTime(right, rCount-1)) : right.getHeight()));
+        int lCount = mtTree.getChangeCount(left);
+        int rCount = mtTree.getChangeCount(right);
+        final double fLower = Math.max((lCount>0? (mtTree.getChangeTime(left, lCount-1)) :left.getHeight()), ( rCount>0? (mtTree.getChangeTime(right, rCount-1)) : right.getHeight()));
 
         final double newValue = (Randomizer.nextDouble() * (fUpper - fLower)) + fLower;
         node.setHeight(newValue);

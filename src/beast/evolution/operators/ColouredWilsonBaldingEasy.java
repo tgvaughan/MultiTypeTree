@@ -31,7 +31,7 @@ import beast.util.Randomizer;
 +"See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
         + " This version performs no explicit recolouring.  Used for testing "
         + " Ewing et al.'s sampler.")
-public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
+public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
 
     public Input<Double> alphaInput = new Input<Double>("alpha",
             "Root height proposal parameter", .1);
@@ -43,8 +43,8 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
 
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         alpha = alphaInput.get();
 
         // Check that operator can be applied to tree:
@@ -86,7 +86,7 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
             try {
                 disconnectBranch(srcNode);
             } catch (RecolouringException ex) {
-                if (cTree.discardWhenMaxExceeded()) {
+                if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();
                     return Double.NEGATIVE_INFINITY;
                 } else
@@ -97,11 +97,11 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
             setRoot(srcNodeP);
 
             // Abort if colouring inconsistent:
-            if (cTree.getFinalBranchColour(srcNode) != cTree.getFinalBranchColour(destNode))
+            if (mtTree.getFinalBranchColour(srcNode) != mtTree.getFinalBranchColour(destNode))
                 return Double.NEGATIVE_INFINITY;
             
             // Update colour of root node:
-            setNodeColour(srcNodeP, cTree.getFinalBranchColour(srcNode));
+            setNodeColour(srcNodeP, mtTree.getFinalBranchColour(srcNode));
             
             // Incorporate HR contribution of tree topology and node
             // height changes:
@@ -116,9 +116,9 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
             
             // Abort if move would change root colour or truncate colour
             // changes. (This would be an irreversible move.)
-            if (cTree.getChangeCount(srcNodeS)>0 ||
-                    (cTree.getNodeColour(srcNodeS)
-                    != cTree.getFinalBranchColour(srcNode)))
+            if (mtTree.getChangeCount(srcNodeS)>0 ||
+                    (mtTree.getNodeColour(srcNodeS)
+                    != mtTree.getFinalBranchColour(srcNode)))
                 return Double.NEGATIVE_INFINITY;
             
             // Record old srcNode parent height:
@@ -137,7 +137,7 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
             setRoot(srcNodeS);
             
             // Abort if new colouring is inconsistent:
-            if (cTree.getNodeColour(srcNodeP) != cTree.getFinalBranchColour(srcNode))
+            if (mtTree.getNodeColour(srcNodeP) != mtTree.getFinalBranchColour(srcNode))
                 return Double.NEGATIVE_INFINITY;
             
             // Incorporate HR contribution of tree topology and node
@@ -163,7 +163,7 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
         try {
             disconnectBranch(srcNode);
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else
@@ -172,7 +172,7 @@ public class ColouredWilsonBaldingEasy extends ColouredTreeOperator {
         connectBranch(srcNode, destNode, newTime);
         
         // Reject outright if new colouring inconsistent:
-        if (cTree.getNodeColour(srcNodeP) != cTree.getFinalBranchColour(srcNode))
+        if (mtTree.getNodeColour(srcNodeP) != mtTree.getFinalBranchColour(srcNode))
             return Double.NEGATIVE_INFINITY;
 
         // Incorporate HR contribution of tree topology and node

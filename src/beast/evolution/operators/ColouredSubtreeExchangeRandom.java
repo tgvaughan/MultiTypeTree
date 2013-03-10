@@ -40,8 +40,8 @@ public class ColouredSubtreeExchangeRandom extends RandomRecolourOperator {
     
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         
         double logHR = 0.0;
 
@@ -91,7 +91,7 @@ public class ColouredSubtreeExchangeRandom extends RandomRecolourOperator {
         try {
             logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else
@@ -99,8 +99,8 @@ public class ColouredSubtreeExchangeRandom extends RandomRecolourOperator {
         }
         
         // Force rejection if colouring inconsistent:
-        if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(destNodeParent)
-                || cTree.getFinalBranchColour(destNode) != cTree.getNodeColour(srcNodeParent))
+        if (mtTree.getFinalBranchColour(srcNode) != mtTree.getNodeColour(destNodeParent)
+                || mtTree.getFinalBranchColour(destNode) != mtTree.getNodeColour(srcNodeParent))
             return Double.NEGATIVE_INFINITY;
         
         return logHR;

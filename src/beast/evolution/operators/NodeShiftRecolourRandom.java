@@ -51,8 +51,8 @@ public class NodeShiftRecolourRandom extends RandomRecolourOperator {
     @Override
     public double proposal() {
         
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         
         // Select internal node to adjust:
         Node node;
@@ -95,14 +95,14 @@ public class NodeShiftRecolourRandom extends RandomRecolourOperator {
         logHR -= Math.log(f);
         
         // Select new root node colour:
-        setNodeColour(root, Randomizer.nextInt(cTree.getNColours()));
+        setNodeColour(root, Randomizer.nextInt(mtTree.getNColours()));
         
         // Recolour branches below root:
         try {
             logHR -= recolourBranch(root.getLeft())
                     + recolourBranch(root.getRight());
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else
@@ -110,8 +110,8 @@ public class NodeShiftRecolourRandom extends RandomRecolourOperator {
         }
         
         // Reject if new colouring inconsistent:
-        if ((cTree.getFinalBranchColour(root.getLeft()) != cTree.getNodeColour(root))
-                || (cTree.getFinalBranchColour(root.getRight()) != cTree.getNodeColour(root)))
+        if ((mtTree.getFinalBranchColour(root.getLeft()) != mtTree.getNodeColour(root))
+                || (mtTree.getFinalBranchColour(root.getRight()) != mtTree.getNodeColour(root)))
             return Double.NEGATIVE_INFINITY;
         
         return logHR;
@@ -139,7 +139,7 @@ public class NodeShiftRecolourRandom extends RandomRecolourOperator {
         node.setHeight(lowerBound+(upperBound-lowerBound)*Randomizer.nextDouble());
         
         // Select new node colour:
-        setNodeColour(node, Randomizer.nextInt(cTree.getNColours()));
+        setNodeColour(node, Randomizer.nextInt(mtTree.getNColours()));
         
         // Recolour branches connected to node:
         try {
@@ -147,7 +147,7 @@ public class NodeShiftRecolourRandom extends RandomRecolourOperator {
                     + recolourBranch(node.getLeft())
                     + recolourBranch(node.getRight());
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else
@@ -155,9 +155,9 @@ public class NodeShiftRecolourRandom extends RandomRecolourOperator {
         }
         
         // Reject if new colouring inconsistent:
-        if ((cTree.getFinalBranchColour(node.getLeft()) != cTree.getNodeColour(node))
-                || (cTree.getFinalBranchColour(node.getRight()) != cTree.getNodeColour(node))
-                || (cTree.getFinalBranchColour(node) != cTree.getNodeColour(node.getParent())))
+        if ((mtTree.getFinalBranchColour(node.getLeft()) != mtTree.getNodeColour(node))
+                || (mtTree.getFinalBranchColour(node.getRight()) != mtTree.getNodeColour(node))
+                || (mtTree.getFinalBranchColour(node) != mtTree.getNodeColour(node.getParent())))
             return Double.NEGATIVE_INFINITY;
         
         return logHR;        

@@ -130,9 +130,57 @@ public class MultiTypeNode extends Node {
         nTypeChanges = 0;
     }
     
-    /***************************
-     * Method ported from Node *
-     ***************************/
+    /**
+     * Truncate type change lists so that a maximum of newNChanges remain.
+     * Does nothing if newNChanges>= the current value.
+     * 
+     * @param newNChanges new change count.
+     */
+    public void truncateChanges(int newNChanges) {
+        if (nTypeChanges>newNChanges) {
+            changeTypes = changeTypes.subList(0, newNChanges-1);
+            changeTimes = changeTimes.subList(0, newNChanges-1);
+            nTypeChanges = newNChanges;
+        }
+    }
+    
+    /**
+     * Insert a new colour change at index idx to colour newColour at the
+     * specified time.
+     * 
+     * @param idx
+     * @param newType
+     * @param newTime
+     */
+    public void insertChange(int idx, int newType, double newTime) {
+        
+        if (idx > nTypeChanges)
+            throw new IllegalArgumentException("Index to insertChange() out of range.");
+
+        changeTimes.add(idx, newTime);
+        changeTypes.add(idx, newType);
+        nTypeChanges += 1;
+    }
+    
+    /**
+     * Remove the colour change at index idx from the branch above node.
+     * 
+     * @param idx 
+     */
+    public void removeChange(Node node, int idx) {
+        
+        if (idx >= nTypeChanges)
+            throw new IllegalArgumentException("Index to removeChange() out of range.");
+        
+        changeTimes.remove(idx);
+        changeTypes.remove(idx);
+        nTypeChanges -= 1;
+        
+    }
+    
+    /****************************
+     * Methods ported from Node *
+     ****************************/
     
     @Override
     public MultiTypeNode getParent() {

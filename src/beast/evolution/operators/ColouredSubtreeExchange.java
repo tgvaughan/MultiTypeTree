@@ -38,8 +38,8 @@ public class ColouredSubtreeExchange extends UniformizationRecolourOperator {
     
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         
         double logHR = 0.0;
 
@@ -88,7 +88,7 @@ public class ColouredSubtreeExchange extends UniformizationRecolourOperator {
         try {
             logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else

@@ -43,8 +43,8 @@ public class ColouredSubtreeSlideRandom extends RandomRecolourOperator {
     @Override
     public double proposal() {
 
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         rootSlideParam = rootSlideParamInput.get();
 
         // Keep track of Hastings ratio while generating proposal:
@@ -80,7 +80,7 @@ public class ColouredSubtreeSlideRandom extends RandomRecolourOperator {
             try {
                 logHR -= recolourRootBranches(node);
             } catch (RecolouringException ex) {
-                if (cTree.discardWhenMaxExceeded()) {
+                if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();
                     return Double.NEGATIVE_INFINITY;
                 } else
@@ -88,7 +88,7 @@ public class ColouredSubtreeSlideRandom extends RandomRecolourOperator {
             }
             
             // Reject outright if colouring inconsistent:
-            if (cTree.getNodeColour(parent) != cTree.getFinalBranchColour(sister))
+            if (mtTree.getNodeColour(parent) != mtTree.getFinalBranchColour(sister))
                 return Double.NEGATIVE_INFINITY;
 
             // Incorporate node height change into HR:

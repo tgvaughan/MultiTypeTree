@@ -25,18 +25,18 @@ import beast.util.Randomizer;
  */
 @Description("Implements colour change (migration) pair birth/death move "
         + "described by Ewing et al., Genetics (2004).")
-public class ColourPairBirthDeath extends ColouredTreeOperator {
+public class ColourPairBirthDeath extends MultiTypeTreeOperator {
 
     @Override
     public void initAndValidate() { }
     
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         
         int n = tree.getLeafNodeCount();
-        int m = cTree.getTotalNumberofChanges();
+        int m = mtTree.getTotalNumberofChanges();
         
         // Select sub-edge at random:
         int edgeNum = Randomizer.nextInt(2*n - 2 + m);
@@ -47,11 +47,11 @@ public class ColourPairBirthDeath extends ColouredTreeOperator {
             if (node.isRoot())
                 continue;
 
-            if (edgeNum<cTree.getChangeCount(node)+1) {
+            if (edgeNum<mtTree.getChangeCount(node)+1) {
                 selectedNode = node;
                 break;
             }
-            edgeNum -= cTree.getChangeCount(node)+1;
+            edgeNum -= mtTree.getChangeCount(node)+1;
         }
         
         // Complete either pair birth or pair death proposal:
@@ -80,20 +80,20 @@ public class ColourPairBirthDeath extends ColouredTreeOperator {
         int oldEdgeColour;
         if (sidx<0) {
             ts = node.getHeight();
-            oldEdgeColour = cTree.getNodeColour(node);
+            oldEdgeColour = mtTree.getNodeColour(node);
         } else {
-            ts = cTree.getChangeTime(node, sidx);
-            oldEdgeColour = cTree.getChangeColour(node, sidx);
+            ts = mtTree.getChangeTime(node, sidx);
+            oldEdgeColour = mtTree.getChangeColour(node, sidx);
         }
 
-        if (ridx>cTree.getChangeCount(node)-1)
+        if (ridx>mtTree.getChangeCount(node)-1)
             tr = node.getParent().getHeight();
         else
-            tr = cTree.getChangeTime(node, ridx);
+            tr = mtTree.getChangeTime(node, ridx);
 
         int newEdgeColour;
         do {
-            newEdgeColour = Randomizer.nextInt(cTree.getNColours());
+            newEdgeColour = Randomizer.nextInt(mtTree.getNColours());
         } while (newEdgeColour == oldEdgeColour);
         
         double tau1 = Randomizer.nextDouble()*(tr-ts) + ts;
@@ -105,14 +105,14 @@ public class ColourPairBirthDeath extends ColouredTreeOperator {
             insertChange(node, edgeNum, oldEdgeColour, tauMax);
             insertChange(node, edgeNum, newEdgeColour, tauMin);
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else
                 ex.throwRuntime();
         }
         
-        return Math.log((cTree.getNColours()-1)*(m + 2*n - 2)*(tr-ts)*(tr-ts))
+        return Math.log((mtTree.getNColours()-1)*(m + 2*n - 2)*(tr-ts)*(tr-ts))
                 - Math.log(2*(m + 2*n));
     }
     
@@ -131,24 +131,24 @@ public class ColourPairBirthDeath extends ColouredTreeOperator {
         int sidx = edgeNum-2;
         int ridx = edgeNum+1;
         
-        if (sidx<-1 || ridx > cTree.getChangeCount(node))
+        if (sidx<-1 || ridx > mtTree.getChangeCount(node))
             return Double.NEGATIVE_INFINITY;
         
         double ts, tr;
         int is, ir;
         if (sidx<0) {
             ts = node.getHeight();
-            is = cTree.getNodeColour(node);
+            is = mtTree.getNodeColour(node);
         } else {
-            ts = cTree.getChangeTime(node, sidx);
-            is = cTree.getChangeColour(node, sidx);
+            ts = mtTree.getChangeTime(node, sidx);
+            is = mtTree.getChangeColour(node, sidx);
         }
         
-        if (ridx>cTree.getChangeCount(node)-1)
+        if (ridx>mtTree.getChangeCount(node)-1)
             tr = node.getParent().getHeight();
         else
-            tr = cTree.getChangeTime(node, ridx);
-        ir = cTree.getChangeColour(node, ridx-1);
+            tr = mtTree.getChangeTime(node, ridx);
+        ir = mtTree.getChangeColour(node, ridx-1);
         
         if (is != ir)
             return Double.NEGATIVE_INFINITY;
@@ -157,7 +157,7 @@ public class ColourPairBirthDeath extends ColouredTreeOperator {
         removeChange(node, idx);
         
         return Math.log(2*(m + 2*n - 2))
-                - Math.log((cTree.getNColours()-1)*(m+2*n-4)*(tr-ts)*(tr-ts));
+                - Math.log((mtTree.getNColours()-1)*(m+2*n-4)*(tr-ts)*(tr-ts));
     }
     
 }

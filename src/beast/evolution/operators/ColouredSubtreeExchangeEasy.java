@@ -28,7 +28,7 @@ import beast.util.Randomizer;
         + " is the `no recolouring' variant where the new topology is selected"
         + " irrespective of the colouring of the branches involved.  Used for"
         + " testing Ewing et al.'s sampler moves.")
-public class ColouredSubtreeExchangeEasy extends ColouredTreeOperator {
+public class ColouredSubtreeExchangeEasy extends MultiTypeTreeOperator {
     
     public Input<Boolean> isNarrowInput = new Input<Boolean>("isNarrow",
             "Whether or not to use narrow exchange. (Default true.)", true);
@@ -38,8 +38,8 @@ public class ColouredSubtreeExchangeEasy extends ColouredTreeOperator {
     
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         
         // Select source and destination nodes:
         
@@ -87,8 +87,8 @@ public class ColouredSubtreeExchangeEasy extends ColouredTreeOperator {
         replace(destNodeParent, destNode, srcNode);
         
         // Force rejection if colouring inconsistent:
-        if (cTree.getFinalBranchColour(srcNode) != cTree.getNodeColour(destNodeParent)
-                || cTree.getFinalBranchColour(destNode) != cTree.getNodeColour(srcNodeParent))
+        if (mtTree.getFinalBranchColour(srcNode) != mtTree.getNodeColour(destNodeParent)
+                || mtTree.getFinalBranchColour(destNode) != mtTree.getNodeColour(srcNodeParent))
             return Double.NEGATIVE_INFINITY;
         
         return 0.0;

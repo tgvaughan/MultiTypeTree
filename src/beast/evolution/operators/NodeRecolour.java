@@ -32,8 +32,8 @@ public class NodeRecolour extends UniformizationRecolourOperator {
 
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         
         double logHR = 0.0;
         
@@ -51,7 +51,7 @@ public class NodeRecolour extends UniformizationRecolourOperator {
                 + getBranchColourProb(node.getRight());
         
         // Select new node colour:
-        setNodeColour(node, Randomizer.nextInt(cTree.getNColours()));
+        setNodeColour(node, Randomizer.nextInt(mtTree.getNColours()));
         
         // Recolour attached branches:
         try {
@@ -61,7 +61,7 @@ public class NodeRecolour extends UniformizationRecolourOperator {
             logHR -= recolourBranch(node.getLeft())
                     + recolourBranch(node.getRight());
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else

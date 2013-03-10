@@ -47,8 +47,8 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
 
     @Override
     public double proposal() {
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
         alpha = alphaInput.get();
 
         // Check that operator can be applied to tree:
@@ -95,7 +95,7 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
             try {
                 disconnectBranch(srcNode);
             } catch (RecolouringException ex) {
-                if (cTree.discardWhenMaxExceeded()) {
+                if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();
                     return Double.NEGATIVE_INFINITY;
                 } else
@@ -108,7 +108,7 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
             try {
                 logHR -= recolourRootBranches(srcNode);
             } catch (RecolouringException ex) {
-                if (cTree.discardWhenMaxExceeded()) {
+                if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();
                     return Double.NEGATIVE_INFINITY;
                 } else
@@ -150,7 +150,7 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
             try {
                 logHR -= recolourBranch(srcNode);
             } catch (RecolouringException ex) {
-                if (cTree.discardWhenMaxExceeded()) {
+                if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();
                     return Double.NEGATIVE_INFINITY;
                 } else
@@ -185,7 +185,7 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
         try {
             disconnectBranch(srcNode);
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else
@@ -197,7 +197,7 @@ public class ColouredWilsonBalding extends UniformizationRecolourOperator {
         try {
             logHR -= recolourBranch(srcNode);
         } catch (RecolouringException ex) {
-            if (cTree.discardWhenMaxExceeded()) {
+            if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();
                 return Double.NEGATIVE_INFINITY;
             } else

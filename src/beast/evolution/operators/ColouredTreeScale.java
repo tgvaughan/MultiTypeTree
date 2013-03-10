@@ -32,7 +32,7 @@ import java.util.List;
 @Description("Scale operator for coloured trees.  Also allows additional "
         + "scalar parameters to be rescaled (either forward or inversely) "
         + "at the same time.")
-public class ColouredTreeScale extends ColouredTreeOperator {
+public class ColouredTreeScale extends MultiTypeTreeOperator {
     
     public Input<List<RealParameter>> parametersInput =
             new Input<List<RealParameter>>("parameter",
@@ -112,8 +112,8 @@ public class ColouredTreeScale extends ColouredTreeOperator {
     @Override
     public double proposal() {
 
-        cTree = colouredTreeInput.get();
-        tree = cTree.getUncolouredTree();
+        mtTree = multiTypeTreeInput.get();
+        tree = mtTree.getUncolouredTree();
 
         // Choose scale factor:
         double u = Randomizer.nextDouble();
@@ -129,19 +129,19 @@ public class ColouredTreeScale extends ColouredTreeOperator {
                 double lold = leaf.getParent().getHeight()-leaf.getHeight();
                 double lnew = f*leaf.getParent().getHeight()-leaf.getHeight();            
                 
-                for (int c=0; c<cTree.getChangeCount(leaf); c++) {
-                    double oldTime = cTree.getChangeTime(leaf, c);
+                for (int c=0; c<mtTree.getChangeCount(leaf); c++) {
+                    double oldTime = mtTree.getChangeTime(leaf, c);
                     double newTime = leaf.getHeight()
                             + (oldTime-leaf.getHeight())*lnew/lold;
                     setChangeTime(leaf, c, newTime);
                 }
                 
-                logHR += cTree.getChangeCount(leaf)*Math.log(lnew/lold);
+                logHR += mtTree.getChangeCount(leaf)*Math.log(lnew/lold);
             }
         } else {
             for (Node leaf : tree.getExternalNodes()) {
-                for (int c = 0; c<cTree.getChangeCount(leaf); c++) {
-                    double oldTime = cTree.getChangeTime(leaf, c);
+                for (int c = 0; c<mtTree.getChangeCount(leaf); c++) {
+                    double oldTime = mtTree.getChangeTime(leaf, c);
                     setChangeTime(leaf, c, f*oldTime);
                     logHR += logf;
                 }
@@ -154,8 +154,8 @@ public class ColouredTreeScale extends ColouredTreeOperator {
             node.setHeight(node.getHeight()*f);
             logHR += logf;
             
-            for (int c = 0; c<cTree.getChangeCount(node); c++) {
-                double oldTime = cTree.getChangeTime(node, c);
+            for (int c = 0; c<mtTree.getChangeCount(node); c++) {
+                double oldTime = mtTree.getChangeTime(node, c);
                 setChangeTime(node, c, f*oldTime);
                 logHR += logf;
             }
@@ -167,7 +167,7 @@ public class ColouredTreeScale extends ColouredTreeOperator {
                 if (leaf.getParent().getHeight()<leaf.getHeight())
                     return Double.NEGATIVE_INFINITY;
                 
-                if (cTree.getChangeCount(leaf)>0 && cTree.getChangeTime(leaf, 0)<leaf.getHeight())
+                if (mtTree.getChangeCount(leaf)>0 && mtTree.getChangeTime(leaf, 0)<leaf.getHeight())
                     if (useOldTreeScalerInput.get())
                         throw new IllegalStateException("Scaled colour change time "
                                 + "has dipped below age of leaf - this should never "
