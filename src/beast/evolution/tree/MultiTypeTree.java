@@ -58,6 +58,7 @@ public class MultiTypeTree extends Tree {
     
     protected MultiTypeNode[] multiTypeNodes;
     protected MultiTypeNode[] storedMultiTypeNodes;
+    protected MultiTypeNode storedMultiTypeRoot;
     
     public MultiTypeTree() { };
     
@@ -128,7 +129,8 @@ public class MultiTypeTree extends Tree {
     }
     
     /**
-     * copy of all values from existing tree *
+     * Copy all values from an existing multi-type tree.
+     * @param other 
      */
     @Override
     public void assignFrom(StateNode other) {
@@ -471,6 +473,62 @@ public class MultiTypeTree extends Tree {
     @Override
     public String toString() {
         return getFlattenedTree().getRoot().toNewick(null);
+    }
+
+    /////////////////////////////////////////////////
+    //           StateNode implementation          //
+    /////////////////////////////////////////////////
+
+    @Override
+    protected void store() {
+        storedMultiTypeRoot = storedMultiTypeNodes[multiTypeRoot.getNr()];
+        int iRoot = multiTypeRoot.getNr();
+        storeNodes(0, iRoot);
+        storedMultiTypeRoot.m_fHeight = multiTypeNodes[iRoot].m_fHeight;
+        storedMultiTypeRoot.m_Parent = null;
+        storedMultiTypeRoot.multiTypeParent = null;
+        
+        if (multiTypeRoot.getLeft() != null) {
+            storedMultiTypeRoot.setLeft(storedMultiTypeNodes[multiTypeRoot.getLeft().getNr()]);
+        } else {
+            storedMultiTypeRoot.setLeft(null);
+        }
+        if (multiTypeRoot.getRight() != null) {
+            storedMultiTypeRoot.setRight(storedMultiTypeNodes[root.getRight().getNr()]);
+        } else {
+            storedMultiTypeRoot.setRight(null);
+        }
+        storeNodes(iRoot + 1, nodeCount);
+    }
+    
+    /**
+     * helper to store *
+     */
+    private void storeNodes(int iStart, int iEnd) {
+        for (int i = iStart; i < iEnd; i++) {
+            MultiTypeNode sink = storedMultiTypeNodes[i];
+            MultiTypeNode src = multiTypeNodes[i];
+            sink.m_fHeight = src.m_fHeight;
+            sink.m_Parent = storedMultiTypeNodes[src.multiTypeParent.getNr()];
+            sink.multiTypeParent = storedMultiTypeNodes[src.multiTypeParent.getNr()];
+            if (src.getLeft() != null) {
+                sink.setLeft(storedMultiTypeNodes[src.getLeft().getNr()]);
+                if (src.getRight() != null) {
+                    sink.setRight(storedMultiTypeNodes[src.getRight().getNr()]);
+                } else {
+                    sink.setRight(null);
+                }
+            }
+        }
+    }
+    
+    @Override
+    public void restore() {
+        MultiTypeNode[] tmp = storedMultiTypeNodes;
+        storedMultiTypeNodes = multiTypeNodes;
+        multiTypeNodes = tmp;
+        multiTypeRoot = multiTypeNodes[storedMultiTypeRoot.getNr()];
+        m_bHasStartedEditing = false;
     }
     
     /////////////////////////////////////////////////
