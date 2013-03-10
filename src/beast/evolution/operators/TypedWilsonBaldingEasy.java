@@ -18,7 +18,7 @@ package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.core.Input;
-import beast.evolution.tree.Node;
+import beast.evolution.tree.MultiTypeNode;
 import beast.util.Randomizer;
 
 /**
@@ -31,7 +31,7 @@ import beast.util.Randomizer;
 +"See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
         + " This version performs no explicit recolouring.  Used for testing "
         + " Ewing et al.'s sampler.")
-public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
+public class TypedWilsonBaldingEasy extends MultiTypeTreeOperator {
 
     public Input<Double> alphaInput = new Input<Double>("alpha",
             "Root height proposal parameter", .1);
@@ -44,31 +44,30 @@ public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
     @Override
     public double proposal() {
         mtTree = multiTypeTreeInput.get();
-        tree = mtTree.getUncolouredTree();
         alpha = alphaInput.get();
 
         // Check that operator can be applied to tree:
-        if (tree.getLeafNodeCount()<3)
+        if (mtTree.getLeafNodeCount()<3)
             throw new IllegalStateException("Tree too small for"
                     +" ColouredWilsonBaldingRandom operator.");
 
         // Select source node:
-        Node srcNode;
+        MultiTypeNode srcNode;
         do {
-            srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+            srcNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
         } while (invalidSrcNode(srcNode));
-        Node srcNodeP = srcNode.getParent();
-        Node srcNodeS = getOtherChild(srcNodeP, srcNode);
+        MultiTypeNode srcNodeP = srcNode.getParent();
+        MultiTypeNode srcNodeS = getOtherChild(srcNodeP, srcNode);
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeP = srcNodeP.getHeight();
         double t_srcNodeS = srcNodeS.getHeight();
 
         // Select destination branch node:
-        Node destNode;
+        MultiTypeNode destNode;
         do {
-            destNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+            destNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
         } while (invalidDestNode(srcNode, destNode));
-        Node destNodeP = destNode.getParent();
+        MultiTypeNode destNodeP = destNode.getParent();
         double t_destNode = destNode.getHeight();
 
         // Handle special cases involving root:
@@ -83,25 +82,18 @@ public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
             double newTime = t_destNode+Randomizer.nextExponential(1.0/(alpha*t_destNode));
 
             // Implement tree changes:
-            try {
-                disconnectBranch(srcNode);
-            } catch (RecolouringException ex) {
-                if (mtTree.discardWhenMaxExceeded()) {
-                    ex.discardMsg();
-                    return Double.NEGATIVE_INFINITY;
-                } else
-                    ex.throwRuntime();
-            }
-            setChangeCount(destNode, 0);
+            disconnectBranch(srcNode);
+
+            destNode.clearChanges();
             connectBranchToRoot(srcNode, destNode, newTime);
-            setRoot(srcNodeP);
+            mtTree.setRoot(srcNodeP);
 
             // Abort if colouring inconsistent:
-            if (mtTree.getFinalBranchColour(srcNode) != mtTree.getFinalBranchColour(destNode))
+            if (srcNode.getFinalType() != destNode.getFinalType())
                 return Double.NEGATIVE_INFINITY;
             
             // Update colour of root node:
-            setNodeColour(srcNodeP, mtTree.getFinalBranchColour(srcNode));
+            srcNodeP.setNodeType(srcNode.getFinalType());
             
             // Incorporate HR contribution of tree topology and node
             // height changes:
@@ -116,9 +108,9 @@ public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
             
             // Abort if move would change root colour or truncate colour
             // changes. (This would be an irreversible move.)
-            if (mtTree.getChangeCount(srcNodeS)>0 ||
-                    (mtTree.getNodeColour(srcNodeS)
-                    != mtTree.getFinalBranchColour(srcNode)))
+            if (srcNodeS.getChangeCount()>0 ||
+                    (srcNodeS.getNodeType()
+                    != srcNode.getFinalType()))
                 return Double.NEGATIVE_INFINITY;
             
             // Record old srcNode parent height:
@@ -134,10 +126,10 @@ public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
             disconnectBranchFromRoot(srcNode);
             connectBranch(srcNode, destNode, newTime);
             srcNodeS.setParent(null);
-            setRoot(srcNodeS);
+            mtTree.setRoot(srcNodeS);
             
             // Abort if new colouring is inconsistent:
-            if (mtTree.getNodeColour(srcNodeP) != mtTree.getFinalBranchColour(srcNode))
+            if (srcNodeP.getNodeType() != srcNode.getFinalType())
                 return Double.NEGATIVE_INFINITY;
             
             // Incorporate HR contribution of tree topology and node
@@ -160,19 +152,11 @@ public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
         double newTime = min_newTime+span*Randomizer.nextDouble();
 
         // Implement tree changes:
-        try {
-            disconnectBranch(srcNode);
-        } catch (RecolouringException ex) {
-            if (mtTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
+        disconnectBranch(srcNode);
         connectBranch(srcNode, destNode, newTime);
         
         // Reject outright if new colouring inconsistent:
-        if (mtTree.getNodeColour(srcNodeP) != mtTree.getFinalBranchColour(srcNode))
+        if (srcNodeP.getNodeType() != srcNode.getFinalType())
             return Double.NEGATIVE_INFINITY;
 
         // Incorporate HR contribution of tree topology and node
@@ -188,18 +172,18 @@ public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
      * @param srcNode
      * @return True if srcNode invalid.
      */
-    private boolean invalidSrcNode(Node srcNode) {
+    private boolean invalidSrcNode(MultiTypeNode srcNode) {
 
         if (srcNode.isRoot())
             return true;
 
-        Node parent = srcNode.getParent();
+        MultiTypeNode parent = srcNode.getParent();
 
         // This check is important in avoiding situations where it is
         // impossible to choose a valid destNode:
         if (parent.isRoot()) {
 
-            Node sister = getOtherChild(parent, srcNode);
+            MultiTypeNode sister = getOtherChild(parent, srcNode);
 
             if (sister.isLeaf())
                 return true;
@@ -219,15 +203,15 @@ public class ColouredWilsonBaldingEasy extends MultiTypeTreeOperator {
      * @param destNode
      * @return True if destNode invalid.
      */
-    private boolean invalidDestNode(Node srcNode, Node destNode) {
+    private boolean invalidDestNode(MultiTypeNode srcNode, MultiTypeNode destNode) {
 
         if (destNode==srcNode
                 ||destNode==srcNode.getParent()
                 ||destNode.getParent()==srcNode.getParent())
             return true;
 
-        Node srcNodeP = srcNode.getParent();
-        Node destNodeP = destNode.getParent();
+        MultiTypeNode srcNodeP = srcNode.getParent();
+        MultiTypeNode destNodeP = destNode.getParent();
 
         if (destNodeP!=null&&(destNodeP.getHeight()<=srcNode.getHeight()))
             return true;
