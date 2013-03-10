@@ -19,7 +19,6 @@ package beast.evolution.operators;
 import beast.core.Input;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 import java.util.Arrays;
 
@@ -29,7 +28,7 @@ import java.util.Arrays;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public abstract class UniformizationRecolourOperator extends MultiTypeTreeOperator {
+public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator {
     
     public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
             "migrationModel",

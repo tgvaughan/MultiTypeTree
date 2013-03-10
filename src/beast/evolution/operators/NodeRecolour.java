@@ -25,7 +25,7 @@ import beast.util.Randomizer;
  */
 @Description("Recolours a randomly chosen node and its attached branches. "
         + "This variant uses the uniformization branch recolouring procedure.")
-public class NodeRecolour extends UniformizationRecolourOperator {
+public class NodeRecolour extends UniformizationRetypeOperator {
     
     @Override
     public void initAndValidate() { }

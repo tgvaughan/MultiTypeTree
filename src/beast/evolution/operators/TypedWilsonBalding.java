@@ -35,7 +35,7 @@ import beast.util.Randomizer;
 +" This version retypes each newly generated branch by drawing a"
 +" path from the migration model conditional on the types at the"
 +" branch ends.")
-public class TypedWilsonBalding extends UniformizationRecolourOperator {
+public class TypedWilsonBalding extends UniformizationRetypeOperator {
 
     public Input<Double> alphaInput = new Input<Double>("alpha",
             "Root height proposal parameter", Validate.REQUIRED);
@@ -53,7 +53,7 @@ public class TypedWilsonBalding extends UniformizationRecolourOperator {
         // Check that operator can be applied to tree:
         if (mtTree.getLeafNodeCount()<3)
             throw new IllegalStateException("Tree too small for"
-                    +" ColouredWilsonBalding operator.");
+                    +" TypedWilsonBalding operator.");
 
         // Select source node:
         MultiTypeNode srcNode;
@@ -108,7 +108,7 @@ public class TypedWilsonBalding extends UniformizationRecolourOperator {
 
         if (srcNodeP.isRoot()) {
             // BACKWARD ROOT MOVE
-
+            
             double logHR = 0.0;
 
             // Incorporate probability of current colouring:
@@ -139,7 +139,7 @@ public class TypedWilsonBalding extends UniformizationRecolourOperator {
 
             return logHR;
         }
-
+        
         // NON-ROOT MOVE
 
         double logHR = 0.0;

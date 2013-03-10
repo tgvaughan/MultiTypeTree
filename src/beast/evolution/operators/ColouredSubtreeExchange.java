@@ -28,7 +28,7 @@ import beast.util.Randomizer;
         + " is the `uniformized recolouring' variant where new branch colourings"
         + " are selected using random walk conditional on the colours at both"
         + " ends of the branch.")
-public class ColouredSubtreeExchange extends UniformizationRecolourOperator {
+public class ColouredSubtreeExchange extends UniformizationRetypeOperator {
     
     public Input<Boolean> isNarrowInput = new Input<Boolean>("isNarrow",
             "Whether or not to use narrow exchange. (Default true.)", true);

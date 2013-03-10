@@ -175,13 +175,13 @@ public class MultiTypeTree extends Tree {
         this.root = root;
         nodeCount = this.root.getNodeCount();
         // ensure root is the last node
-        if (m_nodes != null && root.m_iLabel != m_nodes.length - 1) {
-        	int rootPos = m_nodes.length - 1;
-        	Node tmp = m_nodes[rootPos];
-        	m_nodes[rootPos] = root;
-        	m_nodes[root.m_iLabel] = tmp;
+        if (multiTypeNodes != null && root.m_iLabel != multiTypeNodes.length - 1) {
+        	int rootPos = multiTypeNodes.length - 1;
+        	MultiTypeNode tmp = multiTypeNodes[rootPos];
+        	multiTypeNodes[rootPos] = root;
+        	multiTypeNodes[root.m_iLabel] = tmp;
         	tmp.m_iLabel = root.m_iLabel;
-        	m_nodes[rootPos].m_iLabel = rootPos;
+        	multiTypeNodes[rootPos].m_iLabel = rootPos;
         }
     }
     

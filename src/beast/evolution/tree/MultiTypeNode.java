@@ -116,6 +116,7 @@ public class MultiTypeNode extends Node {
      * @param time Time at which change occurs.
      */
     public void addChange(int newType, double time) {
+        startEditing();
         changeTypes.add(newType);
         changeTimes.add(time);
         nTypeChanges += 1;
@@ -125,6 +126,7 @@ public class MultiTypeNode extends Node {
      * Remove all type changes from branch above node.
      */
     public void clearChanges() {
+        startEditing();
         changeTypes.clear();
         changeTimes.clear();
         nTypeChanges = 0;
@@ -137,6 +139,7 @@ public class MultiTypeNode extends Node {
      * @param newTime New time of type-change.
      */
     public void setChangeTime(int idx, double newTime) {
+        startEditing();
         changeTimes.set(idx, newTime);
     }
     
@@ -146,6 +149,7 @@ public class MultiTypeNode extends Node {
      * @param newType New destination type of type-change.
      */
     public void setChangeType(int idx, int newType) {
+        startEditing();
         changeTypes.set(idx, newType);
     }
     
@@ -156,10 +160,12 @@ public class MultiTypeNode extends Node {
      * @param newNChanges new change count.
      */
     public void truncateChanges(int newNChanges) {
-        if (nTypeChanges>newNChanges) {
-            changeTypes = changeTypes.subList(0, newNChanges-1);
-            changeTimes = changeTimes.subList(0, newNChanges-1);
-            nTypeChanges = newNChanges;
+        startEditing();
+        
+        while (nTypeChanges>newNChanges) {
+            changeTypes.remove(nTypeChanges-1);
+            changeTimes.remove(nTypeChanges-1);
+            nTypeChanges -= 1;
         }
     }
     
@@ -172,6 +178,7 @@ public class MultiTypeNode extends Node {
      * @param newTime
      */
     public void insertChange(int idx, int newType, double newTime) {
+        startEditing();
         
         if (idx > nTypeChanges)
             throw new IllegalArgumentException("Index to insertChange() out of range.");
@@ -186,7 +193,8 @@ public class MultiTypeNode extends Node {
      * 
      * @param idx 
      */
-    public void removeChange(Node node, int idx) {
+    public void removeChange(int idx) {
+        startEditing();
         
         if (idx >= nTypeChanges)
             throw new IllegalArgumentException("Index to removeChange() out of range.");
@@ -330,8 +338,11 @@ public class MultiTypeNode extends Node {
      */
     public void setParent(MultiTypeNode newParent) {
         startEditing();
-        multiTypeParent = newParent;
-        m_Parent = newParent;
+        if (multiTypeParent != newParent) {
+            multiTypeParent = newParent;
+            m_Parent = newParent;
+            m_bIsDirty = Tree.IS_FILTHY;
+        }
     }
     
     /**
@@ -357,11 +368,8 @@ public class MultiTypeNode extends Node {
 		switch (multiTypeChildren.size()) {
 		case 0:
 	    	multiTypeChildren.add(null);
-            children.clear();
-            children.add(null);
 		case 1:
 	    	multiTypeChildren.add(rightChild);
-            children.add(rightChild);
 	    	break;
 		default:
 			multiTypeChildren.set(1, rightChild);

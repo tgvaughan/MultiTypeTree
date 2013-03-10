@@ -22,7 +22,6 @@ import beast.core.Input.Validate;
 import beast.core.Operator;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 
 /**
@@ -206,7 +205,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
      * @param oldRoot
      * @param destTime
      */
-    public void connectBranchToRoot(Node node, Node oldRoot, double destTime) {
+    public void connectBranchToRoot(MultiTypeNode node, MultiTypeNode oldRoot, double destTime) {
 
         // Check argument validity:
         if (node.isRoot() || !oldRoot.isRoot())
@@ -214,7 +213,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
                     + "to connectBranchToRoot().");
 
         // Obtain existing parent of node and set new time:
-        Node newRoot = node.getParent();
+        MultiTypeNode newRoot = node.getParent();
         newRoot.setHeight(destTime);
 
         // Implement topology changes:
