@@ -22,8 +22,6 @@ import beast.core.Input.Validate;
 import beast.core.Loggable;
 import beast.core.Plugin;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Logger for total type-change count in multi-type trees.
@@ -44,10 +42,7 @@ public class TypeChangeCountLogger extends Plugin implements Loggable {
     MultiTypeTree mtTree;
     boolean logEachDirection;
 
-    public TypeChangeCountLogger() {
-    }
-
-    ;
+    public TypeChangeCountLogger() { };
 	
 	@Override
     public void initAndValidate() {
