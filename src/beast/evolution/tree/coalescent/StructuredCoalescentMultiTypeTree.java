@@ -42,7 +42,7 @@ import java.util.List;
  */
 @Description("A multi-type tree generated randomly from leaf types and"
 + "a migration matrix with fixed population sizes.")
-public class StructuredCoalescentTree extends MultiTypeTree {
+public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
 
     /*
      * Plugin inputs:
@@ -107,7 +107,7 @@ public class StructuredCoalescentTree extends MultiTypeTree {
         }
     }
     
-    public StructuredCoalescentTree() { }
+    public StructuredCoalescentMultiTypeTree() { }
 
     @Override
     public void initAndValidate() throws Exception {
@@ -478,7 +478,7 @@ public class StructuredCoalescentTree extends MultiTypeTree {
         // Specify leaf types:
         IntegerParameter leafTypes = new IntegerParameter();
         leafTypes.initByName(
-                "value", "1 0 0");
+                "value", "0 0 0");
 
         // Generate ensemble:
         int reps = 100000;
@@ -491,8 +491,8 @@ public class StructuredCoalescentTree extends MultiTypeTree {
             if (i % 1000 == 0)
                 System.out.format("%d reps done\n", i);
 
-            StructuredCoalescentTree sctree;
-            sctree = new StructuredCoalescentTree();
+            StructuredCoalescentMultiTypeTree sctree;
+            sctree = new StructuredCoalescentMultiTypeTree();
             sctree.initByName(
                     "migrationModel", migrationModel,
                     "leafTypes", leafTypes,

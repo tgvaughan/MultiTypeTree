@@ -232,11 +232,11 @@ public class MultiTypeTree extends Tree {
         // Create new tree to modify.  Note that copy() doesn't
         // initialise the node array lists, so initArrays() must
         // be called manually.
-        Tree flatTree = copy();
+        MultiTypeTree flatTree = copy();
         flatTree.initArrays();
 
         int nextNodeNr = getNodeCount();
-        Node colourChangeNode;
+        MultiTypeNode colourChangeNode;
 
         for (MultiTypeNode mtNode : getNodesAsArray()) {
 
@@ -248,7 +248,7 @@ public class MultiTypeTree extends Tree {
                 continue;
             }
 
-            Node startNode = flatTree.getNode(nodeNum);
+            MultiTypeNode startNode = flatTree.getNode(nodeNum);
 
             startNode.setMetaData(typeLabel,
                     mtNode.getNodeType());
@@ -256,17 +256,17 @@ public class MultiTypeTree extends Tree {
                     typeLabel, mtNode.getNodeType());
 
 
-            Node endNode = startNode.getParent();
+            MultiTypeNode endNode = startNode.getParent();
             endNode.setMetaData(typeLabel,
                     mtNode.getParent().getNodeType());
             endNode.m_sMetaData = String.format("%s=%d",
                     typeLabel, mtNode.getParent().getNodeType());
 
-            Node branchNode = startNode;
+            MultiTypeNode branchNode = startNode;
             for (int i = 0; i<mtNode.getChangeCount(); i++) {
 
                 // Create and label new node:
-                colourChangeNode = new Node();
+                colourChangeNode = new MultiTypeNode();
                 colourChangeNode.setNr(nextNodeNr);
                 colourChangeNode.setID(String.valueOf(nextNodeNr));
                 nextNodeNr++;
@@ -294,6 +294,7 @@ public class MultiTypeTree extends Tree {
                 endNode.setRight(branchNode);
         }
 
+        flatTree.initArrays();
         return flatTree;
     }
 
