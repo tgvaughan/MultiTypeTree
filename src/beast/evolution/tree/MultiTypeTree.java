@@ -166,7 +166,7 @@ public class MultiTypeTree extends Tree {
 
         this.multiTypeRoot = root;
         this.root = root;
-        nodeCount = this.root.getNodeCount();
+        nodeCount = root.getNodeCount();
         // ensure root is the last node
         if (multiTypeNodes!=null&&root.m_iLabel!=multiTypeNodes.length-1) {
             int rootPos = multiTypeNodes.length-1;
@@ -174,7 +174,7 @@ public class MultiTypeTree extends Tree {
             multiTypeNodes[rootPos] = root;
             multiTypeNodes[root.m_iLabel] = tmp;
             tmp.m_iLabel = root.m_iLabel;
-            multiTypeNodes[rootPos].m_iLabel = rootPos;
+            root.m_iLabel = rootPos;
         }
         
         if (m_nodes!=null&&root.m_iLabel!=m_nodes.length-1) {
@@ -239,7 +239,7 @@ public class MultiTypeTree extends Tree {
         // Create new tree to modify.  Note that copy() doesn't
         // initialise the node array lists, so initArrays() must
         // be called manually.
-        Tree flatTree = super.copy();
+        Tree flatTree = copy();
         flatTree.initArrays();
 
         int nextNodeNr = getNodeCount();
@@ -262,10 +262,7 @@ public class MultiTypeTree extends Tree {
             startNode.m_sMetaData = String.format("%s=%d",
                     typeLabel, mtNode.getNodeType());
 
-
             Node endNode = startNode.getParent();
-            if (endNode==null)
-                System.out.println("endNode is null");
             
             endNode.setMetaData(typeLabel,
                     mtNode.getParent().getNodeType());
@@ -276,7 +273,7 @@ public class MultiTypeTree extends Tree {
             for (int i = 0; i<mtNode.getChangeCount(); i++) {
 
                 // Create and label new node:
-                colourChangeNode = new Node();
+                colourChangeNode = new MultiTypeNode();
                 colourChangeNode.setNr(nextNodeNr);
                 colourChangeNode.setID(String.valueOf(nextNodeNr));
                 nextNodeNr += 1;

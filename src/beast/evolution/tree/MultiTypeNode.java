@@ -27,13 +27,17 @@ import java.util.List;
 @Description("A node in a multi-type phylogenetic tree.")
 public class MultiTypeNode extends Node {
 
+    // Type metadata:
     int nTypeChanges = 0;
     List<Integer> changeTypes = new ArrayList<Integer>();
     List<Double> changeTimes = new ArrayList<Double>();
     int nodeType = 0;
+    
+    // Have to keep our own list of children and parents :-(
     List<MultiTypeNode> multiTypeChildren = new ArrayList<MultiTypeNode>();
     MultiTypeNode multiTypeParent = null;
     
+    // Reference for tree this node belongs to (if any):
     MultiTypeTree multiTypeTree;
 
     /**
@@ -341,51 +345,112 @@ public class MultiTypeNode extends Node {
     /**
      * Set a new parent for this multi-type node.
      *
-     * @param newParent
+     * @param mtNewParent
      */
-    public void setParent(MultiTypeNode newParent) {
+    @Override
+    public void setParent(Node newParent) {
+        if ((newParent != null) && !(newParent instanceof MultiTypeNode))
+            throw new IllegalArgumentException("MultiTypeNode.setParent()"
+                    + " called with non-multitype node as argument.");
+        MultiTypeNode mtNewParent = (MultiTypeNode)newParent;
+        
         startEditing();
-        if (multiTypeParent!=newParent) {
-            multiTypeParent = newParent;
-            m_Parent = newParent;
+        if (multiTypeParent!=mtNewParent) {
+            multiTypeParent = mtNewParent;
+            m_Parent = mtNewParent;
             m_bIsDirty = Tree.IS_FILTHY;
         }
     }
-
+    
     /**
      * Set new left-hand child for this node.
      *
      * @param leftChild
      */
-    public void setLeft(MultiTypeNode leftChild) {
+    @Override
+    public void setLeft(Node leftChild) {
+        if ((leftChild != null) && !(leftChild instanceof MultiTypeNode))
+            throw new IllegalArgumentException("MultiTypeNode.setLeft()"
+                    + " called with non-multitype node as argument.");
+        MultiTypeNode mtLeftChild = (MultiTypeNode)leftChild;
+        
         startEditing();
         if (multiTypeChildren.isEmpty())
-            multiTypeChildren.add(leftChild);
+            multiTypeChildren.add(mtLeftChild);
         else
-            multiTypeChildren.set(0, leftChild);
+            multiTypeChildren.set(0, mtLeftChild);
 
-        super.setLeft(leftChild);
+        super.setLeft(mtLeftChild);
     }
 
     /**
      * Set new right-hand child for this node.
-     *
-     * @param rightChild
+     * 
+     * @param rightChild 
      */
-    public void setRight(MultiTypeNode rightChild) {
+    @Override
+    public void setRight(Node rightChild) {
+        if ((rightChild != null) && !(rightChild instanceof MultiTypeNode))
+            throw new IllegalArgumentException("MultiTypeNode.setRight()"
+                    + " called with non-multitype node as argument.");
+        MultiTypeNode mtRightChild = (MultiTypeNode)rightChild;
+        
         startEditing();
         switch (multiTypeChildren.size()) {
             case 0:
                 multiTypeChildren.add(null);
             case 1:
-                multiTypeChildren.add(rightChild);
+                multiTypeChildren.add(mtRightChild);
                 break;
             default:
-                multiTypeChildren.set(1, rightChild);
+                multiTypeChildren.set(1, mtRightChild);
                 break;
         }
 
-        super.setRight(rightChild);
+        super.setRight(mtRightChild);
+    }
+    
+    @Override
+    public void removeChild(Node child) {
+        if (child instanceof MultiTypeNode) {
+            startEditing();
+            multiTypeChildren.remove((MultiTypeNode)child);
+        } else
+            throw new RuntimeException("MultiTypeNode.removeChild() called"
+                    + " with non-multitype node as argument.");
+    }
+    
+    @Override
+    public void addChild(Node child) {
+        if (child instanceof MultiTypeNode) {
+            startEditing();
+            child.setParent(this);
+            multiTypeChildren.add((MultiTypeNode)child);
+        } else
+            throw new RuntimeException("MultiTypeNode.addChild() called"
+                    + " with non-multitype node as argument.");
+    }
+    
+    @Override
+    public int getChildCount() {
+    	return multiTypeChildren.size();
+    }
+
+    @Override
+    public Node getChild(int iChild) {
+    	return multiTypeChildren.get(iChild);
+    }
+
+    @Override
+    public void setChild(int iChild, Node child) {
+        if ((child == null) || (child instanceof MultiTypeNode)) {
+            while (multiTypeChildren.size() < iChild) {
+                multiTypeChildren.add(null);
+            }
+            multiTypeChildren.set(iChild, (MultiTypeNode)child);
+        } else
+            throw new RuntimeException("MultiTypeNode.setChild() called"
+                    + " with non-multitype node as argument.");
     }
 
     /**

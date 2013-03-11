@@ -29,6 +29,7 @@ import beast.evolution.tree.TraitSet;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -478,7 +479,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
         // Specify leaf types:
         IntegerParameter leafTypes = new IntegerParameter();
         leafTypes.initByName(
-                "value", "0 0 0");
+                "value", "1 0 0");
 
         // Generate ensemble:
         int reps = 100000;
