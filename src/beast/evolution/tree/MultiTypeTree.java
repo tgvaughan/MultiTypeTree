@@ -19,6 +19,7 @@ package beast.evolution.tree;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.StateNode;
+import beast.core.StateNodeInitialiser;
 import com.google.common.collect.Lists;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -49,14 +50,80 @@ public class MultiTypeTree extends Tree {
 
     public MultiTypeTree() { };
     
-    public MultiTypeTree(MultiTypeNode rootNode) {
+    public MultiTypeTree(Node rootNode) {
+        
+        if (!(rootNode instanceof MultiTypeNode)) {
+            throw new IllegalArgumentException("Attempted to instantiate "
+                    + "multi-type tree with regular root node.");
+        }
+        
         setRoot(rootNode);
-        nodeCount = rootNode.getNodeCount();
         initArrays();
     }
-
+    
     @Override
     public void initAndValidate() throws Exception {
+        
+        if (m_initial.get() != null && !(this instanceof StateNodeInitialiser)) {
+            
+            if (!(m_initial.get() instanceof MultiTypeTree)) {
+                throw new IllegalArgumentException("Attempted to initialise "
+                        + "multi-type tree with regular tree object.");
+            }
+            
+            MultiTypeTree other = (MultiTypeTree)m_initial.get();
+            root = other.root.copy();
+            nodeCount = other.nodeCount;
+            internalNodeCount = other.internalNodeCount;
+            leafNodeCount = other.leafNodeCount;
+        }
+
+        if (nodeCount < 0) {
+            if (m_taxonset.get() != null) {
+                // make a caterpillar
+                List<String> sTaxa = m_taxonset.get().asStringList();
+                Node left = new MultiTypeNode();
+                left.m_iLabel = 0;
+                left.m_fHeight = 0;
+                left.setID(sTaxa.get(0));
+                for (int i = 1; i < sTaxa.size(); i++) {
+                    Node right = new MultiTypeNode();
+                    right.m_iLabel = i;
+                    right.m_fHeight = 0;
+                    right.setID(sTaxa.get(i));
+                    Node parent = new MultiTypeNode();
+                    parent.m_iLabel = sTaxa.size() + i - 1;
+                    parent.m_fHeight = i;
+                    left.m_Parent = parent;
+                    parent.setLeft(left);
+                    right.m_Parent = parent;
+                    parent.setRight(right);
+                    left = parent;
+                }
+                root = left;
+                leafNodeCount = sTaxa.size();
+                nodeCount = leafNodeCount * 2 - 1;
+                internalNodeCount = leafNodeCount - 1;
+
+            } else {
+                // make dummy tree with a single root node
+                root = new MultiTypeNode();
+                root.m_iLabel = 0;
+                root.m_fHeight = 0;
+                root.m_tree = this;
+                nodeCount = 1;
+                internalNodeCount = 0;
+                leafNodeCount = 1;
+            }
+        }
+        if (m_trait.get() != null) {
+            adjustTreeToNodeHeights(root, m_trait.get());
+        }
+
+        if (nodeCount >= 0) {
+            initArrays();
+        }
+        
         typeLabel = typeLabelInput.get();
         nTypes = nTypesInput.get();
     }
@@ -65,10 +132,10 @@ public class MultiTypeTree extends Tree {
     protected final void initArrays() {
         // initialise tree-as-array representation + its stored variant
         m_nodes = new MultiTypeNode[nodeCount];
-        listNodes(root, m_nodes);
+        listNodes((MultiTypeNode)root, (MultiTypeNode[])m_nodes);
         m_storedNodes = new MultiTypeNode[nodeCount];
         Node copy = root.copy();
-        listNodes(copy, m_storedNodes);
+        listNodes((MultiTypeNode)copy, (MultiTypeNode[])m_storedNodes);
     }
 
     /**
@@ -77,8 +144,7 @@ public class MultiTypeTree extends Tree {
      * @param node Root of sub-tree to convert.
      * @param nodes Array to populate with tree nodes.
      */
-    @Override
-    void listNodes(Node node, Node[] nodes) {
+    private void listNodes(MultiTypeNode node, MultiTypeNode[] nodes) {
         nodes[node.getNr()] = node;
         node.m_tree = this;
         if (!node.isLeaf()) {
@@ -115,7 +181,11 @@ public class MultiTypeTree extends Tree {
     @Override
     public void assignFrom(StateNode other) {
         MultiTypeTree mtTree = (MultiTypeTree) other;
+
         MultiTypeNode[] mtNodes = new MultiTypeNode[mtTree.getNodeCount()];
+        for (int i=0; i<mtTree.getNodeCount(); i++)
+            mtNodes[i] = new MultiTypeNode();
+
         m_sID = mtTree.m_sID;
         root = mtNodes[mtTree.root.getNr()];
         root.assignFrom(mtNodes, mtTree.root);

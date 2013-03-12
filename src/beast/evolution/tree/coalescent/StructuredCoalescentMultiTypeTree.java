@@ -479,10 +479,10 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
         // Specify leaf types:
         IntegerParameter leafTypes = new IntegerParameter();
         leafTypes.initByName(
-                "value", "1 0 0");
+                "value", "0 0 0");
 
         // Generate ensemble:
-        int reps = 200000;
+        int reps = 100000;
         double[] heights = new double[reps];
 
         long startTime = System.currentTimeMillis();

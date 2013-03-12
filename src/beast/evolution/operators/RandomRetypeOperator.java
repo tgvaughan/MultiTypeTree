@@ -18,6 +18,7 @@ package beast.evolution.operators;
 
 import beast.core.Input;
 import beast.evolution.tree.MultiTypeNode;
+import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
 /**
@@ -38,18 +39,18 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
      * @param srcNode
      * @return Probability of branch colouring
      */
-    protected double recolourBranch(MultiTypeNode srcNode) {
+    protected double recolourBranch(Node srcNode) {
         
         double mu = muInput.get();
 
-        MultiTypeNode srcNodeParent = srcNode.getParent();
+        Node srcNodeParent = srcNode.getParent();
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeParent = srcNodeParent.getHeight();
 
-        int srcNodeCol = srcNode.getNodeType();
+        int srcNodeCol = ((MultiTypeNode)srcNode).getNodeType();
 
         // Clear existing changes in preparation for adding replacements:
-        srcNode.clearChanges();
+        ((MultiTypeNode)srcNode).clearChanges();
 
         double t = t_srcNode;
         int lastCol = srcNodeCol;
@@ -64,7 +65,7 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
                 int newCol = Randomizer.nextInt(mtTree.getNTypes() - 1);
                 if (newCol >= lastCol)
                     newCol += 1;
-                srcNode.addChange(newCol, t);
+                ((MultiTypeNode)srcNode).addChange(newCol, t);
 
                 lastCol = newCol;
             }
@@ -72,7 +73,7 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
 
         // Return log of branch colour probability:
         return -mu*(t_srcNodeParent - t_srcNode)
-                + srcNode.getChangeCount()*Math.log(mu/(mtTree.getNTypes()-1));
+                + ((MultiTypeNode)srcNode).getChangeCount()*Math.log(mu/(mtTree.getNTypes()-1));
 
     }
 
@@ -86,16 +87,16 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
      * @param nChangesSister
      * @return Probability of branch colouring.
      */
-    protected double recolourRootBranches(MultiTypeNode srcNode) {
+    protected double recolourRootBranches(Node srcNode) {
 
-        MultiTypeNode root = srcNode.getParent();
-        MultiTypeNode srcNodeSister = getOtherChild(root, srcNode);
+        Node root = srcNode.getParent();
+        Node srcNodeSister = getOtherChild(root, srcNode);
 
         // Recolour first branch:
         double logP = recolourBranch(srcNode);
 
         // Adjust colour of root node:
-        root.setNodeType(srcNode.getFinalType());
+        ((MultiTypeNode)root).setNodeType(((MultiTypeNode)srcNode).getFinalType());
 
         return logP + recolourBranch(srcNodeSister);
     }
@@ -107,12 +108,12 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
      * @param srcNode
      * @return Probability of the colouring.
      */
-    protected double getBranchColourProb(MultiTypeNode srcNode) {
+    protected double getBranchColourProb(Node srcNode) {
 
         double mu = muInput.get();
         double T = srcNode.getParent().getHeight()
                 - srcNode.getHeight();
-        int n = srcNode.getChangeCount();
+        int n = ((MultiTypeNode)srcNode).getChangeCount();
         int N = mtTree.getNTypes();
 
         if (N == 0)
@@ -127,16 +128,16 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
      * @param srcNode
      * @return 
      */
-    protected double getRootBranchColourProb(MultiTypeNode srcNode) {
+    protected double getRootBranchColourProb(Node srcNode) {
 
-        MultiTypeNode srcNodeS = getOtherChild(srcNode.getParent(), srcNode);
+        Node srcNodeS = getOtherChild(srcNode.getParent(), srcNode);
 
         double mu = muInput.get();
         double T = 2.0 * srcNode.getParent().getHeight()
                 - srcNode.getHeight()
                 - srcNodeS.getHeight();
-        int n = srcNode.getChangeCount()
-                + srcNodeS.getChangeCount();
+        int n = ((MultiTypeNode)srcNode).getChangeCount()
+                + ((MultiTypeNode)srcNodeS).getChangeCount();
         int N = mtTree.getNTypes();
 
         if (N == 0)

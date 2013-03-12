@@ -122,7 +122,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
      *
      * @param node
      */
-    public void disconnectBranchFromRoot(MultiTypeNode node) {
+    public void disconnectBranchFromRoot(Node node) {
 
         // Check argument validity:
         if (node.isRoot() || !node.getParent().isRoot())

@@ -61,7 +61,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
         double time;
         int type, destType;
         SCEventKind kind;
-        MultiTypeNode node;
+        Node node;
     }
     private List<SCEvent> eventList;
     private List<Integer[]> lineageCountList;
@@ -149,13 +149,13 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
         Node rootNode = mtTree.getRoot();
 
         // Initialise map of active nodes to active change indices:
-        Map<MultiTypeNode, Integer> changeIdx = new HashMap<MultiTypeNode, Integer>();
+        Map<Node, Integer> changeIdx = new HashMap<Node, Integer>();
         changeIdx.put(rootNode, -1);
 
         // Initialise lineage count per colour array:
         Integer[] lineageCount = new Integer[mtTree.getNTypes()];
         for (int c = 0; c<mtTree.getNTypes(); c++)
-            if (c==rootNode.getNodeType())
+            if (c==((MultiTypeNode)rootNode).getNodeType())
                 lineageCount[c] = 1;
             else
                 lineageCount[c] = 0;
@@ -168,14 +168,14 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
             nextEvent.node = rootNode; // Initial assignment not significant
 
             // Determine next event
-            for (MultiTypeNode node : changeIdx.keySet())
+            for (Node node : changeIdx.keySet())
                 if (changeIdx.get(node)<0) {
                     if (node.isLeaf()) {
                         // Next event is a sample
                         if (node.getHeight()>nextEvent.time) {
                             nextEvent.time = node.getHeight();
                             nextEvent.kind = SCEventKind.SAMPLE;
-                            nextEvent.type = node.getNodeType();
+                            nextEvent.type = ((MultiTypeNode)node).getNodeType();
                             nextEvent.node = node;
                         }
                     } else {
@@ -183,21 +183,21 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
                         if (node.getHeight()>nextEvent.time) {
                             nextEvent.time = node.getHeight();
                             nextEvent.kind = SCEventKind.COALESCE;
-                            nextEvent.type = node.getNodeType();
+                            nextEvent.type = ((MultiTypeNode)node).getNodeType();
                             nextEvent.node = node;
                         }
                     }
                 } else {
                     // Next event is a migration
-                    double thisChangeTime = node.getChangeTime(changeIdx.get(node));
+                    double thisChangeTime = ((MultiTypeNode)node).getChangeTime(changeIdx.get(node));
                     if (thisChangeTime>nextEvent.time) {
                         nextEvent.time = thisChangeTime;
                         nextEvent.kind = SCEventKind.MIGRATE;
-                        nextEvent.destType = node.getChangeType(changeIdx.get(node));
+                        nextEvent.destType = ((MultiTypeNode)node).getChangeType(changeIdx.get(node));
                         if (changeIdx.get(node)>0)
-                            nextEvent.type = node.getChangeType(changeIdx.get(node)-1);
+                            nextEvent.type = ((MultiTypeNode)node).getChangeType(changeIdx.get(node)-1);
                         else
-                            nextEvent.type = node.getNodeType();
+                            nextEvent.type = ((MultiTypeNode)node).getNodeType();
                         nextEvent.node = node;
                     }
                 }
@@ -205,12 +205,12 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
             // Update active node list (changeIdx) and lineage count appropriately:
             switch (nextEvent.kind) {
                 case COALESCE:
-                    MultiTypeNode leftChild = nextEvent.node.getLeft();
-                    MultiTypeNode rightChild = nextEvent.node.getRight();
+                    Node leftChild = nextEvent.node.getLeft();
+                    Node rightChild = nextEvent.node.getRight();
 
                     changeIdx.remove(nextEvent.node);
-                    changeIdx.put(leftChild, leftChild.getChangeCount()-1);
-                    changeIdx.put(rightChild, rightChild.getChangeCount()-1);
+                    changeIdx.put(leftChild, ((MultiTypeNode)leftChild).getChangeCount()-1);
+                    changeIdx.put(rightChild, ((MultiTypeNode)rightChild).getChangeCount()-1);
                     lineageCount[nextEvent.type]++;
                     break;
 
