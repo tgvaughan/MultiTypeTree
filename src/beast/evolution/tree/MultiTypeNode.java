@@ -32,13 +32,6 @@ public class MultiTypeNode extends Node {
     List<Integer> changeTypes = new ArrayList<Integer>();
     List<Double> changeTimes = new ArrayList<Double>();
     int nodeType = 0;
-    
-    // Have to keep our own list of children and parents :-(
-    List<MultiTypeNode> multiTypeChildren = new ArrayList<MultiTypeNode>();
-    MultiTypeNode multiTypeParent = null;
-    
-    // Reference for tree this node belongs to (if any):
-    MultiTypeTree multiTypeTree;
 
     /**
      * Retrieve the total number of changes on the branch above this node.
@@ -218,240 +211,16 @@ public class MultiTypeNode extends Node {
      * Methods ported from Node *
      ***************************
      */
-    @Override
-    public MultiTypeNode getParent() {
-        return multiTypeParent;
-    }
 
-    /**
-     * Return list of children of this multi-type tree node.
-     *
-     * @return
-     */
-    public List<MultiTypeNode> getMultiTypeChildren() {
-        return multiTypeChildren;
-    }
-
-    /**
-     * Create list of children of this node represented as regular (rather than
-     * multitype) nodes. Ok for reading, but this can't be used to modify the
-     * tree topology.
-     *
-     * @return _New_ list of child nodes.
-     */
-    @Override
-    public List<Node> getChildren() {
-        return new ArrayList<Node>(multiTypeChildren);
-    }
-
-    @Override
-    public MultiTypeNode getLeft() {
-        if (multiTypeChildren.isEmpty())
-            return null;
-        return multiTypeChildren.get(0);
-    }
-
-    @Override
-    public MultiTypeNode getRight() {
-        if (multiTypeChildren.size()<=1)
-            return null;
-        return multiTypeChildren.get(1);
-    }
-
-    @Override
-    public boolean isLeaf() {
-        return multiTypeChildren.isEmpty();
-    }
-
-    @Override
-    public boolean isRoot() {
-        return multiTypeParent==null;
-    }
-
-    /**
-     * get all child node under this node, if this node is leaf then list.size()
-     * = 0.
-     *
-     * @return
-     */
-    public List<MultiTypeNode> getAllMultiTypeChildNodes() {
-        List<MultiTypeNode> childNodes = new ArrayList<MultiTypeNode>();
-        if (!this.isLeaf())
-            getAllMultiTypeChildNodes(childNodes);
-        return childNodes;
-    }
-
-    @Override
-    public List<Node> getAllChildNodes() {
-        return new ArrayList<Node>(getAllMultiTypeChildNodes());
-    }
-
-    // recursive
-    public void getAllMultiTypeChildNodes(List<MultiTypeNode> childNodes) {
-        childNodes.add(this);
-        if (!this.isLeaf()) {
-            getRight().getAllMultiTypeChildNodes(childNodes);
-            getLeft().getAllMultiTypeChildNodes(childNodes);
-        }
-    }
-
-    /**
-     * get all leaf node under this node, if this node is leaf then
-     * list.size() = 0.
-     *
-     * @return
-     */
-    public List<MultiTypeNode> getAllMultiTypeLeafNodes() {
-        List<MultiTypeNode> leafNodes = new ArrayList<MultiTypeNode>();
-        if (!this.isLeaf())
-            getAllMultiTypeLeafNodes(leafNodes);
-        return leafNodes;
-    }
-
-    @Override
-    public List<Node> getAllLeafNodes() {
-        return new ArrayList<Node>(getAllMultiTypeLeafNodes());
-    }
-
-    // recursive
-    public void getAllMultiTypeLeafNodes(List<MultiTypeNode> leafNodes) {
-        if (this.isLeaf())
-            leafNodes.add(this);
-        else {
-            getRight().getAllMultiTypeLeafNodes(leafNodes);
-            getLeft().getAllMultiTypeLeafNodes(leafNodes);
-        }
-    }
-
-    /**
-     * @return count number of nodes in beast.tree, starting with current node *
-     */
-    @Override
-    public int getNodeCount() {
-        int nodes = 1;
-        for (MultiTypeNode child : multiTypeChildren)
-            nodes += child.getNodeCount();
-        return nodes;
-    }
 
     /**
      * Let tree know that it's been modified.
      */
     private void startEditing() {
-        if (multiTypeTree!=null&&multiTypeTree.getState()!=null)
-            multiTypeTree.startEditing(null);
+        if (m_tree!=null&&m_tree.getState()!=null)
+            m_tree.startEditing(null);
     }
 
-    /**
-     * Set a new parent for this multi-type node.
-     *
-     * @param mtNewParent
-     */
-    @Override
-    public void setParent(Node newParent) {
-        if ((newParent != null) && !(newParent instanceof MultiTypeNode))
-            throw new IllegalArgumentException("MultiTypeNode.setParent()"
-                    + " called with non-multitype node as argument.");
-        MultiTypeNode mtNewParent = (MultiTypeNode)newParent;
-        
-        startEditing();
-        if (multiTypeParent!=mtNewParent) {
-            multiTypeParent = mtNewParent;
-            m_Parent = mtNewParent;
-            m_bIsDirty = Tree.IS_FILTHY;
-        }
-    }
-    
-    /**
-     * Set new left-hand child for this node.
-     *
-     * @param leftChild
-     */
-    @Override
-    public void setLeft(Node leftChild) {
-        if ((leftChild != null) && !(leftChild instanceof MultiTypeNode))
-            throw new IllegalArgumentException("MultiTypeNode.setLeft()"
-                    + " called with non-multitype node as argument.");
-        MultiTypeNode mtLeftChild = (MultiTypeNode)leftChild;
-        
-        startEditing();
-        if (multiTypeChildren.isEmpty())
-            multiTypeChildren.add(mtLeftChild);
-        else
-            multiTypeChildren.set(0, mtLeftChild);
-
-        super.setLeft(mtLeftChild);
-    }
-
-    /**
-     * Set new right-hand child for this node.
-     * 
-     * @param rightChild 
-     */
-    @Override
-    public void setRight(Node rightChild) {
-        if ((rightChild != null) && !(rightChild instanceof MultiTypeNode))
-            throw new IllegalArgumentException("MultiTypeNode.setRight()"
-                    + " called with non-multitype node as argument.");
-        MultiTypeNode mtRightChild = (MultiTypeNode)rightChild;
-        
-        startEditing();
-        switch (multiTypeChildren.size()) {
-            case 0:
-                multiTypeChildren.add(null);
-            case 1:
-                multiTypeChildren.add(mtRightChild);
-                break;
-            default:
-                multiTypeChildren.set(1, mtRightChild);
-                break;
-        }
-
-        super.setRight(mtRightChild);
-    }
-    
-    @Override
-    public void removeChild(Node child) {
-        if (child instanceof MultiTypeNode) {
-            startEditing();
-            multiTypeChildren.remove((MultiTypeNode)child);
-        } else
-            throw new RuntimeException("MultiTypeNode.removeChild() called"
-                    + " with non-multitype node as argument.");
-    }
-    
-    @Override
-    public void addChild(Node child) {
-        if (child instanceof MultiTypeNode) {
-            startEditing();
-            child.setParent(this);
-            multiTypeChildren.add((MultiTypeNode)child);
-        } else
-            throw new RuntimeException("MultiTypeNode.addChild() called"
-                    + " with non-multitype node as argument.");
-    }
-    
-    @Override
-    public int getChildCount() {
-    	return multiTypeChildren.size();
-    }
-
-    @Override
-    public Node getChild(int iChild) {
-    	return multiTypeChildren.get(iChild);
-    }
-
-    @Override
-    public void setChild(int iChild, Node child) {
-        if ((child == null) || (child instanceof MultiTypeNode)) {
-            while (multiTypeChildren.size() < iChild) {
-                multiTypeChildren.add(null);
-            }
-            multiTypeChildren.set(iChild, (MultiTypeNode)child);
-        } else
-            throw new RuntimeException("MultiTypeNode.setChild() called"
-                    + " with non-multitype node as argument.");
-    }
 
     /**
      * @return (deep) copy of node
@@ -463,7 +232,6 @@ public class MultiTypeNode extends Node {
         node.m_iLabel = m_iLabel;
         node.m_sMetaData = m_sMetaData;
         node.m_Parent = null;
-        node.multiTypeParent = null;
         node.m_sID = m_sID;
         node.nTypeChanges = nTypeChanges;
         node.changeTimes.addAll(changeTimes);
@@ -483,27 +251,28 @@ public class MultiTypeNode extends Node {
     /**
      * assign values from a tree in array representation *
      */
-    public void assignFrom(MultiTypeNode[] nodes, MultiTypeNode node) {
+    @Override
+    public void assignFrom(Node[] nodes, Node node) {
         m_fHeight = node.m_fHeight;
         m_iLabel = node.m_iLabel;
         m_sMetaData = node.m_sMetaData;
         m_Parent = null;
-        multiTypeParent = null;
-        m_sID = node.m_sID;
-        nTypeChanges = node.nTypeChanges;
-        changeTimes.addAll(node.changeTimes);
-        changeTypes.addAll(node.changeTypes);
-        nodeType = node.nodeType;
+        m_sID = node.getID();
+        
+        MultiTypeNode mtNode = (MultiTypeNode)node;
+        nTypeChanges = mtNode.nTypeChanges;
+        changeTimes.addAll(mtNode.changeTimes);
+        changeTypes.addAll(mtNode.changeTypes);
+        nodeType = mtNode.nodeType;
+        
         if (node.getLeft()!=null) {
             setLeft(nodes[node.getLeft().getNr()]);
             getLeft().assignFrom(nodes, node.getLeft());
             getLeft().m_Parent = this;
-            getLeft().multiTypeParent = this;
             if (node.getRight()!=null) {
                 setRight(nodes[node.getRight().getNr()]);
                 getRight().assignFrom(nodes, node.getRight());
                 getRight().m_Parent = this;
-                getRight().multiTypeParent = this;
             }
         }
     }

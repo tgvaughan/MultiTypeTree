@@ -46,10 +46,6 @@ public class MultiTypeTree extends Tree {
      */
     protected String typeLabel;
     protected int nTypes;
-    protected MultiTypeNode multiTypeRoot;
-    protected MultiTypeNode[] multiTypeNodes;
-    protected MultiTypeNode[] storedMultiTypeNodes;
-    protected MultiTypeNode storedMultiTypeRoot;
 
     public MultiTypeTree() { };
     
@@ -68,13 +64,11 @@ public class MultiTypeTree extends Tree {
     @Override
     protected final void initArrays() {
         // initialise tree-as-array representation + its stored variant
-        multiTypeNodes = new MultiTypeNode[nodeCount];
-        listNodes(multiTypeRoot, multiTypeNodes);
-        storedMultiTypeNodes = new MultiTypeNode[nodeCount];
-        MultiTypeNode copy = multiTypeRoot.copy();
-        listNodes(copy, storedMultiTypeNodes);
-
-        super.initArrays();
+        m_nodes = new MultiTypeNode[nodeCount];
+        listNodes(root, m_nodes);
+        m_storedNodes = new MultiTypeNode[nodeCount];
+        Node copy = root.copy();
+        listNodes(copy, m_storedNodes);
     }
 
     /**
@@ -83,20 +77,15 @@ public class MultiTypeTree extends Tree {
      * @param node Root of sub-tree to convert.
      * @param nodes Array to populate with tree nodes.
      */
-    void listNodes(MultiTypeNode node, MultiTypeNode[] nodes) {
+    @Override
+    void listNodes(Node node, Node[] nodes) {
         nodes[node.getNr()] = node;
         node.m_tree = this;
-        node.multiTypeTree = this;
         if (!node.isLeaf()) {
             listNodes(node.getLeft(), nodes);
             if (node.getRight()!=null)
                 listNodes(node.getRight(), nodes);
         }
-    }
-
-    @Override
-    public MultiTypeNode[] getNodesAsArray() {
-        return multiTypeNodes;
     }
 
     /**
@@ -109,8 +98,7 @@ public class MultiTypeTree extends Tree {
         MultiTypeTree tree = new MultiTypeTree();
         tree.m_sID = m_sID;
         tree.index = index;
-        tree.multiTypeRoot = multiTypeRoot.copy();
-        tree.root = multiTypeRoot;
+        tree.root = root.copy();
         tree.nodeCount = nodeCount;
         tree.internalNodeCount = internalNodeCount;
         tree.leafNodeCount = leafNodeCount;
@@ -128,14 +116,10 @@ public class MultiTypeTree extends Tree {
     public void assignFrom(StateNode other) {
         MultiTypeTree mtTree = (MultiTypeTree) other;
         MultiTypeNode[] mtNodes = new MultiTypeNode[mtTree.getNodeCount()];
-        for (int i = 0; i<mtTree.getNodeCount(); i++)
-            mtNodes[i] = new MultiTypeNode();
         m_sID = mtTree.m_sID;
-        multiTypeRoot = mtNodes[mtTree.multiTypeRoot.getNr()];
-        multiTypeRoot.assignFrom(mtNodes, mtTree.multiTypeRoot);
-        multiTypeRoot.multiTypeParent = null;
-        multiTypeRoot.m_Parent = null;
-        root = multiTypeRoot;
+        root = mtNodes[mtTree.root.getNr()];
+        root.assignFrom(mtNodes, mtTree.root);
+        root.m_Parent = null;
 
         nodeCount = mtTree.nodeCount;
         internalNodeCount = mtTree.internalNodeCount;
@@ -150,76 +134,6 @@ public class MultiTypeTree extends Tree {
      */
     public int getNTypes() {
         return nTypes;
-    }
-
-    @Override
-    public MultiTypeNode getRoot() {
-        return multiTypeRoot;
-    }
-
-    /**
-     * Set new root of multi-type tree.
-     *
-     * @param root New root node.
-     */
-    public final void setRoot(MultiTypeNode root) {
-
-        this.multiTypeRoot = root;
-        this.root = root;
-        nodeCount = root.getNodeCount();
-        // ensure root is the last node
-        if (multiTypeNodes!=null&&root.m_iLabel!=multiTypeNodes.length-1) {
-            int rootPos = multiTypeNodes.length-1;
-            MultiTypeNode tmp = multiTypeNodes[rootPos];
-            multiTypeNodes[rootPos] = root;
-            multiTypeNodes[root.m_iLabel] = tmp;
-            tmp.m_iLabel = root.m_iLabel;
-            root.m_iLabel = rootPos;
-        }
-        
-        if (m_nodes!=null&&root.m_iLabel!=m_nodes.length-1) {
-            int rootPos = m_nodes.length-1;
-            Node tmp = m_nodes[rootPos];
-            m_nodes[rootPos] = root;
-            m_nodes[root.m_iLabel] = tmp;
-        }
-    }
-
-    @Override
-    public MultiTypeNode getNode(int iNodeNr) {
-        return multiTypeNodes[iNodeNr];
-    }
-
-    /**
-     * @return a list of external (leaf) nodes contained in this tree
-     */
-    public List<MultiTypeNode> getExternalMultiTypeNodes() {
-        ArrayList<MultiTypeNode> externalNodes = new ArrayList<MultiTypeNode>();
-        for (int i = 0; i<getNodeCount(); i++) {
-            MultiTypeNode node = getNode(i);
-            if (node.isLeaf())
-                externalNodes.add(node);
-        }
-        return externalNodes;
-    }
-
-    /**
-     * @return a list of internal (ancestral) nodes contained in this tree,
-     * including the root node
-     */
-    public List<MultiTypeNode> getInternalMultiTypeNodes() {
-        ArrayList<MultiTypeNode> internalNodes = new ArrayList<MultiTypeNode>();
-        for (int i = 0; i<getNodeCount(); i++) {
-            MultiTypeNode node = getNode(i);
-            if (!node.isLeaf())
-                internalNodes.add(node);
-        }
-        return internalNodes;
-    }
-
-    @Override
-    public int getNodeCount() {
-        return multiTypeRoot.getNodeCount();
     }
 
     /**
@@ -245,29 +159,31 @@ public class MultiTypeTree extends Tree {
         int nextNodeNr = getNodeCount();
         Node colourChangeNode;
 
-        for (MultiTypeNode mtNode : getNodesAsArray()) {
+        for (Node node : getNodesAsArray()) {
 
-            int nodeNum = mtNode.getNr();
+            MultiTypeNode mtNode = (MultiTypeNode)node;
 
-            if (mtNode.isRoot()) {
+            int nodeNum = node.getNr();
+
+            if (node.isRoot()) {
                 flatTree.getNode(nodeNum).setMetaData(typeLabel,
-                        mtNode.getLeft().getFinalType());
+                        ((MultiTypeNode)(node.getLeft())).getFinalType());
                 continue;
             }
 
             Node startNode = flatTree.getNode(nodeNum);
 
             startNode.setMetaData(typeLabel,
-                    mtNode.getNodeType());
+                    ((MultiTypeNode)node).getNodeType());
             startNode.m_sMetaData = String.format("%s=%d",
                     typeLabel, mtNode.getNodeType());
 
             Node endNode = startNode.getParent();
             
             endNode.setMetaData(typeLabel,
-                    mtNode.getParent().getNodeType());
+                    ((MultiTypeNode)node.getParent()).getNodeType());
             endNode.m_sMetaData = String.format("%s=%d",
-                    typeLabel, mtNode.getParent().getNodeType());
+                    typeLabel, ((MultiTypeNode)node.getParent()).getNodeType());
 
             Node branchNode = startNode;
             for (int i = 0; i<mtNode.getChangeCount(); i++) {
@@ -454,32 +370,32 @@ public class MultiTypeTree extends Tree {
     /////////////////////////////////////////////////
     @Override
     protected void store() {
-        storedMultiTypeRoot = storedMultiTypeNodes[multiTypeRoot.getNr()];
-        int iRoot = multiTypeRoot.getNr();
+        storedRoot = m_storedNodes[root.getNr()];
+        int iRoot = root.getNr();
 
         storeNodes(0, iRoot);
         
-        storedMultiTypeRoot.m_fHeight = multiTypeNodes[iRoot].m_fHeight;
-        storedMultiTypeRoot.m_Parent = null;
-        storedMultiTypeRoot.multiTypeParent = null;
+        storedRoot.m_fHeight = m_nodes[iRoot].m_fHeight;
+        storedRoot.m_Parent = null;
 
-        if (multiTypeRoot.getLeft()!=null)
-            storedMultiTypeRoot.setLeft(storedMultiTypeNodes[multiTypeRoot.getLeft().getNr()]);
+        if (root.getLeft()!=null)
+            storedRoot.setLeft(m_storedNodes[root.getLeft().getNr()]);
         else
-            storedMultiTypeRoot.setLeft(null);
-        if (multiTypeRoot.getRight()!=null)
-            storedMultiTypeRoot.setRight(storedMultiTypeNodes[multiTypeRoot.getRight().getNr()]);
+            storedRoot.setLeft(null);
+        if (root.getRight()!=null)
+            storedRoot.setRight(m_storedNodes[root.getRight().getNr()]);
         else
-            storedMultiTypeRoot.setRight(null);
+            storedRoot.setRight(null);
         
-        storedMultiTypeRoot.changeTimes.clear();
-        storedMultiTypeRoot.changeTimes.addAll(multiTypeNodes[iRoot].changeTimes);
+        MultiTypeNode mtStoredRoot = (MultiTypeNode)storedRoot;
+        mtStoredRoot.changeTimes.clear();
+        mtStoredRoot.changeTimes.addAll(((MultiTypeNode)m_nodes[iRoot]).changeTimes);
 
-        storedMultiTypeRoot.changeTypes.clear();
-        storedMultiTypeRoot.changeTypes.addAll(multiTypeNodes[iRoot].changeTypes);
+        mtStoredRoot.changeTypes.clear();
+        mtStoredRoot.changeTypes.addAll(((MultiTypeNode)m_nodes[iRoot]).changeTypes);
         
-        storedMultiTypeRoot.nTypeChanges = multiTypeNodes[iRoot].nTypeChanges;
-        storedMultiTypeRoot.nodeType = multiTypeNodes[iRoot].nodeType;
+        mtStoredRoot.nTypeChanges = ((MultiTypeNode)m_nodes[iRoot]).nTypeChanges;
+        mtStoredRoot.nodeType = ((MultiTypeNode)m_nodes[iRoot]).nodeType;
         
         storeNodes(iRoot+1, nodeCount);
     }
@@ -489,15 +405,14 @@ public class MultiTypeTree extends Tree {
      */
     private void storeNodes(int iStart, int iEnd) {
         for (int i = iStart; i<iEnd; i++) {
-            MultiTypeNode sink = storedMultiTypeNodes[i];
-            MultiTypeNode src = multiTypeNodes[i];
+            MultiTypeNode sink = (MultiTypeNode)m_storedNodes[i];
+            MultiTypeNode src = (MultiTypeNode)m_nodes[i];
             sink.m_fHeight = src.m_fHeight;
-            sink.m_Parent = storedMultiTypeNodes[src.multiTypeParent.getNr()];
-            sink.multiTypeParent = storedMultiTypeNodes[src.multiTypeParent.getNr()];
+            sink.m_Parent = m_storedNodes[src.m_Parent.getNr()];
             if (src.getLeft()!=null) {
-                sink.setLeft(storedMultiTypeNodes[src.getLeft().getNr()]);
+                sink.setLeft(m_storedNodes[src.getLeft().getNr()]);
                 if (src.getRight()!=null)
-                    sink.setRight(storedMultiTypeNodes[src.getRight().getNr()]);
+                    sink.setRight(m_storedNodes[src.getRight().getNr()]);
                 else
                     sink.setRight(null);
             }
@@ -511,15 +426,6 @@ public class MultiTypeTree extends Tree {
             sink.nTypeChanges = src.nTypeChanges;
             sink.nodeType = src.nodeType;
         }
-    }
-
-    @Override
-    public void restore() {
-        MultiTypeNode[] tmp = storedMultiTypeNodes;
-        storedMultiTypeNodes = multiTypeNodes;
-        multiTypeNodes = tmp;
-        multiTypeRoot = multiTypeNodes[storedMultiTypeRoot.getNr()];
-        m_bHasStartedEditing = false;
     }
 
     /////////////////////////////////////////////////
