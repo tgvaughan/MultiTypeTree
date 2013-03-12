@@ -23,6 +23,7 @@ import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
+import beast.evolution.tree.Node;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -145,7 +146,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
         // Clean up previous list:
         eventList.clear();
         lineageCountList.clear();
-        MultiTypeNode rootNode = mtTree.getRoot();
+        Node rootNode = mtTree.getRoot();
 
         // Initialise map of active nodes to active change indices:
         Map<MultiTypeNode, Integer> changeIdx = new HashMap<MultiTypeNode, Integer>();

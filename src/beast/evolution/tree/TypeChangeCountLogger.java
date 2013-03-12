@@ -83,9 +83,9 @@ public class TypeChangeCountLogger extends Plugin implements Loggable {
         if (!logEachDirection) {
 
             int count = 0;
-            for (MultiTypeNode node : mtTree.getNodesAsArray()) {
+            for (Node node : mtTree.getNodesAsArray()) {
                 if (!node.isRoot()) {
-                    count += node.getChangeCount();
+                    count += ((MultiTypeNode)node).getChangeCount();
                 }
             }
 
@@ -96,14 +96,15 @@ public class TypeChangeCountLogger extends Plugin implements Loggable {
             // Count migrations:
             int nTypes = mtTree.getNTypes();
             int[] typeChanges = new int[nTypes * nTypes];
-            for (MultiTypeNode node : mtTree.getNodesAsArray()) {
+            for (Node node : mtTree.getNodesAsArray()) {
                 if (node.isRoot()) {
                     continue;
                 }
 
-                int lastType = node.getNodeType();
-                for (int i = 0; i < node.getChangeCount(); i++) {
-                    int nextType = node.getChangeType(i);
+                MultiTypeNode mtNode = (MultiTypeNode)node;
+                int lastType = mtNode.getNodeType();
+                for (int i = 0; i < mtNode.getChangeCount(); i++) {
+                    int nextType = mtNode.getChangeType(i);
                     typeChanges[lastType + nTypes * nextType] += 1;
                     lastType = nextType;
                 }

@@ -22,6 +22,7 @@ import beast.core.Input.Validate;
 import beast.core.Operator;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
+import beast.evolution.tree.Node;
 import beast.evolution.tree.Tree;
 
 /**
@@ -52,7 +53,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
      * @param child  the child that you want the sister of
      * @return the other child of the given parent.
      */
-    protected MultiTypeNode getOtherChild(MultiTypeNode parent, MultiTypeNode child) {
+    protected Node getOtherChild(Node parent, Node child) {
         if (parent.getLeft().getNr() == child.getNr()) {
             return parent.getRight();
         } else {
@@ -67,8 +68,8 @@ public abstract class MultiTypeTreeOperator extends Operator {
      * @param child
      * @param replacement
      */
-    public void replace(MultiTypeNode node, MultiTypeNode child,
-            MultiTypeNode replacement) {
+    public void replace(Node node, Node child,
+            Node replacement) {
         replacement.setParent(node);
         if (node.getLeft().getNr() == child.getNr()) {
             node.setLeft(replacement);
@@ -90,29 +91,29 @@ public abstract class MultiTypeTreeOperator extends Operator {
      *
      * @param node
      */
-    public void disconnectBranch(MultiTypeNode node) {
+    public void disconnectBranch(Node node) {
 
         // Check argument validity:
-        MultiTypeNode parent = node.getParent();
+        Node parent = node.getParent();
         if (node.isRoot() || parent.isRoot())
             throw new IllegalArgumentException("Illegal argument to "
                     + "disconnectBranch().");
 
-        MultiTypeNode sister = getOtherChild(parent, node);
+        Node sister = getOtherChild(parent, node);
 
         // Add colour changes originally attached to parent to those attached
         // to node's sister:
-        for (int idx = 0; idx < parent.getChangeCount(); idx++) {
-            int colour = parent.getChangeType(idx);
-            double time = parent.getChangeTime(idx);
-            sister.addChange(colour, time);
+        for (int idx = 0; idx < ((MultiTypeNode)parent).getChangeCount(); idx++) {
+            int colour = ((MultiTypeNode)parent).getChangeType(idx);
+            double time = ((MultiTypeNode)parent).getChangeTime(idx);
+            ((MultiTypeNode)sister).addChange(colour, time);
         }
 
         // Implement topology change.
         replace(parent.getParent(), parent, sister);
 
         // Clear colour changes from parent:
-        parent.clearChanges();
+        ((MultiTypeNode)parent).clearChanges();
     }
 
     /**
@@ -129,13 +130,13 @@ public abstract class MultiTypeTreeOperator extends Operator {
                     + " disconnectBranchFromRoot().");
 
         // Implement topology change:
-        MultiTypeNode parent = node.getParent();
-        MultiTypeNode sister = getOtherChild(parent, node);
+        Node parent = node.getParent();
+        Node sister = getOtherChild(parent, node);
         sister.setParent(null);
-        parent.getMultiTypeChildren().remove(sister);
+        parent.getChildren().remove(sister);
 
         // Clear colour changes on new root:
-        sister.clearChanges();
+        ((MultiTypeNode)sister).clearChanges();
 
         // Ensure BEAST knows to update affected likelihoods:
         parent.makeDirty(Tree.IS_FILTHY);
@@ -152,8 +153,8 @@ public abstract class MultiTypeTreeOperator extends Operator {
      * @param destBranchBase
      * @param destTime
      */
-    public void connectBranch(MultiTypeNode node,
-            MultiTypeNode destBranchBase, double destTime) {
+    public void connectBranch(Node node,
+            Node destBranchBase, double destTime) {
 
         // Check argument validity:
         if (node.isRoot() || destBranchBase.isRoot())
@@ -161,26 +162,29 @@ public abstract class MultiTypeTreeOperator extends Operator {
                     + "connectBranch().");
 
         // Obtain existing parent of node and set new time:
-        MultiTypeNode parent = node.getParent();
+        Node parent = node.getParent();
         parent.setHeight(destTime);
 
+        MultiTypeNode mtParent = (MultiTypeNode)parent;
+        MultiTypeNode mtDestBranchBase = (MultiTypeNode)destBranchBase;
+        
         // Determine where the split comes in the list of colour changes
         // attached to destBranchBase:
         int split;
-        for (split = 0; split < destBranchBase.getChangeCount(); split++)
-            if (destBranchBase.getChangeTime(split) > destTime)
+        for (split = 0; split < mtDestBranchBase.getChangeCount(); split++)
+            if (mtDestBranchBase.getChangeTime(split) > destTime)
                 break;
 
         // Divide colour changes between new branches:
-        parent.clearChanges();
-        for (int idx = split; idx < destBranchBase.getChangeCount(); idx++)
-            parent.addChange(destBranchBase.getChangeType(idx),
-                    destBranchBase.getChangeTime(idx));
+        mtParent.clearChanges();
+        for (int idx = split; idx < mtDestBranchBase.getChangeCount(); idx++)
+            mtParent.addChange(mtDestBranchBase.getChangeType(idx),
+                    mtDestBranchBase.getChangeTime(idx));
 
-        destBranchBase.truncateChanges(split);
+        mtDestBranchBase.truncateChanges(split);
 
         // Set colour at split:
-        parent.setNodeType(destBranchBase.getFinalType());
+        mtParent.setNodeType(mtDestBranchBase.getFinalType());
 
         // Implement topology changes:
         replace(destBranchBase.getParent(), destBranchBase, parent);
@@ -205,7 +209,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
      * @param oldRoot
      * @param destTime
      */
-    public void connectBranchToRoot(MultiTypeNode node, MultiTypeNode oldRoot, double destTime) {
+    public void connectBranchToRoot(Node node, Node oldRoot, double destTime) {
 
         // Check argument validity:
         if (node.isRoot() || !oldRoot.isRoot())
@@ -213,7 +217,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
                     + "to connectBranchToRoot().");
 
         // Obtain existing parent of node and set new time:
-        MultiTypeNode newRoot = node.getParent();
+        Node newRoot = node.getParent();
         newRoot.setHeight(destTime);
 
         // Implement topology changes:
@@ -226,7 +230,6 @@ public abstract class MultiTypeTreeOperator extends Operator {
             newRoot.setLeft(oldRoot);
 
         oldRoot.setParent(newRoot);
-
 
         // Ensure BEAST knows to recalculate affected likelihood:
         newRoot.makeDirty(Tree.IS_FILTHY);
