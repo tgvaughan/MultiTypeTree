@@ -18,8 +18,7 @@ package beast.util.unittesting;
 
 import beast.core.Input;
 import beast.core.Input.Validate;
-import beast.core.Loggable;
-import beast.core.Plugin;
+import beast.core.Logger;
 import beast.core.util.ESS;
 import beast.evolution.tree.MultiTypeTree;
 import beast.math.statistic.DiscreteStatistics;
@@ -33,7 +32,7 @@ import java.util.List;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class MultiTypeTreeStatLogger extends Plugin implements Loggable {
+public class MultiTypeTreeStatLogger extends Logger {
     
     public Input<MultiTypeTree> multiTypeTreeInput = new Input<MultiTypeTree>(
             "multiTypeTree",
@@ -44,32 +43,35 @@ public class MultiTypeTreeStatLogger extends Plugin implements Loggable {
             "Fraction of trace to discard.  Default 0.1.", 0.1);
     
     MultiTypeTree multiTypeTree;
-    double burninFrac;
+    double burninFrac, logEvery;
     
     List<Double> heights = new ArrayList();
     double [] heightsArray;
     double heightMean, heightVar, heightESS;
     
-    public MultiTypeTreeStatLogger() { };
-    
     @Override
     public void initAndValidate() {
         multiTypeTree = multiTypeTreeInput.get();
         burninFrac = burninFracInput.get();
+        logEvery = m_pEvery.get();
     };
 
     @Override
-    public void init(PrintStream out) throws Exception {
+    public void init() {
         heights.clear();
     }
 
     @Override
-    public void log(int nSample, PrintStream out) {
+    public void log(int nSample) {
+        
+        if ((nSample < 0) || (nSample % logEvery > 0))
+            return;
+        
         heights.add(multiTypeTree.getRoot().getHeight());
     }
 
     @Override
-    public void close(PrintStream out) {
+    public void close() {
         computeStatistics();
     }
 

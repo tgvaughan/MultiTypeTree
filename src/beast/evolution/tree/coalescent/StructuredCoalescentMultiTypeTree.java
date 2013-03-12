@@ -482,7 +482,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
                 "value", "1 0 0");
 
         // Generate ensemble:
-        int reps = 100000;
+        int reps = 200000;
         double[] heights = new double[reps];
 
         long startTime = System.currentTimeMillis();
@@ -510,14 +510,11 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
 
         System.out.printf("Took %1.2f seconds\n", time / 1000.0);
 
-        /*
         PrintStream outStream = new PrintStream("heights.txt");
         outStream.println("h");
         for (int i = 0; i < reps; i++)
             outStream.println(heights[i]);
         outStream.close();
-        */
-
     }
 
 }
