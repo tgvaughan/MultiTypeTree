@@ -21,7 +21,7 @@ import beast.core.State;
 import beast.core.parameter.RealParameter;
 import beast.evolution.likelihood.StructuredCoalescentLikelihood;
 import beast.evolution.migrationmodel.MigrationModel;
-import beast.evolution.operators.TypedWilsonBalding;
+import beast.evolution.operators.TypedWilsonBaldingRandom;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
 import beast.util.Randomizer;
 import beast.util.unittesting.MultiTypeTreeStatLogger;
@@ -32,11 +32,11 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class TWBtest {
+public class TWBRtest {
  
     @Test
-    public void testTWB1() throws Exception {
-        System.out.println("testTWB1");
+    public void testTWBR1() throws Exception {
+        System.out.println("testTWBR1");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -72,11 +72,11 @@ public class TWBtest {
         state.initByName("stateNode", mtTree);
         
         // Set up operator:
-        TypedWilsonBalding operator = new TypedWilsonBalding();
+        TypedWilsonBaldingRandom operator = new TypedWilsonBaldingRandom();
         operator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "migrationModel", migModel,
+                "mu", 0.1,
                 "alpha", 0.2);
         
         // Set up stat analysis logger:
@@ -111,8 +111,8 @@ public class TWBtest {
     }
     
     @Test
-    public void testTWB2() throws Exception {
-        System.out.println("testTWB2");
+    public void testTWBR2() throws Exception {
+        System.out.println("testTWBR2");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -148,11 +148,11 @@ public class TWBtest {
         state.initByName("stateNode", mtTree);
         
         // Set up operator:
-        TypedWilsonBalding operator = new TypedWilsonBalding();
+        TypedWilsonBaldingRandom operator = new TypedWilsonBaldingRandom();
         operator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "migrationModel", migModel,
+                "mu", 0.1,
                 "alpha", 0.2);
         
         // Set up stat analysis logger:

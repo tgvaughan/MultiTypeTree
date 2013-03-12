@@ -28,7 +28,7 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class StructuredCoalescentMultiTypeTree {
+public class StructuredCoalescentSimTest {
     
     @Test
     public void test() throws Exception {
