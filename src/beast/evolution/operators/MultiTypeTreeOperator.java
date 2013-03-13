@@ -39,6 +39,11 @@ public abstract class MultiTypeTreeOperator extends Operator {
     
     protected MultiTypeTree mtTree;
     
+    protected void setEntireTreeFilthy() {
+        for (Node node : mtTree.getNodesAsArray())
+            node.makeDirty(Tree.IS_FILTHY);
+    }
+    
     /* ***********************************************************************
      * The following two methods are copied verbatim from TreeOperator.  We've
      * done this as extending TreeOperator would mean forcing every subclass
@@ -79,6 +84,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
         }
         
         node.makeDirty(Tree.IS_FILTHY);
+        child.makeDirty(Tree.IS_FILTHY);
         replacement.makeDirty(Tree.IS_FILTHY);
     }
     
@@ -114,6 +120,11 @@ public abstract class MultiTypeTreeOperator extends Operator {
 
         // Clear colour changes from parent:
         ((MultiTypeNode)parent).clearChanges();
+        
+        // Ensure BEAST knows to update affected likelihoods:
+        parent.makeDirty(Tree.IS_FILTHY);
+        sister.makeDirty(Tree.IS_FILTHY);
+        node.makeDirty(Tree.IS_FILTHY);
     }
 
     /**

@@ -935,22 +935,25 @@
 	       parameter="@mutationRate" scaleFactor="0.1" weight="1"/>       
      
      <!-- Multi-type tree operators -->
+
      <operator spec='TypedSubtreeExchange' id='STX'
  	      weight="1" multiTypeTree="@tree"
  	      migrationModel="@migModel"/>
+
 
      <operator spec="NodeRetype" id="NR"
  	      weight="1" multiTypeTree="@tree"
  	      migrationModel="@migModel"/>
 
+<!--     
      <operator spec="NodeShiftRetype" id="NSR1"
                weight="1" multiTypeTree="@tree"
                migrationModel="@migModel" rootOnly="true"/>
-     
+
      <operator spec="NodeShiftRetype" id="NSR2"
                weight="1" multiTypeTree="@tree"
                migrationModel="@migModel" noRoot="true"/>
-
+          
      <operator spec="MultiTypeTreeScale" id="MTTS"
  	      weight="1" multiTypeTree="@tree"
  	      scaleFactor="1.1" useOldTreeScaler="false">
@@ -958,11 +961,11 @@
          <parameterInverse idref="rateMatrix"/>
 	 <parameterInverse idref="mutationRate"/>
      </operator>
-
+     
      <operator spec="TypedWilsonBalding" id="TWB"
  	      weight="1" multiTypeTree="@tree"
  	      migrationModel="@migModel" alpha="0.2"/>
-
+     -->
      
      <logger logEvery="1000" fileName="4_time_samples_muinf.log">
        <model idref='posterior'/>

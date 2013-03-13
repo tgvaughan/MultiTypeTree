@@ -168,7 +168,7 @@ public class MultiTypeTreeScale extends MultiTypeTreeOperator {
                 
                 if (((MultiTypeNode)leaf).getChangeCount()>0
                         && ((MultiTypeNode)leaf).getChangeTime(0)<leaf.getHeight())
-                    if (useOldTreeScalerInput.get())
+                    if (!useOldTreeScalerInput.get())
                         throw new IllegalStateException("Scaled colour change time "
                                 + "has dipped below age of leaf - this should never "
                                 + "happen!");
