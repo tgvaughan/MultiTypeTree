@@ -18,18 +18,19 @@ package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.core.Input;
+import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-@Description("Operator implementing a very similar move to ColouredUniform, "
+@Description("Operator implementing a very similar move to MultiTypeUniform, "
         + " with the difference that this operator draws new node positions"
         + " uniformly between the parent and oldest child heights and"
-        + " recolours the modified branches.  Additionally, this operator"
+        + " retypes the modified branches.  Additionally, this operator"
         + " can act on the root node.")
-public class NodeShiftRecolourRandom extends RandomRetypeOperator {
+public class NodeShiftRetype extends UniformizationRetypeOperator {
     
     public Input<Boolean> rootOnlyInput = new Input<Boolean>("rootOnly",
             "Always select root node for height adjustment.", false);
@@ -52,16 +53,15 @@ public class NodeShiftRecolourRandom extends RandomRetypeOperator {
     public double proposal() {
         
         mtTree = multiTypeTreeInput.get();
-        tree = mtTree.getUncolouredTree();
         
         // Select internal node to adjust:
         Node node;
         if (rootOnlyInput.get())
-            node = tree.getRoot();
+            node = mtTree.getRoot();
         else
             do {
-                node = tree.getNode(tree.getLeafNodeCount()
-                        + Randomizer.nextInt(tree.getInternalNodeCount()));
+                node = mtTree.getNode(mtTree.getLeafNodeCount()
+                        + Randomizer.nextInt(mtTree.getInternalNodeCount()));
             } while (noRootInput.get() && node.isRoot());
         
                 
@@ -81,9 +81,9 @@ public class NodeShiftRecolourRandom extends RandomRetypeOperator {
         
         double logHR = 0.0;
         
-        // Record probability of current colouring:
-        logHR += getBranchColourProb(root.getLeft())
-                + getBranchColourProb(root.getRight());
+        // Record probability of current typing:
+        logHR += getBranchTypeProb(root.getLeft())
+                + getBranchTypeProb(root.getRight());
         
         // Select new root height:
         double u = Randomizer.nextDouble();
@@ -94,25 +94,12 @@ public class NodeShiftRecolourRandom extends RandomRetypeOperator {
         root.setHeight(oldestChildHeight + f*(root.getHeight()-oldestChildHeight));
         logHR -= Math.log(f);
         
-        // Select new root node colour:
-        setNodeColour(root, Randomizer.nextInt(mtTree.getNColours()));
+        // Select new root node type:
+        ((MultiTypeNode)root).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
         
         // Recolour branches below root:
-        try {
-            logHR -= recolourBranch(root.getLeft())
-                    + recolourBranch(root.getRight());
-        } catch (RecolouringException ex) {
-            if (mtTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
-        
-        // Reject if new colouring inconsistent:
-        if ((mtTree.getFinalBranchColour(root.getLeft()) != mtTree.getNodeColour(root))
-                || (mtTree.getFinalBranchColour(root.getRight()) != mtTree.getNodeColour(root)))
-            return Double.NEGATIVE_INFINITY;
+        logHR -= retypeBranch(root.getLeft())
+                + retypeBranch(root.getRight());
         
         return logHR;
     }
@@ -127,9 +114,9 @@ public class NodeShiftRecolourRandom extends RandomRetypeOperator {
         double logHR = 0.0;
         
         // Record probability of current colouring:
-        logHR += getBranchColourProb(node)
-                + getBranchColourProb(node.getLeft())
-                + getBranchColourProb(node.getRight());
+        logHR += getBranchTypeProb(node)
+                + getBranchTypeProb(node.getLeft())
+                + getBranchTypeProb(node.getRight());
         
         // Select new node height:        
         double upperBound = node.getParent().getHeight();
@@ -139,26 +126,12 @@ public class NodeShiftRecolourRandom extends RandomRetypeOperator {
         node.setHeight(lowerBound+(upperBound-lowerBound)*Randomizer.nextDouble());
         
         // Select new node colour:
-        setNodeColour(node, Randomizer.nextInt(mtTree.getNColours()));
+        ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
         
         // Recolour branches connected to node:
-        try {
-            logHR -= recolourBranch(node)
-                    + recolourBranch(node.getLeft())
-                    + recolourBranch(node.getRight());
-        } catch (RecolouringException ex) {
-            if (mtTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
-        
-        // Reject if new colouring inconsistent:
-        if ((mtTree.getFinalBranchColour(node.getLeft()) != mtTree.getNodeColour(node))
-                || (mtTree.getFinalBranchColour(node.getRight()) != mtTree.getNodeColour(node))
-                || (mtTree.getFinalBranchColour(node) != mtTree.getNodeColour(node.getParent())))
-            return Double.NEGATIVE_INFINITY;
+        logHR -= retypeBranch(node)
+                + retypeBranch(node.getLeft())
+                + retypeBranch(node.getRight());
         
         return logHR;        
     }

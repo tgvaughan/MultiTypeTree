@@ -84,7 +84,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
             double logHR = 0.0;
 
             // Record probability of current colouring:
-            logHR += getBranchColourProb(srcNode);
+            logHR += getBranchTypeProb(srcNode);
 
             // Record srcNode grandmother height:
             double t_srcNodeG = srcNodeP.getParent().getHeight();
@@ -98,7 +98,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
             mtTree.setRoot(srcNodeP);
 
             // Recolour root branches:
-            logHR -= recolourRootBranches(srcNode);
+            logHR -= retypeRootBranches(srcNode);
 
             // Return HR:
             logHR += Math.log(alpha*t_destNode)
@@ -114,7 +114,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
             double logHR = 0.0;
 
             // Incorporate probability of current colouring:
-            logHR += getRootBranchColourProb(srcNode);
+            logHR += getRootBranchTypeProb(srcNode);
 
             // Record old srcNode parent height
             double oldTime = t_srcNodeP;
@@ -132,7 +132,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
             mtTree.setRoot(srcNodeS);
 
             // Recolour new branch:
-            logHR -= recolourBranch(srcNode);
+            logHR -= retypeBranch(srcNode);
 
             // Return HR:
             logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
@@ -147,7 +147,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
         double logHR = 0.0;
 
         // Incorporate probability of current colouring.
-        logHR += getBranchColourProb(srcNode);
+        logHR += getBranchTypeProb(srcNode);
 
         // Record srcNode grandmother height:
         double t_srcNodeG = srcNodeP.getParent().getHeight();
@@ -163,7 +163,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
         connectBranch(srcNode, destNode, newTime);
 
         // Recolour new branch:
-        logHR -= recolourBranch(srcNode);
+        logHR -= retypeBranch(srcNode);
 
         // HR contribution of topology and node height changes:
         logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))

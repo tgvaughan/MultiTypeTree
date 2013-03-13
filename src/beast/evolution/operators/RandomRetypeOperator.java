@@ -22,8 +22,8 @@ import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
 /**
- * Abstract class of operators on ColouredTrees which recolour branches using a
- * fixed-rate continuous time random walk amongst demes.
+ * Abstract class of operators on MultiTypeTrees which retype branches using a
+ * fixed-rate continuous time random walk across demes.
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
@@ -33,13 +33,13 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
             "Migration rate for proposal distribution", Input.Validate.REQUIRED);
 
     /**
-     * Recolour branch between srcNode and its parent with rate fixed by the
+     * Retype branch between srcNode and its parent with rate fixed by the
      * tuning parameter mu.
      *
      * @param srcNode
-     * @return Probability of branch colouring
+     * @return Probability of branch typing
      */
-    protected double recolourBranch(Node srcNode) {
+    protected double retypeBranch(Node srcNode) {
         
         double mu = muInput.get();
 
@@ -47,13 +47,13 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeParent = srcNodeParent.getHeight();
 
-        int srcNodeCol = ((MultiTypeNode)srcNode).getNodeType();
+        int srcNodeType = ((MultiTypeNode)srcNode).getNodeType();
 
         // Clear existing changes in preparation for adding replacements:
         ((MultiTypeNode)srcNode).clearChanges();
 
         double t = t_srcNode;
-        int lastCol = srcNodeCol;
+        int lastType = srcNodeType;
         while (t < t_srcNodeParent) {
 
             // Determine time to next migration event:
@@ -62,43 +62,43 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
             if (t < t_srcNodeParent) {
 
                 // Select new colour:
-                int newCol = Randomizer.nextInt(mtTree.getNTypes() - 1);
-                if (newCol >= lastCol)
-                    newCol += 1;
-                ((MultiTypeNode)srcNode).addChange(newCol, t);
+                int newType = Randomizer.nextInt(mtTree.getNTypes() - 1);
+                if (newType >= lastType)
+                    newType += 1;
+                ((MultiTypeNode)srcNode).addChange(newType, t);
 
-                lastCol = newCol;
+                lastType = newType;
             }
         }
 
-        // Return log of branch colour probability:
+        // Return log of branch type probability:
         return -mu*(t_srcNodeParent - t_srcNode)
                 + ((MultiTypeNode)srcNode).getChangeCount()*Math.log(mu/(mtTree.getNTypes()-1));
 
     }
 
     /**
-     * Recolour branches between srcNode and the root (srcNode's
+     * Retype branches between srcNode and the root (srcNode's
      * parent) and between the root and srcNode's sister with a rate fixed
      * by the tuning parameter mu.
      *
      * @param srcNode
      * @param nChangesNode
      * @param nChangesSister
-     * @return Probability of branch colouring.
+     * @return Probability of branch typing.
      */
-    protected double recolourRootBranches(Node srcNode) {
+    protected double retypeRootBranches(Node srcNode) {
 
         Node root = srcNode.getParent();
         Node srcNodeSister = getOtherChild(root, srcNode);
 
         // Recolour first branch:
-        double logP = recolourBranch(srcNode);
+        double logP = retypeBranch(srcNode);
 
         // Adjust colour of root node:
         ((MultiTypeNode)root).setNodeType(((MultiTypeNode)srcNode).getFinalType());
 
-        return logP + recolourBranch(srcNodeSister);
+        return logP + retypeBranch(srcNodeSister);
     }
 
     /**
@@ -108,7 +108,7 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
      * @param srcNode
      * @return Probability of the colouring.
      */
-    protected double getBranchColourProb(Node srcNode) {
+    protected double getBranchTypeProb(Node srcNode) {
 
         double mu = muInput.get();
         double T = srcNode.getParent().getHeight()
@@ -128,7 +128,7 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
      * @param srcNode
      * @return 
      */
-    protected double getRootBranchColourProb(Node srcNode) {
+    protected double getRootBranchTypeProb(Node srcNode) {
 
         Node srcNodeS = getOtherChild(srcNode.getParent(), srcNode);
 

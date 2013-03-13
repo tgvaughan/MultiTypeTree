@@ -78,7 +78,7 @@ public class ColouredSubtreeExchange extends UniformizationRetypeOperator {
             return Double.NEGATIVE_INFINITY;
         
         // Record probability of old colours:
-        logHR += getBranchColourProb(srcNode) + getBranchColourProb(destNode);
+        logHR += getBranchTypeProb(srcNode) + getBranchTypeProb(destNode);
         
         // Make changes to tree topology:
         replace(srcNodeParent, srcNode, destNode);
@@ -86,7 +86,7 @@ public class ColouredSubtreeExchange extends UniformizationRetypeOperator {
         
         // Recolour branches involved:
         try {
-            logHR -= recolourBranch(srcNode) + recolourBranch(destNode);
+            logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
         } catch (RecolouringException ex) {
             if (mtTree.discardWhenMaxExceeded()) {
                 ex.discardMsg();

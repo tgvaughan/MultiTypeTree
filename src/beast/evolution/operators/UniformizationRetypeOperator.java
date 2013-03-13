@@ -24,8 +24,8 @@ import beast.util.Randomizer;
 import java.util.Arrays;
 
 /**
- * Abstract class of operators on ColouredTrees which use the Fearnhead-Sherlock
- * uniformization/forward-backward algorithm for branch recolouring.
+ * Abstract class of operators on MultiTypeTrees which use the Fearnhead-Sherlock
+ * uniformization/forward-backward algorithm for branch retyping.
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
@@ -42,14 +42,14 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             10000);
     
     /**
-     * Recolour branch between srcNode and its parent.  Uses the combined
+     * Retype branch between srcNode and its parent.  Uses the combined
      * uniformization/forward-backward approach of Fearnhead and Sherlock (2006)
      * to condition on both the beginning and end states.
      *
      * @param srcNode
      * @return Probability of new state.
      */
-    protected double recolourBranch(Node srcNode) {
+    protected double retypeBranch(Node srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
@@ -59,17 +59,17 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
 
         double L = t_srcNodeP-t_srcNode;
 
-        int col_srcNode = ((MultiTypeNode)srcNode).getNodeType();
-        int col_srcNodeP = ((MultiTypeNode)srcNodeP).getNodeType();
+        int type_srcNode = ((MultiTypeNode)srcNode).getNodeType();
+        int type_srcNodeP = ((MultiTypeNode)srcNodeP).getNodeType();
 
         // Select number of virtual events:
-        double Pba = migrationModel.getQexpElement(L, col_srcNodeP, col_srcNode);
+        double Pba = migrationModel.getQexpElement(L, type_srcNodeP, type_srcNode);
         double muL = migrationModel.getMu()*L;        
         
         double u1 = Randomizer.nextDouble()*Pba;
         int nVirt = 0;
         double poisAcc = Math.exp(-muL);
-        u1 -= poisAcc*migrationModel.getRpowElement(0, 1.0, col_srcNodeP, col_srcNode);
+        u1 -= poisAcc*migrationModel.getRpowElement(0, 1.0, type_srcNodeP, type_srcNode);
         while (u1>0.0) {            
             nVirt += 1;
             
@@ -81,7 +81,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             }
             
             poisAcc *= muL/nVirt;
-            u1 -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, col_srcNodeP, col_srcNode);
+            u1 -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, type_srcNodeP, type_srcNode);
         }
 
         // Select times of virtual events:
@@ -90,53 +90,53 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             times[i] = Randomizer.nextDouble()*L+t_srcNode;
         Arrays.sort(times);
 
-        // Sample colour changes from top to bottom of branch:
-        int[] colours = new int[nVirt];
-        int lastCol = col_srcNodeP;
+        // Sample type changes from top to bottom of branch:
+        int[] types = new int[nVirt];
+        int lastType = type_srcNodeP;
         for (int i = nVirt; i>=1; i--) {
             double u2 = Randomizer.nextDouble()
-                    *migrationModel.getRpowElement(i, 1.0, lastCol, col_srcNode);
+                    *migrationModel.getRpowElement(i, 1.0, lastType, type_srcNode);
             int c;
             for (c = 0; c<mtTree.getNTypes(); c++) {
-                u2 -= migrationModel.getRelement(lastCol, c)
-                        *migrationModel.getRpowElement(i-1, 1.0, c, col_srcNode);
+                u2 -= migrationModel.getRelement(lastType, c)
+                        *migrationModel.getRpowElement(i-1, 1.0, c, type_srcNode);
                 if (u2<0.0)
                     break;
             }
 
-            colours[i-1] = c;
-            lastCol = c;
+            types[i-1] = c;
+            lastType = c;
         }
 
         double logProb = 0.0;
 
-        // Add non-virtual colour changes to branch, calculating probability
-        // of path conditional on start colour:
+        // Add non-virtual type changes to branch, calculating probability
+        // of path conditional on start type:
         ((MultiTypeNode)srcNode).clearChanges();
-        lastCol = col_srcNode;
+        lastType = type_srcNode;
         double lastTime = t_srcNode;
         for (int i = 0; i<nVirt; i++) {
 
-            int nextCol;
+            int nextType;
             if (i!=nVirt-1)
-                nextCol = colours[i+1];
+                nextType = types[i+1];
             else
-                nextCol = col_srcNodeP;
+                nextType = type_srcNodeP;
 
-            if (nextCol!=lastCol) {
+            if (nextType!=lastType) {
 
                 // Add change to branch:
-                ((MultiTypeNode)srcNode).addChange(nextCol, times[i]);
+                ((MultiTypeNode)srcNode).addChange(nextType, times[i]);
 
                 // Add probability contribution:
-                logProb += migrationModel.getQelement(lastCol, lastCol)*(times[i]-lastTime)
-                        +Math.log(migrationModel.getQelement(nextCol, lastCol));
+                logProb += migrationModel.getQelement(lastType, lastType)*(times[i]-lastTime)
+                        +Math.log(migrationModel.getQelement(nextType, lastType));
 
-                lastCol = nextCol;
+                lastType = nextType;
                 lastTime = times[i];
             }
         }
-        logProb += migrationModel.getQelement(lastCol, lastCol)*(t_srcNodeP-lastTime);
+        logProb += migrationModel.getQelement(lastType, lastType)*(t_srcNodeP-lastTime);
 
         // Adjust probability to account for end condition:
         logProb -= Math.log(Pba);
@@ -147,13 +147,13 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     
     
     /**
-     * Recolour branches with nChanges between srcNode and the root (srcNode's
+     * Retype branches with nChanges between srcNode and the root (srcNode's
      * parent) and nChangesSister between the root and srcNode's sister.
      *
      * @param srcNode
      * @return Probability of new state.
      */
-    protected double recolourRootBranches(Node srcNode) {
+    protected double retypeRootBranches(Node srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
@@ -172,13 +172,13 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         }
         ((MultiTypeNode)srcNodeP).setNodeType(rootCol);
 
-        // Incorporate probability of choosing new root colour:
+        // Incorporate probability of choosing new root type:
         logProb += Math.log(migrationModel.getPopSize(rootCol)
                 /migrationModel.getTotalPopSize());
 
-        // Recolour branches conditional on root colour:
-        logProb += recolourBranch(srcNode);
-        logProb += recolourBranch(srcNodeS);
+        // Recolour branches conditional on root type:
+        logProb += retypeBranch(srcNode);
+        logProb += retypeBranch(srcNodeS);
 
         // Return probability of new colouring given boundary conditions:
         return logProb;
@@ -190,7 +190,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
      * @param srcNode
      * @return Path probability.
      */
-    protected double getBranchColourProb(Node srcNode) {
+    protected double getBranchTypeProb(Node srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
@@ -203,7 +203,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         int col_srcNode = ((MultiTypeNode)srcNode).getNodeType();
         int col_srcNodeP = ((MultiTypeNode)srcNodeP).getNodeType();
 
-        // Probability of branch conditional on start colour:
+        // Probability of branch conditional on start type:
         double lastTime = t_srcNode;
         int lastCol = col_srcNode;
         for (int i = 0; i<((MultiTypeNode)srcNode).getChangeCount(); i++) {
@@ -226,14 +226,14 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     }
 
     /**
-     * Obtain joint probability of colouring along branches between srcNode and
-     * the root, the sister of srcNode and the root, and the node colour of the
+     * Obtain joint probability of typing along branches between srcNode and
+     * the root, the sister of srcNode and the root, and the node type of the
      * root.
      *
      * @param srcNode
      * @return
      */
-    protected double getRootBranchColourProb(Node srcNode) {
+    protected double getRootBranchTypeProb(Node srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
 
@@ -243,13 +243,13 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         Node srcNodeS = getOtherChild(srcNodeP, srcNode);
         int col_srcNodeP = ((MultiTypeNode)srcNodeP).getNodeType();
 
-        // Probability of choosing root colour:
+        // Probability of choosing root type:
         logProb += Math.log(migrationModel.getPopSize(col_srcNodeP)
                 /migrationModel.getTotalPopSize());
 
-        // Probability of branch colours conditional on node colours:
-        logProb += getBranchColourProb(srcNode);
-        logProb += getBranchColourProb(srcNodeS);
+        // Probability of branch types conditional on node types:
+        logProb += getBranchTypeProb(srcNode);
+        logProb += getBranchTypeProb(srcNodeS);
 
         return logProb;
     }

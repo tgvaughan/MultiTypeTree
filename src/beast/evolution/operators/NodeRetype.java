@@ -17,15 +17,16 @@
 package beast.evolution.operators;
 
 import beast.core.Description;
+import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-@Description("Recolours a randomly chosen node and its attached branches. "
-        + "This variant uses the uniformization branch recolouring procedure.")
-public class NodeRecolour extends UniformizationRetypeOperator {
+@Description("Retypes a randomly chosen node and its attached branches. "
+        + "This variant uses the uniformization branch retyping procedure.")
+public class NodeRetype extends UniformizationRetypeOperator {
     
     @Override
     public void initAndValidate() { }
@@ -33,40 +34,31 @@ public class NodeRecolour extends UniformizationRetypeOperator {
     @Override
     public double proposal() {
         mtTree = multiTypeTreeInput.get();
-        tree = mtTree.getUncolouredTree();
         
         double logHR = 0.0;
         
         // Select node:
         Node node;
         do {
-            node = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+            node = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
         } while (node.isLeaf());
         
-        // Record probability of current colours along attached branches:
+        // Record probability of current types along attached branches:
         if (!node.isRoot())
-            logHR += getBranchColourProb(node);
+            logHR += getBranchTypeProb(node);
 
-        logHR += getBranchColourProb(node.getLeft())
-                + getBranchColourProb(node.getRight());
+        logHR += getBranchTypeProb(node.getLeft())
+                + getBranchTypeProb(node.getRight());
         
-        // Select new node colour:
-        setNodeColour(node, Randomizer.nextInt(mtTree.getNColours()));
+        // Select new node type:
+        ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
         
-        // Recolour attached branches:
-        try {
-            if (!node.isRoot())
-                logHR -= recolourBranch(node);
+        // Retype attached branches:
+        if (!node.isRoot())
+            logHR -= retypeBranch(node);
 
-            logHR -= recolourBranch(node.getLeft())
-                    + recolourBranch(node.getRight());
-        } catch (RecolouringException ex) {
-            if (mtTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
+        logHR -= retypeBranch(node.getLeft())
+                + retypeBranch(node.getRight());
         
         return logHR;
     }

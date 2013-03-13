@@ -65,7 +65,7 @@ public class ColouredSubtreeSlideRandom extends RandomRetypeOperator {
         if (parent.isRoot()) {
             
             // Record probability of current root branch colouring:
-            double logHR = getRootBranchColourProb(node);
+            double logHR = getRootBranchTypeProb(node);
 
             // Select new height of parent:
             double u = Randomizer.nextDouble();
@@ -78,7 +78,7 @@ public class ColouredSubtreeSlideRandom extends RandomRetypeOperator {
             
             // Recolour branches between node, the root and node's sister:
             try {
-                logHR -= recolourRootBranches(node);
+                logHR -= retypeRootBranches(node);
             } catch (RecolouringException ex) {
                 if (mtTree.discardWhenMaxExceeded()) {
                     ex.discardMsg();

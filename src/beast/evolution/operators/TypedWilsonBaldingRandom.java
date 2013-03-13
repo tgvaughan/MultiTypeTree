@@ -80,7 +80,7 @@ public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
             // FORWARD ROOT MOVE
             
             // Record probability of current configuration:
-            double logHR = getBranchColourProb(srcNode);
+            double logHR = getBranchTypeProb(srcNode);
 
             // Record srcNode grandmother height:
             double t_srcNodeG = srcNodeP.getParent().getHeight();
@@ -95,7 +95,7 @@ public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
 
             // Recolour root branches, incorporating probability of new branch
             // into HR:
-            logHR -= recolourRootBranches(srcNode);
+            logHR -= retypeRootBranches(srcNode);
             
             // Abort if colouring inconsistent:
             if (((MultiTypeNode)srcNodeP).getNodeType()
@@ -115,7 +115,7 @@ public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
             // BACKWARD ROOT MOVE
 
             // Record probability of current configuration:
-            double logHR = getRootBranchColourProb(srcNode);
+            double logHR = getRootBranchTypeProb(srcNode);
             
             // Record old srcNode parent height:
             double oldTime = t_srcNodeP;
@@ -134,7 +134,7 @@ public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
 
             // Recolour new branch, incorporating probability of new branch
             // into HR:
-            logHR -= recolourBranch(srcNode);
+            logHR -= retypeBranch(srcNode);
             
             // Abort if new colouring is inconsistent:
             if (((MultiTypeNode)srcNodeP).getNodeType()
@@ -153,7 +153,7 @@ public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
         // NON-ROOT MOVE
         
         // Record probability of old configuration:
-        double logHR = getBranchColourProb(srcNode);
+        double logHR = getBranchTypeProb(srcNode);
 
         // Record srcNode grandmother height:
         double t_srcNodeG = srcNodeP.getParent().getHeight();
@@ -169,7 +169,7 @@ public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
         connectBranch(srcNode, destNode, newTime);
 
         // Recolour new branch:
-        logHR -= recolourBranch(srcNode);
+        logHR -= retypeBranch(srcNode);
         
         // Reject outright if new colouring inconsistent:
         if (((MultiTypeNode)srcNodeP).getNodeType()
