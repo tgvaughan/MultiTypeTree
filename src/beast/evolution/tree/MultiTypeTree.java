@@ -35,12 +35,21 @@ public class MultiTypeTree extends Tree {
     /*
      * Plugin inputs:
      */
-    public Input<String> typeLabelInput = new Input<String>(
-            "typeLabel",
-            "Label for type traits (e.g. deme)", "deme");
     public Input<Integer> nTypesInput = new Input<Integer>(
             "nTypes",
             "Number of distinct types to consider.", Input.Validate.REQUIRED);
+    
+    public Input<String> typeLabelInput = new Input<String>(
+            "typeLabel",
+            "Label for type traits (e.g. deme)", "deme");
+    
+    public Input<TraitSet> typeTraitSetInput = new Input<TraitSet>(
+            "typeTraitSet",
+            "Trait set specifying types of leaf nodes.");
+    
+    public Input<TraitSet> timeTraitSetInput = new Input<TraitSet>(
+            "timeTraitSet",
+            "Trait set specifying ages of leaf nodes.");
 
     /*
      * Non-input fields:

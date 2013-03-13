@@ -6,50 +6,37 @@
         <popSizes spec="RealParameter" value="7.0 7.0"/>
     </model>
 
-    <run spec="MCMC" id="mcmc" chainLength="20000000"> 
+    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
-        <init spec='StructuredCoalescentColouredTree'
-                      id="colouredTree" 
-                      nColours="2" maxBranchColours="100"
-                      figtreeCompatible="true"
-              migrationModel="@migmodel" leafColours="1 1 0 0">
-            <tree id="tree" spec="Tree"/>
-            <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
-            <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>
-            <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
-            <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
+        <init spec='StructuredCoalescentMultiTypeTree'
+              id="tree"
+              nTypes="2"
+              migrationModel="@migmodel"
+              leafTypes="1 1 0 0">
         </init>
       
         <state>
             <stateNode idref="tree"/>
-            <stateNode idref="tree.cols"/>
-            <stateNode idref="tree.times"/>
-            <stateNode idref="tree.counts"/>
-            <stateNode idref="tree.nodecols"/>
         </state>
         
-        <distribution spec="CompoundDistribution" id="P">
-
-            <distribution id='scLikelihood' spec="StructuredCoalescentLikelihood">
-                <migrationModel idref="migmodel"/>
-                <colouredTree idref="colouredTree"/>
-            </distribution>
-
+        <distribution id='P' spec="StructuredCoalescentLikelihood">
+            <migrationModel idref="migmodel"/>
+            <multiTypeTree idref="tree"/>
         </distribution>
 
-        <operator spec='ColouredSubtreeExchange' id="CSTX"
-                          weight="1" colouredTree="@colouredTree"
+        <operator spec='TypedSubtreeExchange' id="TSTX"
+                          weight="1" multiTypeTree="@tree"
                           migrationModel="@migmodel"/>
         
-        <operator spec='NodeRecolour' id="NR"
-                  weight="1" colouredTree="@colouredTree"
+        <operator spec='NodeRetype' id="NR"
+                  weight="1" multiTypeTree="@tree"
                   migrationModel="@migmodel"/>
         
-        <operator spec='ColouredUniform' id="CU"
-                  weight="1" colouredTree="@colouredTree"/>
+        <operator spec='MultiTypeUniform' id="MTU"
+                  weight="1" multiTypeTree="@tree"/>
 
-        <operator spec='ColouredTreeScale' id="CTS"
-                  weight="1" colouredTree='@colouredTree'
+        <operator spec='MultiTypeTreeScale' id="MTTS"
+                  weight="1" multiTypeTree='@tree'
                   scaleFactor="1.5"
                   useOldTreeScaler="false"/>
 
@@ -59,8 +46,8 @@
             <log spec='beast.evolution.tree.TreeHeightLogger'>
                 <tree idref="tree"/>
             </log>
-            <log spec='beast.evolution.tree.ColourChangeCountLogger'>
-                <colouredTree idref="colouredTree"/>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
@@ -70,14 +57,14 @@
             <log spec='beast.evolution.tree.TreeHeightLogger' >
                 <tree idref="tree"/>
             </log>
-            <log spec='beast.evolution.tree.ColourChangeCountLogger'>
-                <colouredTree idref="colouredTree"/>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
         <!--
-        <logger logEvery="10000" fileName="CWBRtest_col.trees" mode="tree">
-            <log idref="colouredTree"/>
+        <logger logEvery="10000" fileName="STXtest.trees" mode="tree">
+            <log idref="tree"/>
         </logger>
         -->
 

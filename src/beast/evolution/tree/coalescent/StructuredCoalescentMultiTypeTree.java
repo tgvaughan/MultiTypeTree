@@ -19,13 +19,14 @@ package beast.evolution.tree.coalescent;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
+import beast.core.StateNode;
+import beast.core.StateNodeInitialiser;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.Node;
-import beast.evolution.tree.TraitSet;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
@@ -43,7 +44,7 @@ import java.util.List;
  */
 @Description("A multi-type tree generated randomly from leaf types and"
 + "a migration matrix with fixed population sizes.")
-public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
+public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements StateNodeInitialiser {
 
     /*
      * Plugin inputs:
@@ -55,12 +56,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
     public Input<IntegerParameter> leafTypesInput = new Input<IntegerParameter>(
             "leafTypes",
             "Types of leaf nodes.");
-    public Input<TraitSet> typeTraitSetInput = new Input<TraitSet>(
-            "typeTraitSet",
-            "Trait set specifying types of leaf nodes.");
-    public Input<TraitSet> timeTraitSetInput = new Input<TraitSet>(
-            "timeTraitSet",
-            "Trait set specifying ages of leaf nodes.");
+
     /*
      * Non-input fields:
      */
@@ -70,7 +66,6 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
     private List<String> leafNames;
     private List<Double> leafTimes;
     private int nLeaves;
-
 
     /*
      * Other private fields and classes:
@@ -452,7 +447,17 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
 
         return nodeList.get(n);
     }
+    
+    @Override
+    public void initStateNodes() throws Exception { }
 
+    @Override
+    public List<StateNode> getInitialisedStateNodes() {
+        List<StateNode> list = new ArrayList<StateNode>();
+        list.add(this);
+        
+        return list;
+    }
     
     /**
      * Generates an ensemble of trees from the structured coalescent for testing
@@ -479,7 +484,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree {
         // Specify leaf types:
         IntegerParameter leafTypes = new IntegerParameter();
         leafTypes.initByName(
-                "value", "0 0 0");
+                "value", "1 1 0 0");
 
         // Generate ensemble:
         int reps = 100000;

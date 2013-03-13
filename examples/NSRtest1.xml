@@ -6,17 +6,11 @@
         <popSizes spec="RealParameter" value="7.0 7.0"/>
     </model>
 
-    <run spec="MCMC" id="mcmc" chainLength="20000000"> 
+    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
-        <init spec='ColouredTreeFromNewick'
-                      id="colouredTree" 
-                      colourLabel="state" nColours="2" maxBranchColours="100"
-              figtreeCompatible="true">
-            <tree id="tree" spec="Tree"/>
-            <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
-            <changeTimes id="tree.times"  spec="RealParameter" value="0."/>
-            <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
-            <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
+        <init spec='MultiTypeTreeFromNewick'
+                      id="tree" 
+                      typeLabel="state" nTypes="2">
             <input name="newick">
                 (1[state='1']:1,2[state='0']:1)[state='0']:0;
             </input>
@@ -24,23 +18,15 @@
       
         <state>
             <stateNode idref="tree"/>
-            <stateNode idref="tree.cols"/>
-            <stateNode idref="tree.times"/>
-            <stateNode idref="tree.counts"/>
-            <stateNode idref="tree.nodecols"/>
         </state>
         
-        <distribution spec="CompoundDistribution" id="P">
-
-            <distribution id='scLikelihood' spec="StructuredCoalescentLikelihood">
-                <migrationModel idref="migmodel"/>
-                <colouredTree idref="colouredTree"/>
-            </distribution>
-
+        <distribution id='P' spec="StructuredCoalescentLikelihood">
+            <migrationModel idref="migmodel"/>
+            <multiTypeTree idref="tree"/>
         </distribution>
 
-        <operator spec='NodeShiftRecolour' id="NSR"
-                  weight="1" colouredTree="@colouredTree"
+        <operator spec='NodeShiftRetype' id="NSR"
+                  weight="1" multiTypeTree="@tree"
                   rootScaleFactor="1.1"
                   migrationModel="@migmodel"/>
 
@@ -50,8 +36,8 @@
             <log spec='TreeHeightLogger'>
                 <tree idref="tree"/>
             </log>
-            <log spec='ColourChangeCountLogger'>
-                <colouredTree idref="colouredTree"/>
+            <log spec='TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
@@ -61,14 +47,14 @@
             <log spec='beast.evolution.tree.TreeHeightLogger' >
                 <tree idref="tree"/>
             </log>
-            <log spec='beast.evolution.tree.ColourChangeCountLogger'>
-                <colouredTree idref="colouredTree"/>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
         <!--
-        <logger logEvery="10000" fileName="STStest_col.trees" mode="tree">
-            <log idref="colouredTree"/>
+        <logger logEvery="10000" fileName="NSRtest.trees" mode="tree">
+            <log idref="tree"/>
         </logger>
         -->
 

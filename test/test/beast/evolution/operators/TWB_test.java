@@ -21,7 +21,7 @@ import beast.core.State;
 import beast.core.parameter.RealParameter;
 import beast.evolution.likelihood.StructuredCoalescentLikelihood;
 import beast.evolution.migrationmodel.MigrationModel;
-import beast.evolution.operators.TypedWilsonBaldingRandom;
+import beast.evolution.operators.TypedWilsonBalding;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
 import beast.util.Randomizer;
 import beast.util.unittesting.MultiTypeTreeStatLogger;
@@ -32,14 +32,14 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class TWBRtest {
+public class TWB_test {
  
     @Test
-    public void testTWBR1() throws Exception {
-        System.out.println("testTWBR1");
+    public void test1() throws Exception {
+        System.out.println("TWB_test 1");
         
         // Fix seed.
-        Randomizer.setSeed(53);
+        Randomizer.setSeed(42);
         
         // Assemble initial MultiTypeTree
         String newickStr =
@@ -72,11 +72,11 @@ public class TWBRtest {
         state.initByName("stateNode", mtTree);
         
         // Set up operator:
-        TypedWilsonBaldingRandom operator = new TypedWilsonBaldingRandom();
+        TypedWilsonBalding operator = new TypedWilsonBalding();
         operator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "mu", 0.2,
+                "migrationModel", migModel,
                 "alpha", 0.2);
         
         // Set up stat analysis logger:
@@ -103,16 +103,16 @@ public class TWBRtest {
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>1000)
-                && (Math.abs(logger.getHeightMean()-19)<0.5)
-                && (Math.abs(logger.getHeightVar()-300)<50);
+        boolean withinTol = (logger.getHeightESS()>5000)
+                && (Math.abs(logger.getHeightMean()-19.15)<0.1)
+                && (Math.abs(logger.getHeightVar()-310)<20);
         
         Assert.assertTrue(withinTol);
     }
     
     @Test
-    public void testTWBR2() throws Exception {
-        System.out.println("testTWBR2");
+    public void testTWB2() throws Exception {
+        System.out.println("TWB_test 2");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -148,11 +148,11 @@ public class TWBRtest {
         state.initByName("stateNode", mtTree);
         
         // Set up operator:
-        TypedWilsonBaldingRandom operator = new TypedWilsonBaldingRandom();
+        TypedWilsonBalding operator = new TypedWilsonBalding();
         operator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "mu", 0.2,
+                "migrationModel", migModel,
                 "alpha", 0.2);
         
         // Set up stat analysis logger:
