@@ -27,6 +27,7 @@ import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.Node;
+import beast.evolution.tree.TraitSet;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
@@ -53,9 +54,18 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             "migrationModel",
             "Migration model to use in simulator.",
             Validate.REQUIRED);
+    
     public Input<IntegerParameter> leafTypesInput = new Input<IntegerParameter>(
             "leafTypes",
             "Types of leaf nodes.");
+    
+    public Input<TraitSet> typeTraitSetInput = new Input<TraitSet>(
+            "typeTraitSet",
+            "Trait set specifying types of leaf nodes.");
+    
+    public Input<TraitSet> timeTraitSetInput = new Input<TraitSet>(
+            "timeTraitSet",
+            "Trait set specifying ages of leaf nodes.");
 
     /*
      * Non-input fields:

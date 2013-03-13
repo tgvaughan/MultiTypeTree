@@ -43,14 +43,6 @@ public class MultiTypeTree extends Tree {
             "typeLabel",
             "Label for type traits (e.g. deme)", "deme");
     
-    public Input<TraitSet> typeTraitSetInput = new Input<TraitSet>(
-            "typeTraitSet",
-            "Trait set specifying types of leaf nodes.");
-    
-    public Input<TraitSet> timeTraitSetInput = new Input<TraitSet>(
-            "timeTraitSet",
-            "Trait set specifying ages of leaf nodes.");
-
     /*
      * Non-input fields:
      */

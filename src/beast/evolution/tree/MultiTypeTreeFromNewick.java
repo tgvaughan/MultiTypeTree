@@ -22,10 +22,6 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
     public void initAndValidate() throws Exception {
         
         super.initAndValidate();
-
-        if ((timeTraitSetInput.get() != null) || (typeTraitSetInput.get() != null))
-            System.err.println("Warning: time and type traits will be ignored "
-                    + "in favour of Newick specification.");
         
         TreeParser parser = new TreeParser();
         parser.initByName(
