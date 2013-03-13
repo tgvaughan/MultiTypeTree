@@ -424,6 +424,24 @@ public class MultiTypeTree extends Tree {
 
         return getTrueNodeCount(node.getLeft());
     }
+    
+    /**
+     * Obtain total number of type changes along nodes on tree.
+     * 
+     * @return total change count
+     */
+    public int getTotalNumberOfChanges() {
+        int count = 0;        
+
+        for (Node node : m_nodes) {
+            if (node.isRoot())
+                continue;
+            
+            count += ((MultiTypeNode)node).getChangeCount();
+        }
+        
+        return count;
+    }
 
     /**
      * Return string representation of coloured tree.
