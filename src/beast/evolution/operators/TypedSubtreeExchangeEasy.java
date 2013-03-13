@@ -18,6 +18,7 @@ package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.core.Input;
+import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
@@ -25,10 +26,10 @@ import beast.util.Randomizer;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 @Description("Subtree/branch exchange operator for coloured trees.  This"
-        + " is the `uniformized recolouring' variant where new branch colourings"
-        + " are selected using random walk conditional on the colours at both"
-        + " ends of the branch.")
-public class ColouredSubtreeExchange extends UniformizationRetypeOperator {
+        + " is the `no recolouring' variant where the new topology is selected"
+        + " irrespective of the colouring of the branches involved.  Used for"
+        + " testing Ewing et al.'s sampler moves.")
+public class TypedSubtreeExchangeEasy extends MultiTypeTreeOperator {
     
     public Input<Boolean> isNarrowInput = new Input<Boolean>("isNarrow",
             "Whether or not to use narrow exchange. (Default true.)", true);
@@ -39,10 +40,7 @@ public class ColouredSubtreeExchange extends UniformizationRetypeOperator {
     @Override
     public double proposal() {
         mtTree = multiTypeTreeInput.get();
-        tree = mtTree.getUncolouredTree();
         
-        double logHR = 0.0;
-
         // Select source and destination nodes:
         
         Node srcNode, srcNodeParent, destNode, destNodeParent;
@@ -50,7 +48,7 @@ public class ColouredSubtreeExchange extends UniformizationRetypeOperator {
             
             // Narrow exchange selection:
             do {
-                srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                srcNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while (srcNode.isRoot() || srcNode.getParent().isRoot());
             srcNodeParent = srcNode.getParent();            
             destNode = getOtherChild(srcNodeParent.getParent(), srcNodeParent);
@@ -60,42 +58,40 @@ public class ColouredSubtreeExchange extends UniformizationRetypeOperator {
             
             // Wide exchange selection:
             do {
-                srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                srcNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while (srcNode.isRoot());
             srcNodeParent = srcNode.getParent();
             
             do {
-                destNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                destNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while(destNode == srcNode
                     || destNode.isRoot()
-                    || destNode.getParent() == srcNode.getParent());
+                    || destNode.getParent() == srcNodeParent);
             destNodeParent = destNode.getParent();
+            
+            // Explicitly reject outrageous node selections:
+            // (Dangerous to make this a condition of destNode selection,
+            // as doing so can lead to infinite loops.)
+            if (srcNodeParent == destNode || destNodeParent == srcNode)
+                return Double.NEGATIVE_INFINITY;
         }
         
-        // Reject if substitution would result in negative branch lengths:
+        // Reject outright if substitution would result in negative branch
+        // lengths:
         if (destNode.getHeight()>srcNodeParent.getHeight()
                 || srcNode.getHeight()>destNodeParent.getHeight())
             return Double.NEGATIVE_INFINITY;
-        
-        // Record probability of old colours:
-        logHR += getBranchTypeProb(srcNode) + getBranchTypeProb(destNode);
         
         // Make changes to tree topology:
         replace(srcNodeParent, srcNode, destNode);
         replace(destNodeParent, destNode, srcNode);
         
-        // Recolour branches involved:
-        try {
-            logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
-        } catch (RecolouringException ex) {
-            if (mtTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
+        // Force rejection if colouring inconsistent:
+        if ((((MultiTypeNode)srcNode).getFinalType() != ((MultiTypeNode)destNodeParent).getNodeType())
+                || (((MultiTypeNode)destNode).getFinalType() != ((MultiTypeNode)srcNodeParent).getNodeType()))
+            return Double.NEGATIVE_INFINITY;
         
-        return logHR;
-    }
+        return 0.0;
+    }    
     
 }

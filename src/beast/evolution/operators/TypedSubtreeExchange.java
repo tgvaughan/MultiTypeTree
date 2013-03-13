@@ -25,10 +25,10 @@ import beast.util.Randomizer;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 @Description("Subtree/branch exchange operator for coloured trees.  This"
-        + " is the `no recolouring' variant where the new topology is selected"
-        + " irrespective of the colouring of the branches involved.  Used for"
-        + " testing Ewing et al.'s sampler moves.")
-public class ColouredSubtreeExchangeEasy extends MultiTypeTreeOperator {
+        + " is the `uniformized recolouring' variant where new branch colourings"
+        + " are selected using random walk conditional on the colours at both"
+        + " ends of the branch.")
+public class TypedSubtreeExchange extends UniformizationRetypeOperator {
     
     public Input<Boolean> isNarrowInput = new Input<Boolean>("isNarrow",
             "Whether or not to use narrow exchange. (Default true.)", true);
@@ -39,8 +39,9 @@ public class ColouredSubtreeExchangeEasy extends MultiTypeTreeOperator {
     @Override
     public double proposal() {
         mtTree = multiTypeTreeInput.get();
-        tree = mtTree.getUncolouredTree();
         
+        double logHR = 0.0;
+
         // Select source and destination nodes:
         
         Node srcNode, srcNodeParent, destNode, destNodeParent;
@@ -48,7 +49,7 @@ public class ColouredSubtreeExchangeEasy extends MultiTypeTreeOperator {
             
             // Narrow exchange selection:
             do {
-                srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                srcNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while (srcNode.isRoot() || srcNode.getParent().isRoot());
             srcNodeParent = srcNode.getParent();            
             destNode = getOtherChild(srcNodeParent.getParent(), srcNodeParent);
@@ -58,40 +59,34 @@ public class ColouredSubtreeExchangeEasy extends MultiTypeTreeOperator {
             
             // Wide exchange selection:
             do {
-                srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                srcNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while (srcNode.isRoot());
             srcNodeParent = srcNode.getParent();
             
             do {
-                destNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                destNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while(destNode == srcNode
                     || destNode.isRoot()
-                    || destNode.getParent() == srcNodeParent);
+                    || destNode.getParent() == srcNode.getParent());
             destNodeParent = destNode.getParent();
-            
-            // Explicitly reject outrageous node selections:
-            // (Dangerous to make this a condition of destNode selection,
-            // as doing so can lead to infinite loops.)
-            if (srcNodeParent == destNode || destNodeParent == srcNode)
-                return Double.NEGATIVE_INFINITY;
         }
         
-        // Reject outright if substitution would result in negative branch
-        // lengths:
+        // Reject if substitution would result in negative branch lengths:
         if (destNode.getHeight()>srcNodeParent.getHeight()
                 || srcNode.getHeight()>destNodeParent.getHeight())
             return Double.NEGATIVE_INFINITY;
+        
+        // Record probability of old colours:
+        logHR += getBranchTypeProb(srcNode) + getBranchTypeProb(destNode);
         
         // Make changes to tree topology:
         replace(srcNodeParent, srcNode, destNode);
         replace(destNodeParent, destNode, srcNode);
         
-        // Force rejection if colouring inconsistent:
-        if (mtTree.getFinalBranchColour(srcNode) != mtTree.getNodeColour(destNodeParent)
-                || mtTree.getFinalBranchColour(destNode) != mtTree.getNodeColour(srcNodeParent))
-            return Double.NEGATIVE_INFINITY;
+        // Recolour branches involved:
+        logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
         
-        return 0.0;
-    }    
+        return logHR;
+    }
     
 }

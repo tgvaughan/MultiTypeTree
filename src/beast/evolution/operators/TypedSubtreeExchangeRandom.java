@@ -18,6 +18,7 @@ package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.core.Input;
+import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
@@ -30,7 +31,7 @@ import beast.util.Randomizer;
         + " be very inefficient as this operator requires recolouring of"
         + " two branches, meaning that the acceptance probability goes as"
         + " the _square_ of the inverse of the number of colours.")
-public class ColouredSubtreeExchangeRandom extends RandomRetypeOperator {
+public class TypedSubtreeExchangeRandom extends RandomRetypeOperator {
     
     public Input<Boolean> isNarrowInput = new Input<Boolean>("isNarrow",
             "Whether or not to use narrow exchange. (Default true.)", true);
@@ -41,7 +42,6 @@ public class ColouredSubtreeExchangeRandom extends RandomRetypeOperator {
     @Override
     public double proposal() {
         mtTree = multiTypeTreeInput.get();
-        tree = mtTree.getUncolouredTree();
         
         double logHR = 0.0;
 
@@ -52,7 +52,7 @@ public class ColouredSubtreeExchangeRandom extends RandomRetypeOperator {
             
             // Narrow exchange selection:
             do {
-                srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                srcNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while (srcNode.isRoot() || srcNode.getParent().isRoot());
             srcNodeParent = srcNode.getParent();            
             destNode = getOtherChild(srcNodeParent.getParent(), srcNodeParent);
@@ -62,12 +62,12 @@ public class ColouredSubtreeExchangeRandom extends RandomRetypeOperator {
             
             // Wide exchange selection:
             do {
-                srcNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                srcNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while (srcNode.isRoot());
             srcNodeParent = srcNode.getParent();
             
             do {
-                destNode = tree.getNode(Randomizer.nextInt(tree.getNodeCount()));
+                destNode = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
             } while(destNode == srcNode
                     || destNode.isRoot()
                     || destNode.getParent() == srcNode.getParent());
@@ -88,19 +88,11 @@ public class ColouredSubtreeExchangeRandom extends RandomRetypeOperator {
         replace(destNodeParent, destNode, srcNode);
         
         // Recolour branches involved:
-        try {
-            logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
-        } catch (RecolouringException ex) {
-            if (mtTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
+        logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
         
         // Force rejection if colouring inconsistent:
-        if (mtTree.getFinalBranchColour(srcNode) != mtTree.getNodeColour(destNodeParent)
-                || mtTree.getFinalBranchColour(destNode) != mtTree.getNodeColour(srcNodeParent))
+        if ((((MultiTypeNode)srcNode).getFinalType() != ((MultiTypeNode)destNodeParent).getNodeType())
+                || (((MultiTypeNode)destNode).getFinalType() != ((MultiTypeNode)srcNodeParent).getNodeType()))
             return Double.NEGATIVE_INFINITY;
         
         return logHR;

@@ -18,15 +18,16 @@ package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.core.Input;
+import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-@Description("Implements colour change (migration) merge/split move as "
+@Description("Implements type change (migration) merge/split move as "
         + "described by Ewing et al., Genetics (2004).")
-public class ColourMergeSplit extends MultiTypeTreeOperator {
+public class TypeMergeSplit extends MultiTypeTreeOperator {
     
     public Input<Boolean> includeRootInput = new Input<Boolean>("includeRoot",
             "Include Tim's root merge/split moves.  Default false.", false);
@@ -38,12 +39,11 @@ public class ColourMergeSplit extends MultiTypeTreeOperator {
     public double proposal() {
         
         mtTree = multiTypeTreeInput.get();
-        tree = mtTree.getUncolouredTree();
         
         Node node;
         do {
-            node = tree.getNode(tree.getLeafNodeCount()
-                    + Randomizer.nextInt(tree.getInternalNodeCount()));
+            node = mtTree.getNode(mtTree.getLeafNodeCount()
+                    + Randomizer.nextInt(mtTree.getInternalNodeCount()));
         } while (!includeRootInput.get() && node.isRoot());
         
         // Randomly select a merge or split proposal:
@@ -70,46 +70,38 @@ public class ColourMergeSplit extends MultiTypeTreeOperator {
      */
     private double splitProposal(Node node) {
         
-        if (mtTree.getChangeCount(node)==0)
+        if (((MultiTypeNode)node).getChangeCount()==0)
             return Double.NEGATIVE_INFINITY;
         
-        int colour = mtTree.getChangeColour(node,0);
+        int type = ((MultiTypeNode)node).getChangeType(0);
         
         // Delete old change above node:
-        removeChange(node, 0);
+        ((MultiTypeNode)node).removeChange(0);
         
         // Update node colour:
-        setNodeColour(node, colour);
+        ((MultiTypeNode)node).setNodeType(type);
 
         // Select new change times:
         
-        double tminLeft = mtTree.getFinalBranchTime(node.getLeft());
+        double tminLeft = ((MultiTypeNode)node.getLeft()).getFinalChangeTime();
         double tnewLeft = (node.getHeight()-tminLeft)*Randomizer.nextDouble()
                 + tminLeft;
         
-        double tminRight = mtTree.getFinalBranchTime(node.getRight());
+        double tminRight = ((MultiTypeNode)node.getRight()).getFinalChangeTime();
         double tnewRight = (node.getHeight()-tminRight)*Randomizer.nextDouble()
                 + tminRight;
         
         // Record time of first migration or coalescence above node
         // for HR calculation:
         double tmax;
-        if (mtTree.getChangeCount(node)>0)
-            tmax = mtTree.getChangeTime(node, 0);
+        if (((MultiTypeNode)node).getChangeCount()>0)
+            tmax = ((MultiTypeNode)node).getChangeTime(0);
         else
             tmax = node.getParent().getHeight();
 
         // Add new changes below node:
-        try { 
-            addChange(node.getLeft(), colour, tnewLeft);
-            addChange(node.getRight(), colour, tnewRight);
-        } catch (RecolouringException ex) {
-            if (ex.cTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
+        ((MultiTypeNode)node.getLeft()).addChange(type, tnewLeft);
+        ((MultiTypeNode)node.getRight()).addChange(type, tnewRight);
         
         return Math.log((node.getHeight()-tminRight)*(node.getHeight()-tminLeft))
                 - Math.log(tmax-node.getHeight());
@@ -117,42 +109,34 @@ public class ColourMergeSplit extends MultiTypeTreeOperator {
     
     private double splitProposalRoot() {
         
-        Node root = tree.getRoot();
+        Node root = mtTree.getRoot();
 
-        // Select new root colour:
-        int oldColour = mtTree.getNodeColour(root);
-        int colour;
+        // Select new root type:
+        int oldType = ((MultiTypeNode)root).getNodeType();
+        int type;
         do {
-            colour = Randomizer.nextInt(mtTree.getNColours());
-        } while (colour == oldColour);
+            type = Randomizer.nextInt(mtTree.getNTypes());
+        } while (type == oldType);
         
-        // Update node colour:
-        setNodeColour(root, colour);
+        // Update node type:
+        ((MultiTypeNode)root).setNodeType(type);
 
         // Select new change times:
         
-        double tminLeft = mtTree.getFinalBranchTime(root.getLeft());
+        double tminLeft = ((MultiTypeNode)root.getLeft()).getFinalChangeTime();
         double tnewLeft = (root.getHeight()-tminLeft)*Randomizer.nextDouble()
                 + tminLeft;
         
-        double tminRight = mtTree.getFinalBranchTime(root.getRight());
+        double tminRight = ((MultiTypeNode)root.getRight()).getFinalChangeTime();
         double tnewRight = (root.getHeight()-tminRight)*Randomizer.nextDouble()
                 + tminRight;
        
         // Add new changes below node:
-        try { 
-            addChange(root.getLeft(), colour, tnewLeft);
-            addChange(root.getRight(), colour, tnewRight);
-        } catch (RecolouringException ex) {
-            if (ex.cTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
+        ((MultiTypeNode)root.getLeft()).addChange(type, tnewLeft);
+        ((MultiTypeNode)root.getRight()).addChange(type, tnewRight);
         
         return Math.log((root.getHeight()-tminRight)*(root.getHeight()-tminLeft)
-                *(mtTree.getNColours()-1));
+                *(mtTree.getNTypes()-1));
 
     }
     
@@ -165,66 +149,59 @@ public class ColourMergeSplit extends MultiTypeTreeOperator {
      */
     private double mergeProposal(Node node) {
         
-        Node left = node.getLeft();
-        Node right = node.getRight();
+        MultiTypeNode left = (MultiTypeNode)node.getLeft();
+        MultiTypeNode right = (MultiTypeNode)node.getRight();
+        MultiTypeNode mtNode = (MultiTypeNode)node;
         
-        int leftIdx = mtTree.getChangeCount(left)-1;
-        int rightIdx = mtTree.getChangeCount(right)-1;
+        int leftIdx = left.getChangeCount()-1;
+        int rightIdx = left.getChangeCount()-1;
         
         if (leftIdx<0 || rightIdx<0)
             return Double.NEGATIVE_INFINITY;
 
-        int leftColour = mtTree.getChangeColour(left, leftIdx);
-        int rightColour = mtTree.getChangeColour(right, rightIdx);
+        int leftType = left.getChangeType(leftIdx);
+        int rightType = left.getChangeType(rightIdx);
         
-        if (leftColour != rightColour)
+        if (leftType != rightType)
             return Double.NEGATIVE_INFINITY;
         
-        int leftColourUnder;
+        int leftTypeUnder;
         double tminLeft;
         if (leftIdx>0) {
-            leftColourUnder = mtTree.getChangeColour(left, leftIdx-1);
-            tminLeft = mtTree.getChangeTime(left, leftIdx-1);
+            leftTypeUnder = left.getChangeType(leftIdx-1);
+            tminLeft = left.getChangeTime(leftIdx-1);
         } else {
-            leftColourUnder = mtTree.getNodeColour(left);
+            leftTypeUnder = left.getNodeType();
             tminLeft = left.getHeight();
         }
         
-        int rightColourUnder;
+        int rightTypeUnder;
         double tminRight;
         if (rightIdx>0) {
-            rightColourUnder = mtTree.getChangeColour(right, rightIdx-1);
-            tminRight = mtTree.getChangeTime(right, rightIdx-1);
+            rightTypeUnder = right.getChangeType(rightIdx-1);
+            tminRight = right.getChangeTime(rightIdx-1);
         } else {
-            rightColourUnder = mtTree.getNodeColour(right);
+            rightTypeUnder = right.getNodeType();
             tminRight = right.getHeight();
         }
 
-        if (leftColourUnder != rightColourUnder)
+        if (leftTypeUnder != rightTypeUnder)
             return Double.NEGATIVE_INFINITY;
         
         double tmax;
-        if (mtTree.getChangeCount(node)>0)
-            tmax = mtTree.getChangeTime(node,0);
+        if (mtNode.getChangeCount()>0)
+            tmax = mtNode.getChangeTime(0);
         else
             tmax = node.getParent().getHeight();
         
-        removeChange(left, leftIdx);
-        removeChange(right, rightIdx);        
-        setNodeColour(node, leftColourUnder);
+        left.removeChange(leftIdx);
+        right.removeChange(rightIdx);        
+        mtNode.setNodeType(leftTypeUnder);
         
         double tnew = Randomizer.nextDouble()*(tmax-node.getHeight())
                 + node.getHeight();
         
-        try {
-            insertChange(node, 0, leftColour, tnew);
-        } catch (RecolouringException ex) {
-            if (ex.cTree.discardWhenMaxExceeded()) {
-                ex.discardMsg();
-                return Double.NEGATIVE_INFINITY;
-            } else
-                ex.throwRuntime();
-        }
+        mtNode.insertChange(0, leftType, tnew);
         
         return Math.log(tmax-node.getHeight())
                 - Math.log((node.getHeight()-tminLeft)*(node.getHeight()-tminRight));
@@ -232,53 +209,53 @@ public class ColourMergeSplit extends MultiTypeTreeOperator {
     
     private double mergeProposalRoot() {
         
-        Node root = tree.getRoot();
+        MultiTypeNode root = (MultiTypeNode)mtTree.getRoot();
              
-        Node left = root.getLeft();
-        Node right = root.getRight();
+        MultiTypeNode left = (MultiTypeNode)root.getLeft();
+        MultiTypeNode right = (MultiTypeNode)root.getRight();
         
-        int leftIdx = mtTree.getChangeCount(left)-1;
-        int rightIdx = mtTree.getChangeCount(right)-1;
+        int leftIdx = left.getChangeCount()-1;
+        int rightIdx = right.getChangeCount()-1;
         
         if (leftIdx<0 || rightIdx<0)
             return Double.NEGATIVE_INFINITY;
 
-        int leftColour = mtTree.getChangeColour(left, leftIdx);
-        int rightColour = mtTree.getChangeColour(right, rightIdx);
+        int leftType = left.getChangeType(leftIdx);
+        int rightType = right.getChangeType(rightIdx);
         
-        if (leftColour != rightColour)
+        if (leftType != rightType)
             return Double.NEGATIVE_INFINITY;
         
-        int leftColourUnder;
+        int leftTypeUnder;
         double tminLeft;
         if (leftIdx>0) {
-            leftColourUnder = mtTree.getChangeColour(left, leftIdx-1);
-            tminLeft = mtTree.getChangeTime(left, leftIdx-1);
+            leftTypeUnder = left.getChangeType(leftIdx-1);
+            tminLeft = left.getChangeTime(leftIdx-1);
         } else {
-            leftColourUnder = mtTree.getNodeColour(left);
+            leftTypeUnder = left.getNodeType();
             tminLeft = left.getHeight();
         }
         
-        int rightColourUnder;
+        int rightTypeUnder;
         double tminRight;
         if (rightIdx>0) {
-            rightColourUnder = mtTree.getChangeColour(right, rightIdx-1);
-            tminRight = mtTree.getChangeTime(right, rightIdx-1);
+            rightTypeUnder = right.getChangeType(rightIdx-1);
+            tminRight = right.getChangeTime(rightIdx-1);
         } else {
-            rightColourUnder = mtTree.getNodeColour(right);
+            rightTypeUnder = right.getNodeType();
             tminRight = right.getHeight();
         }
 
-        if (leftColourUnder != rightColourUnder)
+        if (leftTypeUnder != rightTypeUnder)
             return Double.NEGATIVE_INFINITY;
         
         
-        removeChange(left, leftIdx);
-        removeChange(right, rightIdx);        
-        setNodeColour(root, leftColourUnder);
+        left.removeChange(leftIdx);
+        right.removeChange(rightIdx);        
+        root.setNodeType(leftTypeUnder);
         
         return -Math.log((root.getHeight()-tminRight)*(root.getHeight()-tminLeft)
-                *(mtTree.getNColours()-1));
+                *(mtTree.getNTypes()-1));
     }
     
 }
