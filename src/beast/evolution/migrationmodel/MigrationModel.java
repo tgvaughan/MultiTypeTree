@@ -93,15 +93,12 @@ public class MigrationModel extends CalculationNode {
             for (int i=0; i<nTypes; i++) {
                 for (int j=0; j<nTypes; j++) {
                     if (i==j)
-                        sb.append("0.0 ");
-                    else
-                        sb.append(String.valueOf(rate)).append(" ");
+                        continue;
+                    
+                    sb.append(String.valueOf(rate)).append(" ");
                 }
             }
-            rateMatrixInput.get().initByName(
-                    "dimension", nTypes*nTypes,
-                    "minordimension", nTypes,
-                    "value", sb.toString());
+            rateMatrixInput.get().initByName("value", sb.toString());
         }
         
         if (rateMatrix.getDimension() == nTypes*nTypes)
