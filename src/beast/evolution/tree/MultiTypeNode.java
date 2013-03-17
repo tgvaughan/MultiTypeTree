@@ -214,15 +214,6 @@ public class MultiTypeNode extends Node {
 
 
     /**
-     * Let tree know that it's been modified.
-     */
-    private void startEditing() {
-        if (m_tree!=null&&m_tree.getState()!=null)
-            m_tree.startEditing(null);
-    }
-
-
-    /**
      * @return (deep) copy of node
      */
     @Override

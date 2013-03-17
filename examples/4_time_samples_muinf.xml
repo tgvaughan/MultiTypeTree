@@ -921,6 +921,7 @@
        <distribution idref='treePrior'/>
        <distribution idref="parameterPriors"/>
      </distribution>
+
  
      <!-- parameter scaling operators -->
 
@@ -935,7 +936,7 @@
 
      <operator spec="ScaleOperator" id="muRateScaler"
 	       parameter="@mutationRate" scaleFactor="0.1" weight="1"/>
-     -->
+-->
      <!-- Multi-type tree operators -->
 
      <operator spec='TypedSubtreeExchange' id='STX'
