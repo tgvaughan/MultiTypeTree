@@ -28,14 +28,14 @@ import static org.junit.Assert.*;
  *
  * @author Tim Vaughan
  */
-public class StructuredCoalescentLikelihoodTest {
+public class SCLikelihoodTest {
 
 	/**
 	 * Test of calculateLogP method, of class StructuredCoalescentLikelihood.
 	 */
 	@Test
 	public void testCalculateLogP() throws Exception {
-		System.out.println("calculateLogP");
+		System.out.println("SCLikelihoodTest");
 
 		// Assemble test MultiTypeTree:
 		String newickStr =

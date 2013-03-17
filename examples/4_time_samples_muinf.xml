@@ -923,6 +923,8 @@
      </distribution>
  
      <!-- parameter scaling operators -->
+
+<!--
      <operator spec='ScaleOperator' id='RateScaler'
  	      parameter="@rateMatrix"
  	      scaleFactor="0.1" weight="1">
@@ -932,23 +934,22 @@
  	      parameter="@popSizes" scaleFactor="0.1" weight="1"/>
 
      <operator spec="ScaleOperator" id="muRateScaler"
-	       parameter="@mutationRate" scaleFactor="0.1" weight="1"/>       
-     
+	       parameter="@mutationRate" scaleFactor="0.1" weight="1"/>
+     -->
      <!-- Multi-type tree operators -->
 
      <operator spec='TypedSubtreeExchange' id='STX'
  	      weight="1" multiTypeTree="@tree"
  	      migrationModel="@migModel"/>
-
-
+     
      <operator spec="NodeRetype" id="NR"
  	      weight="1" multiTypeTree="@tree"
  	      migrationModel="@migModel"/>
 
-<!--     
+     <!--
      <operator spec="NodeShiftRetype" id="NSR1"
                weight="1" multiTypeTree="@tree"
-               migrationModel="@migModel" rootOnly="true"/>
+               migrationModel="@migModel" rootOnly="false"/>
 
      <operator spec="NodeShiftRetype" id="NSR2"
                weight="1" multiTypeTree="@tree"
@@ -959,14 +960,14 @@
  	      scaleFactor="1.1" useOldTreeScaler="false">
          <parameter idref="popSizes"/>         
          <parameterInverse idref="rateMatrix"/>
-	 <parameterInverse idref="mutationRate"/>
+         <parameterInverse idref="mutationRate"/>
      </operator>
      
      <operator spec="TypedWilsonBalding" id="TWB"
  	      weight="1" multiTypeTree="@tree"
  	      migrationModel="@migModel" alpha="0.2"/>
      -->
-     
+           
      <logger logEvery="1000" fileName="4_time_samples_muinf.log">
        <model idref='posterior'/>
        <log idref="posterior"/>

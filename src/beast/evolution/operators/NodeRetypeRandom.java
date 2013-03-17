@@ -19,6 +19,7 @@ package beast.evolution.operators;
 import beast.core.Description;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
+import beast.evolution.tree.Tree;
 import beast.util.Randomizer;
 
 /**
@@ -67,6 +68,11 @@ public class NodeRetypeRandom extends RandomRetypeOperator {
         if ((((MultiTypeNode)node.getLeft()).getFinalType() != ((MultiTypeNode)node).getNodeType())
                 || (((MultiTypeNode)node.getRight()).getFinalType() != ((MultiTypeNode)node).getNodeType()))
             return Double.NEGATIVE_INFINITY;
+        
+        // WHY IS THIS NECESSARY!?
+        node.makeDirty(Tree.IS_DIRTY);
+        node.getLeft().makeDirty(Tree.IS_DIRTY);
+        node.getRight().makeDirty(Tree.IS_DIRTY);
         
         return logHR;
     }

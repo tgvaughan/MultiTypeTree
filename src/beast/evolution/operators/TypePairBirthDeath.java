@@ -19,6 +19,7 @@ package beast.evolution.operators;
 import beast.core.Description;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
+import beast.evolution.tree.Tree;
 import beast.util.Randomizer;
 
 /**
@@ -103,8 +104,10 @@ public class TypePairBirthDeath extends MultiTypeTreeOperator {
         double tauMin = Math.min(tau1, tau2);
         double tauMax = Math.max(tau1, tau2);
         
-            mtNode.insertChange(edgeNum, oldEdgeType, tauMax);
-            mtNode.insertChange(edgeNum, newEdgeType, tauMin);
+        mtNode.insertChange(edgeNum, oldEdgeType, tauMax);
+        mtNode.insertChange(edgeNum, newEdgeType, tauMin);
+        
+        mtNode.makeDirty(Tree.IS_DIRTY);
         
         return Math.log((mtTree.getNTypes()-1)*(m + 2*n - 2)*(tr-ts)*(tr-ts))
                 - Math.log(2*(m + 2*n));
@@ -151,6 +154,8 @@ public class TypePairBirthDeath extends MultiTypeTreeOperator {
         
         mtNode.removeChange(idx);
         mtNode.removeChange(idx);
+        
+        mtNode.makeDirty(Tree.IS_DIRTY);
         
         return Math.log(2*(m + 2*n - 2))
                 - Math.log((mtTree.getNTypes()-1)*(m+2*n-4)*(tr-ts)*(tr-ts));

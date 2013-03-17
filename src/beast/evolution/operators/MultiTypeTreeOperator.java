@@ -39,16 +39,8 @@ public abstract class MultiTypeTreeOperator extends Operator {
     
     protected MultiTypeTree mtTree;
     
-    protected void setEntireTreeFilthy() {
-        for (Node node : mtTree.getNodesAsArray())
-            node.makeDirty(Tree.IS_FILTHY);
-    }
-    
     /* ***********************************************************************
-     * The following two methods are copied verbatim from TreeOperator.  We've
-     * done this as extending TreeOperator would mean forcing every subclass
-     * of ColouredTreeOperator to require both a ColouredTree and a Tree as
-     * inputs.
+     * The following two methods are copied verbatim from TreeOperator.
      */
     
     /**
@@ -73,18 +65,10 @@ public abstract class MultiTypeTreeOperator extends Operator {
      * @param child
      * @param replacement
      */
-    public void replace(Node node, Node child,
-            Node replacement) {
-        replacement.setParent(node);
-        if (node.getLeft().getNr() == child.getNr()) {
-            node.setLeft(replacement);
-        } else {
-            // it must be the right child
-            node.setRight(replacement);
-        }
-        
+    public void replace(Node node, Node child, Node replacement) {
+    	node.removeChild(child);
+    	node.addChild(replacement);
         node.makeDirty(Tree.IS_FILTHY);
-        child.makeDirty(Tree.IS_FILTHY);
         replacement.makeDirty(Tree.IS_FILTHY);
     }
     

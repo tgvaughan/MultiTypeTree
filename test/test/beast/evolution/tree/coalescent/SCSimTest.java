@@ -28,12 +28,12 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class StructuredCoalescentSimTest {
+public class SCSimTest {
     
     @Test
     public void test() throws Exception {
         
-         System.out.println("StructuredCoalescentMultiTypeTree test");
+         System.out.println("SCSim test");
          
          Randomizer.setSeed(42);
         

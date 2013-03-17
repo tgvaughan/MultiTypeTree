@@ -20,6 +20,7 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
+import beast.evolution.tree.Tree;
 import beast.util.Randomizer;
 
 /**
@@ -103,6 +104,10 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
         ((MultiTypeNode)node.getLeft()).addChange(type, tnewLeft);
         ((MultiTypeNode)node.getRight()).addChange(type, tnewRight);
         
+        node.getLeft().makeDirty(Tree.IS_DIRTY);
+        node.getRight().makeDirty(Tree.IS_DIRTY);
+        node.makeDirty(Tree.IS_DIRTY);
+        
         return Math.log((node.getHeight()-tminRight)*(node.getHeight()-tminLeft))
                 - Math.log(tmax-node.getHeight());
     }
@@ -135,6 +140,10 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
         ((MultiTypeNode)root.getLeft()).addChange(type, tnewLeft);
         ((MultiTypeNode)root.getRight()).addChange(type, tnewRight);
         
+        root.getLeft().makeDirty(Tree.IS_DIRTY);
+        root.getRight().makeDirty(Tree.IS_DIRTY);
+        root.makeDirty(Tree.IS_DIRTY);
+        
         return Math.log((root.getHeight()-tminRight)*(root.getHeight()-tminLeft)
                 *(mtTree.getNTypes()-1));
 
@@ -154,13 +163,13 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
         MultiTypeNode mtNode = (MultiTypeNode)node;
         
         int leftIdx = left.getChangeCount()-1;
-        int rightIdx = left.getChangeCount()-1;
+        int rightIdx = right.getChangeCount()-1;
         
         if (leftIdx<0 || rightIdx<0)
             return Double.NEGATIVE_INFINITY;
 
         int leftType = left.getChangeType(leftIdx);
-        int rightType = left.getChangeType(rightIdx);
+        int rightType = right.getChangeType(rightIdx);
         
         if (leftType != rightType)
             return Double.NEGATIVE_INFINITY;
@@ -202,6 +211,10 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
                 + node.getHeight();
         
         mtNode.insertChange(0, leftType, tnew);
+        
+        left.makeDirty(Tree.IS_DIRTY);
+        right.makeDirty(Tree.IS_DIRTY);
+        mtNode.makeDirty(Tree.IS_DIRTY);
         
         return Math.log(tmax-node.getHeight())
                 - Math.log((node.getHeight()-tminLeft)*(node.getHeight()-tminRight));
@@ -253,6 +266,10 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
         left.removeChange(leftIdx);
         right.removeChange(rightIdx);        
         root.setNodeType(leftTypeUnder);
+        
+        left.makeDirty(Tree.IS_DIRTY);
+        right.makeDirty(Tree.IS_DIRTY);
+        root.makeDirty(Tree.IS_DIRTY);
         
         return -Math.log((root.getHeight()-tminRight)*(root.getHeight()-tminLeft)
                 *(mtTree.getNTypes()-1));

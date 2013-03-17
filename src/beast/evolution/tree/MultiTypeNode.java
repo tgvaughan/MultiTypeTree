@@ -261,7 +261,9 @@ public class MultiTypeNode extends Node {
         
         MultiTypeNode mtNode = (MultiTypeNode)node;
         nTypeChanges = mtNode.nTypeChanges;
+        changeTimes.clear();
         changeTimes.addAll(mtNode.changeTimes);
+        changeTypes.clear();
         changeTypes.addAll(mtNode.changeTypes);
         nodeType = mtNode.nodeType;
         

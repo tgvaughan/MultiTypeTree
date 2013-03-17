@@ -32,7 +32,7 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class TWBR_test {
+public class TWBR_Test {
  
     @Test
     public void test1() throws Exception {
