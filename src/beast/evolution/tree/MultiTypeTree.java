@@ -206,7 +206,47 @@ public class MultiTypeTree extends Tree {
     public int getNTypes() {
         return nTypes;
     }
+    
+    /**
+     * Check whether typing and timing of tree are sensible.
+     * 
+     * @return true if types and times are "valid"
+     */
+    public boolean isValid() {
+        return timesAreValid(root) && typesAreValid(root);
+    }
+    
+    private boolean timesAreValid(Node node) {
+        for (Node child : node.getChildren()) {
+            double lastHeight = node.getHeight();
+            for (int idx=((MultiTypeNode)child).getChangeCount()-1; idx>=0; idx--) {
+                double thisHeight = ((MultiTypeNode)child).getChangeTime(idx);
+                if (thisHeight>lastHeight)
+                    return false;
+                lastHeight = thisHeight;
+            }
+            if (child.getHeight()>lastHeight)
+                return false;
+            
+            if (!timesAreValid(child))
+                return false;
+        }
+        
+        return true;
+    }
 
+    private boolean typesAreValid(Node node) {
+        for (Node child : node.getChildren()) {
+            if (((MultiTypeNode)node).getNodeType() != ((MultiTypeNode)child).getFinalType())
+                return false;
+            
+            if (!typesAreValid(child))
+                return false;
+        }
+        
+        return true;
+    }
+    
     /**
      * Generates a new tree in which the colours along the branches are
      * indicated by the traits of single-child nodes.

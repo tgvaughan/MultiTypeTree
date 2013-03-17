@@ -73,6 +73,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
     public void initAndValidate() {
         migrationModel = migrationModelInput.get();
         mtTree = mtTreeInput.get();
+        checkValidity = checkValidityInput.get();
 
         eventList = new ArrayList<SCEvent>();
         lineageCountList = new ArrayList<Integer[]>();
@@ -80,6 +81,10 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
 
     @Override
     public double calculateLogP() {
+        
+        // Check validity of tree if required:
+        if (checkValidity && !mtTree.isValid())
+            return Double.NEGATIVE_INFINITY;
 
         // Ensure sequence of events is up-to-date:
         updateEventSequence();
