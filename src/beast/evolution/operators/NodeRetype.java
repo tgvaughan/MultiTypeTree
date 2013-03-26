@@ -64,9 +64,9 @@ public class NodeRetype extends UniformizationRetypeOperator {
                 + retypeBranch(node.getRight());
         
         // WHY IS THIS NECESSARY!?
-        node.makeDirty(Tree.IS_DIRTY);
-        node.getLeft().makeDirty(Tree.IS_DIRTY);
-        node.getRight().makeDirty(Tree.IS_DIRTY);
+//        node.makeDirty(Tree.IS_DIRTY);
+//        node.getLeft().makeDirty(Tree.IS_DIRTY);
+//        node.getRight().makeDirty(Tree.IS_DIRTY);
         
         return logHR;
     }

@@ -720,7 +720,7 @@
  		 t126=1,
  		 t127=1,
  		 t128=1">
-     <taxa spec='TaxonSet' alignment='@input_alignment'/>
+     <taxa spec='TaxonSet' alignment='@simulated_alignment'/>
    </typeTraitSet>
 
    <traitSet spec='TraitSet' id='timeTraitSet'
@@ -857,7 +857,7 @@
 		   t126=3,
 		   t127=3,
 		   t128=3">
-     <taxa spec='TaxonSet' alignment='@input_alignment'/>
+     <taxa spec='TaxonSet' alignment='@simulated_alignment'/>
    </traitSet>
 
    <!-- Substitution model -->
