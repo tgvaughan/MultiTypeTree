@@ -40,7 +40,11 @@
                   scaleFactor="1.5"
                   useOldTreeScaler="false"/>
 
-        <logger logEvery="1000" fileName="STXtest.log">
+	<operator spec="TypedWilsonBalding" id="TWB"
+		  weight="1" multiTypeTree="@tree"
+		  migrationModel="@migmodel" alpha="0.2"/>
+
+        <logger logEvery="1000" fileName="ALLtest.log">
             <model idref='P'/>
             <log idref="P"/>
             <log spec='beast.evolution.tree.TreeHeightLogger'>
@@ -63,7 +67,7 @@
         </logger>
 
         <!--
-        <logger logEvery="10000" fileName="STXtest.trees" mode="tree">
+        <logger logEvery="10000" fileName="ALLtest.trees" mode="tree">
             <log idref="tree"/>
         </logger>
         -->

@@ -67,7 +67,7 @@ public class MigrationModel extends CalculationNode {
     private RealParameter rateMatrix, popSizes;
     private double totalPopSize;
     private double mu;
-    private int nColours;
+    private int nTypes;
     private DoubleMatrix2D Q, R;
     private EigenvalueDecomposition Qdecomp, Rdecomp;
     private DoubleMatrix2D QVinv, RVinv;
@@ -83,31 +83,28 @@ public class MigrationModel extends CalculationNode {
     public void initAndValidate() throws Exception {
         
         popSizes = popSizesInput.get();
-        nColours = popSizes.getDimension();
+        nTypes = popSizes.getDimension();
         rateMatrix = rateMatrixInput.get();
         
         if (uniformInitialRateInput.get() != null) {
             
             double rate = uniformInitialRateInput.get();
             StringBuilder sb = new StringBuilder();
-            for (int i=0; i<nColours; i++) {
-                for (int j=0; j<nColours; j++) {
+            for (int i=0; i<nTypes; i++) {
+                for (int j=0; j<nTypes; j++) {
                     if (i==j)
-                        sb.append("0.0 ");
-                    else
-                        sb.append(String.valueOf(rate)).append(" ");
+                        continue;
+                    
+                    sb.append(String.valueOf(rate)).append(" ");
                 }
             }
-            rateMatrixInput.get().initByName(
-                    "dimension", nColours*nColours,
-                    "minordimension", nColours,
-                    "value", sb.toString());
+            rateMatrixInput.get().initByName("value", sb.toString());
         }
         
-        if (rateMatrix.getDimension() == nColours*nColours)
+        if (rateMatrix.getDimension() == nTypes*nTypes)
             rateMatrixIsSquare = true;
         else {
-            if (rateMatrix.getDimension() != nColours*(nColours-1)) {
+            if (rateMatrix.getDimension() != nTypes*(nTypes-1)) {
                 throw new IllegalArgumentException("Migration matrix has"
                         + "incorrect number of elements for given deme count.");
             } else
@@ -135,12 +132,12 @@ public class MigrationModel extends CalculationNode {
             totalPopSize += popSizes.getArrayValue(i);
 
         mu = 0.0;
-        Q = new DenseDoubleMatrix2D(nColours, nColours);
+        Q = new DenseDoubleMatrix2D(nTypes, nTypes);
 
         // Set up _symmetrized_ backward transition rate matrix:
-        for (int i = 0; i < nColours; i++) {
+        for (int i = 0; i < nTypes; i++) {
             Q.set(i, i, 0.0);
-            for (int j = 0; j < nColours; j++)
+            for (int j = 0; j < nTypes; j++)
                 if (i != j) {
                     Q.set(j, i, 0.5*(getBackwardRate(j, i) + getBackwardRate(i,j)));
                     Q.set(i, i, Q.get(i, i) - Q.get(j, i));
@@ -151,9 +148,9 @@ public class MigrationModel extends CalculationNode {
         }
 
         // Set up uniformised backward transition rate matrix:
-        R = new DenseDoubleMatrix2D(nColours, nColours);
-        for (int i = 0; i < nColours; i++)
-            for (int j = 0; j < nColours; j++) {
+        R = new DenseDoubleMatrix2D(nTypes, nTypes);
+        for (int i = 0; i < nTypes; i++)
+            for (int j = 0; j < nTypes; j++) {
                 R.set(j, i, Q.get(j, i) / mu);
                 if (j == i)
                     R.set(j, i, R.get(j, i) + 1.0);
@@ -173,7 +170,7 @@ public class MigrationModel extends CalculationNode {
      * @return number of demes in the migration model.
      */
     public int getNDemes() {
-        return nColours;
+        return nTypes;
     }
 
     /**
@@ -186,11 +183,11 @@ public class MigrationModel extends CalculationNode {
             return 0;
         
         if (rateMatrixIsSquare) {
-            return rateMatrix.getValue(i*nColours+j);            
+            return rateMatrix.getValue(i*nTypes+j);            
         } else {
             if (j>i)
                 j -= 1;
-            return rateMatrix.getValue(i*(nColours-1)+j);            
+            return rateMatrix.getValue(i*(nTypes-1)+j);            
         }
 
 

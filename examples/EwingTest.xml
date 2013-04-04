@@ -2,56 +2,46 @@
        namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent'>
 
     <model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
-        <rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
+        <rateMatrix spec='RealParameter' value="0.1 0.1"/>
         <popSizes spec="RealParameter" value="7.0 7.0"/>
     </model>
 
-    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
+    <run spec="MCMC" id="mcmc" chainLength="100000000"> 
 
-        <init spec='StructuredCoalescentColouredTree'
-                      id="colouredTree" 
-                      colourLabel="state" nColours="2" maxBranchColours="100"
-                      figtreeCompatible="true"
-              leafColours="1 1 0 0" migrationModel="@migmodel">
-            <tree id="tree" spec="Tree"/>
-            <changeColours id="tree.cols" spec="IntegerParameter" value="0"/>
-            <changeTimes id="tree.times"  spec="RealParameter" value="0.0"/>
-            <changeCounts id="tree.counts" spec="IntegerParameter" value="0"/>
-            <nodeColours id="tree.nodecols" spec="IntegerParameter" value="0"/>
+        <init spec='StructuredCoalescentMultiTypeTree'
+                      id="tree" 
+                      typeLabel="state" nTypes="2"
+		      leafTypes="1 1 0 0" migrationModel="@migmodel">
         </init>
       
         <state>
             <stateNode idref="tree"/>
-            <stateNode idref="tree.cols"/>
-            <stateNode idref="tree.times"/>
-            <stateNode idref="tree.counts"/>
-            <stateNode idref="tree.nodecols"/>
         </state>
         
         <distribution spec="CompoundDistribution" id="P">
             <distribution id='scLikelihood' spec="StructuredCoalescentLikelihood" checkValidity="true">
                 <migrationModel idref="migmodel"/>
-                <colouredTree idref="colouredTree"/>
+                <multiTypeTree idref="tree"/>
             </distribution>
         </distribution>
 
 
 	<!-- Tree operators -->
-	<operator spec='ColouredWilsonBaldingEasy' weight="1"
-              colouredTree="@colouredTree"/>
-	<operator spec='ColouredSubtreeExchangeEasy' weight="1"
-		  colouredTree='@colouredTree' isNarrow="true"/>
-	<operator spec='ColouredUniform' weight="1"
-		  colouredTree='@colouredTree'/>
+	<operator spec='TypedWilsonBaldingEasy' id="TWB" weight="1"
+              multiTypeTree="@tree"/>
+	<operator spec='TypedSubtreeExchangeEasy' id="TSX" weight="1"
+		  multiTypeTree='@tree' isNarrow="true"/>
+	<operator spec='MultiTypeUniform' weight="1"
+		  multiTypeTree='@tree'/>
 
 	<!-- Colour operators -->
-	<operator spec="ColouredTreeScale" id="CTS"
-		  weight="1" colouredTree="@colouredTree"
+	<operator spec="MultiTypeTreeScale" id="MTTS"
+		  weight="1" multiTypeTree="@tree"
 		  scaleFactor="1.1" useOldTreeScaler="true"/>
-	<operator spec="ColourPairBirthDeath" id="PairBirthDeath"
-		  weight="1" colouredTree="@colouredTree"/>
-	<operator spec="ColourMergeSplit" id="mergeSplit"
-		  weight="1" colouredTree="@colouredTree"
+	<operator spec="TypePairBirthDeath" id="PairBirthDeath"
+		  weight="1" multiTypeTree="@tree"/>
+	<operator spec="TypeMergeSplit" id="mergeSplit"
+		  weight="1" multiTypeTree="@tree"
               includeRoot="true"/>
 
         <logger logEvery="1000" fileName="EwingTest.log">
@@ -60,24 +50,24 @@
             <log spec='beast.evolution.tree.TreeHeightLogger'>
                 <tree idref="tree"/>
             </log>
-            <log spec='beast.evolution.tree.ColourChangeCountLogger'>
-                <colouredTree idref="colouredTree"/>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
-        <logger logEvery="10000">
+        <logger logEvery="100000">
             <model idref='P'/>
             <log idref="P"/>
             <log spec='beast.evolution.tree.TreeHeightLogger' >
                 <tree idref="tree"/>
             </log>
-            <log spec='beast.evolution.tree.ColourChangeCountLogger'>
-                <colouredTree idref="colouredTree"/>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
         <logger logEvery="10000" fileName="EwingTest.trees" mode="tree">
-            <log idref="colouredTree"/>
+            <log idref="tree"/>
         </logger>
 
     </run>

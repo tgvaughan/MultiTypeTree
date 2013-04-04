@@ -6,58 +6,59 @@
         <popSizes spec="RealParameter" value="7.0 7.0"/>
     </model>
 
-    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
+    <run spec="MCMC" id="mcmc" chainLength="10000000">
 
         <init spec='MultiTypeTreeFromNewick'
-                      id="tree" 
-                      typeLabel="state" nTypes="2">
-            <input name="newick">
-                ((1[state='0']:1,2[state='0']:1)[state='0']:1,3[state='0']:2)[state='0']:0;
+              id="tree"
+              typeLabel="deme" nTypes="2">
+            <input name='newick'>
+                ((1[deme='0']:1,2[deme='0']:1)[deme='0']:1,3[deme='0']:2)[deme='0']:0;                
             </input>
         </init>
-      
+
         <state>
             <stateNode idref="tree"/>
         </state>
-        
+
         <distribution id='P' spec="StructuredCoalescentLikelihood">
             <migrationModel idref="migmodel"/>
             <multiTypeTree idref="tree"/>
         </distribution>
 
-        <operator spec='NodeShiftRetype' id="NSR"
-                  weight="50" multiTypeTree="@tree"
-                  rootScaleFactor="1.1"
-                  migrationModel="@migmodel"/>
+        <operator spec='TypedWilsonBalding' id="TWB"
+                  weight="1.0" multiTypeTree="@tree"
+                  migrationModel="@migmodel" alpha="0.2" />
         
-        <operator spec='TypedSubtreeExchange' id="STX"
-                          weight="1" multiTypeTree="@tree"
-                          migrationModel="@migmodel"/>
-
-        <logger logEvery="1000" fileName="NSRtest2.log">
+        <logger logEvery="1000" fileName="TWBtest.log">
             <model idref='P'/>
             <log idref="P"/>
-            <log spec='beast.evolution.tree.TreeHeightLogger'>
+            <log spec='TreeHeightLogger'>
                 <tree idref="tree"/>
             </log>
-            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+            <log spec='TypeChangeCountLogger'>
                 <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
-        <logger logEvery="100000">
+        <logger logEvery="10000">
             <model idref='P'/>
             <log idref="P"/>
-            <log spec='beast.evolution.tree.TreeHeightLogger' >
+            <log spec='TreeHeightLogger' >
                 <tree idref="tree"/>
             </log>
-            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+            <log spec='TypeChangeCountLogger'>
                 <multiTypeTree idref="tree"/>
             </log>
         </logger>
 
         <!--
-        <logger logEvery="10000" fileName="NSRtest2.tree" mode="tree">
+        <logger logEvery="10000" fileName="TWBtest.trees" mode="tree">
+            <log idref="tree"/>
+        </logger>
+        -->
+        
+        <!--
+        <logger spec="beast.evolution.tree.TreeReport" id="treeReporter" >
             <log idref="tree"/>
         </logger>
         -->
