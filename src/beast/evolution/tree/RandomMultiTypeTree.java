@@ -26,8 +26,8 @@ public class RandomMultiTypeTree extends MultiTypeTree implements StateNodeIniti
 
         generateTyping(getRoot());
         
-//        if (!isValid())
-//            throw new Exception("Inconsistent colour assignment.");
+        if (!isValid())
+            throw new Exception("Inconsistent colour assignment.");
         
     }
 

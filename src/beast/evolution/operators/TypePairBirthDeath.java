@@ -107,9 +107,6 @@ public class TypePairBirthDeath extends MultiTypeTreeOperator {
         mtNode.insertChange(edgeNum, oldEdgeType, tauMax);
         mtNode.insertChange(edgeNum, newEdgeType, tauMin);
         
-        //mtNode.makeDirty(Tree.IS_DIRTY);
-        //mtNode.getParent().makeDirty(Tree.IS_DIRTY);
-        
         return Math.log((mtTree.getNTypes()-1)*(m + 2*n - 2)*(tr-ts)*(tr-ts))
                 - Math.log(2*(m + 2*n));
     }
@@ -155,9 +152,6 @@ public class TypePairBirthDeath extends MultiTypeTreeOperator {
         
         mtNode.removeChange(idx);
         mtNode.removeChange(idx);
-        
-        //mtNode.makeDirty(Tree.IS_DIRTY);
-        //mtNode.getParent().makeDirty(Tree.IS_DIRTY);
         
         return Math.log(2*(m + 2*n - 2))
                 - Math.log((mtTree.getNTypes()-1)*(m+2*n-4)*(tr-ts)*(tr-ts));

@@ -19,7 +19,6 @@ package beast.evolution.operators;
 import beast.core.Description;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
-import beast.evolution.tree.Tree;
 import beast.util.Randomizer;
 
 /**
@@ -39,11 +38,7 @@ public class NodeRetype extends UniformizationRetypeOperator {
         double logHR = 0.0;
         
         // Select node:
-        Node node;
-//        do {
-//            node = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
-//        } while (node.isLeaf());
-        node = mtTree.getNode(mtTree.getLeafNodeCount()
+        Node node = mtTree.getNode(mtTree.getLeafNodeCount()
                 + Randomizer.nextInt(mtTree.getInternalNodeCount()));
         
         // Record probability of current types along attached branches:
@@ -62,11 +57,6 @@ public class NodeRetype extends UniformizationRetypeOperator {
 
         logHR -= retypeBranch(node.getLeft())
                 + retypeBranch(node.getRight());
-        
-        // WHY IS THIS NECESSARY!?
-//        node.makeDirty(Tree.IS_DIRTY);
-//        node.getLeft().makeDirty(Tree.IS_DIRTY);
-//        node.getRight().makeDirty(Tree.IS_DIRTY);
         
         return logHR;
     }
