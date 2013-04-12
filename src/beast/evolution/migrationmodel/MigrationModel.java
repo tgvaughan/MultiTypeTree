@@ -189,9 +189,29 @@ public class MigrationModel extends CalculationNode {
                 j -= 1;
             return rateMatrix.getValue(i*(nTypes-1)+j);            
         }
-
-
-
+    }
+    
+    /**
+     * Set element of rate matrix for migration model.
+     * This method should only be called by operators.
+     * @param i
+     * @param j
+     * @param rate 
+     */
+    public void setRate(int i, int j, double rate) {
+        if (i==j)
+            return;
+        
+        if (rateMatrixIsSquare) {
+            rateMatrix.setValue(i*nTypes+j, rate);
+        } else {
+            if (j>i)
+                j -= 1;
+            rateMatrix.setValue((i*nTypes-1)+j, rate);
+        }
+        
+        // Model is now dirty.
+        dirty = true;
     }
 
     /**
