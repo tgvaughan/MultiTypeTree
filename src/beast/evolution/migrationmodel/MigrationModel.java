@@ -207,7 +207,7 @@ public class MigrationModel extends CalculationNode {
         } else {
             if (j>i)
                 j -= 1;
-            rateMatrix.setValue((i*nTypes-1)+j, rate);
+            rateMatrix.setValue(i*(nTypes-1)+j, rate);
         }
         
         // Model is now dirty.

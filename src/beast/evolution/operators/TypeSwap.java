@@ -48,12 +48,17 @@ public class TypeSwap extends UniformizationRetypeOperator {
         } while (typeB == typeA);
         
         // Calculate probability of selecting leaf branch typings:
-        for (Node leaf : mtTree.getExternalNodes())
-            logHR += getBranchTypeProb(leaf);
+        for (Node leaf : mtTree.getExternalNodes()) {
+            MultiTypeNode mtParent = (MultiTypeNode)leaf.getParent();
+            if (mtParent.getNodeType() == typeA || mtParent.getNodeType() == typeB)
+                logHR += getBranchTypeProb(leaf);
+        }
 
         // Swap involved rows and columns of the migration matrix:
         for (int i=0; i<mtTree.getNTypes(); i++) {
-            
+            if (i == typeA || i == typeB)
+                continue;
+
             // Swap cols:
             double oldA = migModel.getRate(i, typeA);
             double oldB = migModel.getRate(i, typeB);
@@ -66,6 +71,11 @@ public class TypeSwap extends UniformizationRetypeOperator {
             migModel.setRate(typeA, i, oldB);
             migModel.setRate(typeB, i, oldA);
         }
+        
+        double old1 = migModel.getRate(typeA, typeB);
+        double old2 = migModel.getRate(typeB, typeA);
+        migModel.setRate(typeB, typeA, old1);
+        migModel.setRate(typeA, typeB, old2);
         
         // Swap types on tree:
         for (Node node : mtTree.getInternalNodes()) {
@@ -88,8 +98,12 @@ public class TypeSwap extends UniformizationRetypeOperator {
         }
         
         // Retype leaf branches:
-        for (Node leaf : mtTree.getExternalNodes())
-            logHR -= retypeBranch(leaf);
+        for (Node leaf : mtTree.getExternalNodes()) {
+            MultiTypeNode mtParent = (MultiTypeNode)leaf.getParent();
+            if (mtParent.getNodeType() == typeA || mtParent.getNodeType() == typeB) {
+                logHR -= retypeBranch(leaf);
+            }
+        }
         
         return logHR;
     }
