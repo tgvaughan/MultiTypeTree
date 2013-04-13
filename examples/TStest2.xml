@@ -12,7 +12,7 @@
                       id="tree" 
                       typeLabel="state" nTypes="2">
             <input name="newick">
-                (1[state='0']:1,2[state='0']:1)[state='0']:0;
+                ((1[state='1']:1,2[state='0']:1)[state='0']:1,3[state='0']:2)[state='0']:0;
             </input>
         </init>
       
@@ -34,12 +34,12 @@
         <!--
         <operator spec='ScaleOperator' id="RateScaler" weight="1"
                   parameter="@rateMatrix" scaleFactor="0.8"/>
-
+        -->
+        
         <operator spec='NodeShiftRetype' id="NSR"
                   weight="1" multiTypeTree="@tree"
                   rootScaleFactor="1.1"
                   migrationModel="@migmodel"/>
-        -->
 
         <operator spec="MultiTypeTreeScale" weight="1"
                   multiTypeTree="@tree" scaleFactor="0.8"/>
@@ -48,13 +48,10 @@
                   multiTypeTree="@tree"
                   migrationModel="@migmodel"/>
 
-        <logger logEvery="1000" fileName="TStest1.log">
+        <logger logEvery="1000" fileName="TStest2.log">
             <model idref='P'/>
             <log idref="P"/>
-            <log idref="rateMatrix"/>
-            <log spec='TreeHeightLogger'>
-                <tree idref="tree"/>
-            </log>
+            <log spec='TreeHeightLogger' tree="@tree"/>
             <log spec='TypeChangeCountLogger'>
                 <multiTypeTree idref="tree"/>
             </log>
@@ -63,7 +60,6 @@
         <logger logEvery="10000">
             <model idref='P'/>
             <log idref="P"/>
-            <log idref="rateMatrix"/>
             <log spec='beast.evolution.tree.TreeHeightLogger' >
                 <tree idref="tree"/>
             </log>
@@ -72,7 +68,7 @@
             </log>
         </logger>
 
-        <logger logEvery="10000" fileName="TStest1.trees" mode="tree">
+        <logger logEvery="10000" fileName="TStest2.trees" mode="tree">
             <log idref="tree"/>
         </logger>
 
