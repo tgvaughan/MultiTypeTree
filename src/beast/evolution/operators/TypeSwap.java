@@ -26,7 +26,8 @@ import beast.util.Randomizer;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-@Description("Swaps two types on a tree, including migration matrix elements.")
+@Description("Swaps two types on a tree, including migration matrix elements "
+        + "and population sizes.")
 public class TypeSwap extends UniformizationRetypeOperator {
     
     @Override
@@ -76,6 +77,12 @@ public class TypeSwap extends UniformizationRetypeOperator {
         double old2 = migModel.getRate(typeB, typeA);
         migModel.setRate(typeB, typeA, old1);
         migModel.setRate(typeA, typeB, old2);
+        
+        // Swap population sizes:
+        old1 = migModel.getPopSize(typeA);
+        old2 = migModel.getPopSize(typeB);
+        migModel.setPopSize(typeA, old2);
+        migModel.setPopSize(typeB, old1);
         
         // Swap types on tree:
         for (Node node : mtTree.getInternalNodes()) {

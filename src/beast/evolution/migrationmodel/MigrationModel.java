@@ -25,9 +25,6 @@ import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
@@ -232,13 +229,24 @@ public class MigrationModel extends CalculationNode {
     }
 
     /**
-     * Obtain effective population size of particular colour.
+     * Obtain effective population size of particular type/deme.
      *
-     * @param i colour index
+     * @param i deme index
      * @return Effective population size.
      */
     public double getPopSize(int i) {
         return popSizes.getArrayValue(i);
+    }
+    
+    /**
+     * Set effective population size of particular type/deme.
+     * 
+     * @param i deme index
+     * @param newSize 
+     */
+    public void setPopSize(int i, double newSize) {
+        popSizes.setValue(i, newSize);
+        dirty = true;
     }
 
     /**
