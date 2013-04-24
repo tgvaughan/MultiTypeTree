@@ -20,11 +20,13 @@ import beast.core.CalculationNode;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
+import beast.core.Loggable;
 import beast.core.parameter.RealParameter;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.colt.matrix.linalg.EigenvalueDecomposition;
+import java.io.PrintStream;
 
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
@@ -39,7 +41,7 @@ import cern.colt.matrix.linalg.EigenvalueDecomposition;
  * @author Tim Vaughan
  */
 @Description("Basic plugin describing a simple Markovian migration model.")
-public class MigrationModel extends CalculationNode {
+public class MigrationModel extends CalculationNode implements Loggable {
 
     public Input<RealParameter> rateMatrixInput = new Input<RealParameter>(
             "rateMatrix",
@@ -49,12 +51,6 @@ public class MigrationModel extends CalculationNode {
             "popSizes",
             "Deme population sizes.",
             Validate.REQUIRED);
-    
-    public Input<Boolean> rateMatrixIsBackward = new Input<Boolean>(
-            "rateMatrixIsBackward",
-            "If true, rate matrix elements are read as reverse-time rates.  "
-            + "Default true.",
-            true);
     
     public Input<Double> uniformInitialRateInput = new Input<Double>(
             "uniformInitialRate",
@@ -136,7 +132,7 @@ public class MigrationModel extends CalculationNode {
             Q.set(i, i, 0.0);
             for (int j = 0; j < nTypes; j++)
                 if (i != j) {
-                    Q.set(j, i, 0.5*(getBackwardRate(j, i) + getBackwardRate(i,j)));
+                    Q.set(j, i, 0.5*(getRate(j, i) + getRate(i,j)));
                     Q.set(i, i, Q.get(i, i) - Q.get(j, i));
                 }
 
@@ -209,23 +205,6 @@ public class MigrationModel extends CalculationNode {
         
         // Model is now dirty.
         dirty = true;
-    }
-
-    /**
-     * Obtain element of backward-time migration matrix corresponding to the
-     * backward-time transition rate from deme j to deme i.
-     *
-     * @param i Destination deme
-     * @param j Source deme
-     * @return Rate matrix element.
-     */
-    public double getBackwardRate(int i, int j) {
-        if (rateMatrixIsBackward.get())
-            return getRate(i, j);
-        else 
-            return getRate(j, i)
-                    * popSizes.getArrayValue(i)
-                    / popSizes.getArrayValue(j);
     }
 
     /**
@@ -429,5 +408,68 @@ public class MigrationModel extends CalculationNode {
     public static void main(String[] args) {
 
 
+    }
+
+    /*
+     * Methods implementing loggable interface
+     */
+    
+    @Override
+    public void init(PrintStream out) throws Exception {
+        
+        String outName;
+        if (getID() == null || getID().matches("\\s*"))
+            outName = "migModel";
+        else
+            outName = getID();
+        
+        for (int i=0; i<nTypes; i++) {
+            out.print(outName + ".popSize" + i + "\t");
+        }
+
+        for (int i=0; i<nTypes; i++) {
+            for (int j=0; j<nTypes; j++) {
+                if (i==j)
+                    continue;
+                out.format("%s.rateMatrixBackward_%d_%d\t", outName, i, j);
+            }
+        }
+        
+        for (int i=0; i<nTypes; i++) {
+            for (int j=0; j<nTypes; j++) {
+                if (i==j)
+                    continue;
+                out.format("%s.rateMatrixForward_%d_%d\t", outName, j, i);
+            }
+        }
+    }
+
+    @Override
+    public void log(int nSample, PrintStream out) {
+                
+        for (int i=0; i<nTypes; i++) {
+            out.print(getPopSize(i) + "\t");
+        }
+
+        for (int i=0; i<nTypes; i++) {
+            for (int j=0; j<nTypes; j++) {
+                if (i==j)
+                    continue;
+                out.format("%g\t", getRate(i, j));
+            }
+        }
+        
+        for (int i=0; i<nTypes; i++) {
+            for (int j=0; j<nTypes; j++) {
+                if (i==j)
+                    continue;
+                out.format("%g\t", getRate(j,i)*getPopSize(j)/getPopSize(i));
+            }
+        }
+    }
+
+    @Override
+    public void close(PrintStream out) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

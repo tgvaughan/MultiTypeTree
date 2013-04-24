@@ -112,7 +112,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
                         if (cp==c)
                             continue;
 
-                        double m = migrationModel.getBackwardRate(cp, c);
+                        double m = migrationModel.getRate(c, cp);
                         lambda += k*m;
                     }
                 }
@@ -128,7 +128,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
 
                 case MIGRATE:
                     double m = migrationModel
-                            .getBackwardRate(event.destType, event.type);
+                            .getRate(event.type, event.destType);
                     logP += Math.log(m);
                     break;
 
@@ -268,14 +268,9 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
 
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter();
-        rateMatrix.initByName(
-                "minordimension", 2,
-                "dimension", 4,
-                "value", "0.0 1.0 2.0 0.0");
+        rateMatrix.initByName("value", "2.0 1.0");
         RealParameter popSizes = new RealParameter();
-        popSizes.initByName(
-                "dimension", 2,
-                "value", "5.0 10.0");
+        popSizes.initByName("value", "5.0 10.0");
         MigrationModel migrationModel = new MigrationModel();
         migrationModel.initByName(
                 "rateMatrix", rateMatrix,
