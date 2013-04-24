@@ -439,7 +439,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
             for (int j=0; j<nTypes; j++) {
                 if (i==j)
                     continue;
-                out.format("%s.rateMatrixForward_%d_%d\t", outName, j, i);
+                out.format("%s.rateMatrixForward_%d_%d\t", outName, i, j);
             }
         }
     }

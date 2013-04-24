@@ -39,7 +39,7 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
             "Never select root node for height adjustment.", false);
     
     public Input<Double> rootScaleFactorInput = new Input<Double>("rootScaleFactor",
-            "Scale factor used in root height proposals. (Default 1.1)", 1.1);
+            "Scale factor used in root height proposals. (Default 0.8)", 0.8);
     
     @Override
     public void initAndValidate() {
