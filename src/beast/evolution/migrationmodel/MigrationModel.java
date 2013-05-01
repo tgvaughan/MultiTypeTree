@@ -470,6 +470,5 @@ public class MigrationModel extends CalculationNode implements Loggable {
 
     @Override
     public void close(PrintStream out) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
