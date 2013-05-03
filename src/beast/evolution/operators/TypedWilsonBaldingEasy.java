@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Tim Vaughan
+ * Copyright (C) 2012 Tim Vaughan <tgvaughan@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@ import beast.util.Randomizer;
  * @author Tim Vaughan
  */
 @Description("Implements the unweighted Wilson-Balding branch"
-+"swapping move.  This move is similar to one proposed by WILSON"
-+"and BALDING 1998 and involves removing a subtree and"
-+"re-attaching it on a new parent branch. "
-+"See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
+        +"swapping move.  This move is similar to one proposed by WILSON"
+        +"and BALDING 1998 and involves removing a subtree and"
+        +"re-attaching it on a new parent branch. "
+        +"See <a href='http://www.genetics.org/cgi/content/full/161/3/1307/F1'>picture</a>."
         + " This version performs no explicit recolouring.  Used for testing "
         + " Ewing et al.'s sampler.")
 public class TypedWilsonBaldingEasy extends MultiTypeTreeOperator {
@@ -213,7 +213,6 @@ public class TypedWilsonBaldingEasy extends MultiTypeTreeOperator {
                 ||destNode.getParent()==srcNode.getParent())
             return true;
 
-        Node srcNodeP = srcNode.getParent();
         Node destNodeP = destNode.getParent();
 
         if (destNodeP!=null&&(destNodeP.getHeight()<=srcNode.getHeight()))

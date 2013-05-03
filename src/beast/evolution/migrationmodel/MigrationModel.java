@@ -434,14 +434,6 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 out.format("%s.rateMatrixBackward_%d_%d\t", outName, i, j);
             }
         }
-        
-        for (int i=0; i<nTypes; i++) {
-            for (int j=0; j<nTypes; j++) {
-                if (i==j)
-                    continue;
-                out.format("%s.rateMatrixForward_%d_%d\t", outName, i, j);
-            }
-        }
     }
 
     @Override
@@ -456,14 +448,6 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 if (i==j)
                     continue;
                 out.format("%g\t", getRate(i, j));
-            }
-        }
-        
-        for (int i=0; i<nTypes; i++) {
-            for (int j=0; j<nTypes; j++) {
-                if (i==j)
-                    continue;
-                out.format("%g\t", getRate(j,i)*getPopSize(j)/getPopSize(i));
             }
         }
     }

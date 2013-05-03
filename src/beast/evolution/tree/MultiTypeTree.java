@@ -20,10 +20,13 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.StateNode;
 import beast.core.StateNodeInitialiser;
+import beast.util.TreeParser;
 import com.google.common.collect.Lists;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -598,5 +601,39 @@ public class MultiTypeTree extends Tree {
     @Override
     public void close(PrintStream printStream) {
         printStream.println("End;");
+    }
+    
+    
+    /////////////////////////////////////////////////
+    // Serialization and deserialization for state //
+    /////////////////////////////////////////////////
+    
+    /**
+     * reconstruct tree from XML fragment in the form of a DOM node *
+     */
+    @Override
+    public void fromXML(org.w3c.dom.Node node) {
+        try {
+            String sNewick = node.getTextContent();
+
+            TreeParser parser = new TreeParser();
+            parser.initByName(
+                    "IsLabelledNewick", true,
+                    "adjustTipHeights", true,
+                    "singlechild", true,
+                    "newick", sNewick);
+            Tree flatTree = parser;
+
+            initFromFlatTree(flatTree);
+
+            parser.m_nThreshold.setValue(1e-10, parser);
+
+            parser.m_nOffset.setValue(0, parser);
+            setRoot(parser.parseNewick(sNewick));
+
+            initArrays();
+        } catch (Exception ex) {
+            Logger.getLogger(MultiTypeTree.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

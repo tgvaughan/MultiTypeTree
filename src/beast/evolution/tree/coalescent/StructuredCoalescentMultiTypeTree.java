@@ -494,7 +494,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         // Specify leaf types:
         IntegerParameter leafTypes = new IntegerParameter();
         leafTypes.initByName(
-                "value", "1 1 0 0");
+                "value", "0 0 0");
 
         // Generate ensemble:
         int reps = 100000;

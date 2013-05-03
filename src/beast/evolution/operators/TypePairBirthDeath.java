@@ -19,7 +19,6 @@ package beast.evolution.operators;
 import beast.core.Description;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
-import beast.evolution.tree.Tree;
 import beast.util.Randomizer;
 
 /**

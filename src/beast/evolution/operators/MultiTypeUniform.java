@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2012 Tim Vaughan <tgvaughan@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package beast.evolution.operators;
 
 
@@ -6,6 +22,10 @@ import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
+/**
+ * 
+ * @author Denise Kuhnert
+ */
 @Description("Randomly selects true internal tree node (i.e. not the root) and"
         + " moves node height uniformly in interval restricted by the node's"
         + " parent and children.")
@@ -16,7 +36,7 @@ public class MultiTypeUniform extends MultiTypeTreeOperator {
     }
 
     /**
-     * change the nodeheight and return the hastings ratio.
+     * Change the node height and return the hastings ratio.
      *
      * @return log of Hastings Ratio
      */
@@ -33,12 +53,12 @@ public class MultiTypeUniform extends MultiTypeTreeOperator {
             node = mtTree.getNode(iNodeNr);
         } while (node.isRoot() || node.isLeaf());
 
-        // upper is first node colour change, if there is one, otherwise it's parent height
+        // upper is first node type change, if there is one, otherwise it's parent height
         final double fUpper = (((MultiTypeNode)node).getChangeCount() > 0)
                 ? ((MultiTypeNode)node).getChangeTime(0)
                 : node.getParent().getHeight();
         
-        // lower is maximum of childrens' last node colour change, if there are any, otherwise of their heights         
+        // lower is maximum of childrens' last node type change, if there are any, otherwise of their heights         
         Node left = node.getLeft();
         Node right = node.getRight();
         int lCount = ((MultiTypeNode)left).getChangeCount();
