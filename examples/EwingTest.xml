@@ -11,7 +11,7 @@
         <init spec='StructuredCoalescentMultiTypeTree'
                       id="tree" 
                       typeLabel="state" nTypes="2"
-		      leafTypes="0 0 0 " migrationModel="@migmodel">
+		      leafTypes="1 0 0 0" migrationModel="@migmodel">
         </init>
       
         <state>
