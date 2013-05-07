@@ -91,9 +91,8 @@ public class TypeChangeBirthDeath extends MultiTypeTreeOperator {
         // Construct the set of illegal change types for the reverse move:
         illegalTypes.clear();
         
-        MultiTypeNode startNode;
         if (changeIdx<0) {
-            startNode = findDecendentNodeWithMigration(node);
+            MultiTypeNode startNode = findDecendentNodeWithMigration(node);
             if (startNode.getChangeCount()==0)
                 // Termiated at leaf: move would be irreversable
                 return Double.NEGATIVE_INFINITY;
@@ -199,6 +198,44 @@ public class TypeChangeBirthDeath extends MultiTypeTreeOperator {
     
     private double deathMove(MultiTypeNode node, int changeIdx) {
         double logHR = 0.0;
+        
+        // Reject if event above (node,changeIdx) is not a migration
+        if (changeIdx+1>=node.getChangeCount())
+            return Double.NEGATIVE_INFINITY;
+        
+        // Construct set of illegal change types for reverse move:
+        illegalTypes.clear();
+        
+        double tmin;
+        if (changeIdx<0) {
+            illegalTypes.add(node.getNodeType());
+            tmin = node.getHeight();
+        } else {
+            illegalTypes.add(node.getChangeType(changeIdx));
+            tmin = node.getChangeTime(changeIdx);
+        }
+
+        double tmax;
+        if (changeIdx+2<node.getChangeCount()) {
+            illegalTypes.add(node.getChangeType(changeIdx+2));
+            tmax = node.getChangeTime(changeIdx+2);
+        } else {
+            try {
+                getIllegalTypes(illegalTypes, (MultiTypeNode)node.getParent(), node);
+            } catch (Exception ex) {
+                // Subtree contains a leaf
+                return Double.NEGATIVE_INFINITY;
+            }
+            tmax = node.getParent().getHeight();
+        }
+        
+        // Record number of legal change types for reverse move HR
+        int Cbirth = mtTree.getNTypes() - illegalTypes.size();
+        if (Cbirth==0)
+            // Reverse move impossible
+            return Double.NEGATIVE_INFINITY;
+        
+        logHR += Math.log(1.0/(Cbirth*(mtTree.getTotalNumberOfChanges()-1)*(tmax-tmin)));
         
         return logHR;
     }
