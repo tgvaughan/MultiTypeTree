@@ -18,7 +18,6 @@ package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.MultiTypeTree;
 import beast.util.Randomizer;
 
 /**
@@ -27,10 +26,13 @@ import beast.util.Randomizer;
 @Description("Implementation of generalized merge-split operator described"
         + "by Ewing et al., 2004.")
 public class TypeMergeSplitExtended extends MultiTypeTreeOperator {
+    
+    @Override
+    public void initAndValidate() { }
 
     @Override
     public double proposal() {
-        MultiTypeTree mtTree = multiTypeTreeInput.get();
+        mtTree = multiTypeTreeInput.get();
         
         // Select internal node to operate around:
         int nodeID = mtTree.getLeafNodeCount() + Randomizer.nextInt(mtTree.getInternalNodeCount());
@@ -73,8 +75,8 @@ public class TypeMergeSplitExtended extends MultiTypeTreeOperator {
         A.removeChange(A.getChangeCount()-1);
             
         // Record HR:
-        logHR += 1.0/(root.getHeight() - A.getFinalChangeTime());            
-        logHR -= 1.0/(root.getHeight() - B.getFinalChangeTime());
+        logHR += Math.log(1.0/(root.getHeight() - A.getFinalChangeTime()));
+        logHR -= Math.log(1.0/(root.getHeight() - B.getFinalChangeTime()));
 
         // Select new change time:
         double newTime = B.getFinalChangeTime() +
@@ -150,7 +152,7 @@ public class TypeMergeSplitExtended extends MultiTypeTreeOperator {
             
             // Change removal half of merge
             int changeType = node.getChangeType(0);
-            otherBranchNode.removeChange(otherBranchNode.getChangeCount());
+            otherBranchNode.removeChange(otherBranchNode.getChangeCount()-1);
             if (otherBranchNode.getFinalType() != node.getChangeType(0))
                 return Double.NEGATIVE_INFINITY;
             node.removeChange(0);
@@ -194,7 +196,6 @@ public class TypeMergeSplitExtended extends MultiTypeTreeOperator {
             // Reject if nothing to split:
             if (node.getChangeCount()==0)
                 return Double.NEGATIVE_INFINITY;
-
             
             MultiTypeNode left = (MultiTypeNode)node.getLeft();
             MultiTypeNode right = (MultiTypeNode)node.getRight();
