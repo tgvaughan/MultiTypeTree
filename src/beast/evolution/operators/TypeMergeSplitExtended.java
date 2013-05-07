@@ -17,7 +17,9 @@
 package beast.evolution.operators;
 
 import beast.core.Description;
+import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
+import beast.util.Randomizer;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
@@ -28,11 +30,182 @@ public class TypeMergeSplitExtended extends MultiTypeTreeOperator {
 
     @Override
     public double proposal() {
-        double logHR = 0.0;
-        
         MultiTypeTree mtTree = multiTypeTreeInput.get();
         
+        // Select internal node to operate around:
+        int nodeID = mtTree.getLeafNodeCount() + Randomizer.nextInt(mtTree.getInternalNodeCount());
+        MultiTypeNode node = (MultiTypeNode)mtTree.getNode(nodeID);
 
+        // Special root move
+        if (node.isRoot())
+            return rootProposal(node);
+
+        // Regular merge/split moves
+        if (Randomizer.nextBoolean())
+            return mergeProposal(node);
+        else
+            return splitProposal(node);
+    }
+    
+    /**
+     * Proposal involving root
+     * @return log of Hastings Ratio
+     */
+    private double rootProposal(MultiTypeNode root) {
+        double logHR = 0.0;
+        
+        // Slide change from A to B
+        
+        MultiTypeNode A, B;
+        if (Randomizer.nextBoolean()) {
+            A = (MultiTypeNode)root.getLeft();
+            B = (MultiTypeNode)root.getRight();
+        } else {
+            B = (MultiTypeNode)root.getLeft();
+            A = (MultiTypeNode)root.getRight();
+        }
+        
+        // Reject if there's no change to slide
+        if (A.getChangeCount()==0)
+            return Double.NEGATIVE_INFINITY;
+
+        // Remove old change
+        A.removeChange(A.getChangeCount()-1);
+            
+        // Record HR:
+        logHR += 1.0/(root.getHeight() - A.getFinalChangeTime());            
+        logHR -= 1.0/(root.getHeight() - B.getFinalChangeTime());
+
+        // Select new change time:
+        double newTime = B.getFinalChangeTime() +
+                Randomizer.nextDouble()*(root.getHeight()-B.getFinalChangeTime());
+        
+        // Add new change to B:
+        B.addChange(A.getFinalType(), newTime);
+        
+        // Update node type:
+        root.setNodeType(A.getFinalType());
+        
+        return logHR;
+    }
+    
+    /**
+     * Merge proposal
+     * @return log of Hastings Ratio
+     */
+    private double mergeProposal(MultiTypeNode node) {
+        double logHR = 0.0;
+        
+        // Select which branch forms the destination branch in this move:
+        int destBranch = Randomizer.nextInt(3);
+        
+        if (destBranch == 2) {
+            // Branch is the parent branch (ordinary merge)
+            MultiTypeNode left = (MultiTypeNode)node.getLeft();
+            MultiTypeNode right = (MultiTypeNode)node.getRight();
+            
+            // Reject if nothing to merge
+            if (left.getChangeCount()==0 || right.getChangeCount()==0) 
+                return Double.NEGATIVE_INFINITY;
+            
+            // Change-removal half of merge
+            int changeType = node.getNodeType();
+            left.removeChange(left.getChangeCount()-1);
+            right.removeChange(right.getChangeCount()-1);
+            
+            // Reject if types below deleted changes don't match:
+            if (left.getFinalType() != right.getFinalType())
+                return Double.NEGATIVE_INFINITY;
+            
+            // HR contribution of reverse move
+            logHR += Math.log(1.0/((node.getHeight()-left.getFinalChangeTime())
+                     *(node.getHeight()-right.getFinalChangeTime())));
+            
+            // Maximum time of new change
+            double newTimeMax;
+            if (node.getChangeCount()>0)
+                newTimeMax = node.getChangeTime(0);
+            else
+                newTimeMax = node.getParent().getHeight();
+            
+            // HR contribution of forward move
+            logHR -= Math.log(1.0/(newTimeMax-node.getHeight()));
+            
+            // Add new merged change
+            double newTime = node.getHeight() +
+                    (newTimeMax-node.getHeight())*Randomizer.nextDouble();
+            node.insertChange(0, changeType, newTime);
+            
+            // Update node typ:
+            node.setNodeType(left.getFinalType());
+
+        } else {
+            // Destination is one of the child branches (generalised move)
+            MultiTypeNode destBranchNode = (MultiTypeNode)node.getChild(destBranch);
+            MultiTypeNode otherBranchNode = (MultiTypeNode)node.getChild(1-destBranch);
+
+            // Reject if nothing to merge
+            if (node.getChangeCount()==0 || otherBranchNode.getChangeCount()==0)
+                return Double.NEGATIVE_INFINITY;
+            
+            // Change removal half of merge
+            int changeType = node.getChangeType(0);
+            otherBranchNode.removeChange(otherBranchNode.getChangeCount());
+            if (otherBranchNode.getFinalType() != node.getChangeType(0))
+                return Double.NEGATIVE_INFINITY;
+            node.removeChange(0);
+
+            // HR calculation
+            double timeMaxParent;
+            if (node.getChangeCount()==0)
+                timeMaxParent = node.getParent().getHeight();
+            else
+                timeMaxParent = node.getChangeTime(0);
+            double timeMinOther = otherBranchNode.getFinalChangeTime();
+            
+            logHR += Math.log(1.0/((timeMaxParent-node.getHeight())*(node.getHeight()-timeMinOther)));
+            
+            // Minimum time of new change
+            double newTimeMin = destBranchNode.getFinalChangeTime();
+            
+            // HR contribution of forward move
+            logHR -= Math.log(1.0/(node.getHeight()-newTimeMin));
+            
+            // Add new merged change
+            double newTime = newTimeMin +
+                    (node.getHeight()-newTimeMin)*Randomizer.nextDouble();
+            destBranchNode.addChange(changeType, newTime);
+            
+            // Update node type:
+            node.setNodeType(changeType);
+        }
+        
+        return logHR;
+    }
+    
+    private double splitProposal(MultiTypeNode node) {
+        double logHR = 0.0;
+        
+        int sourceBranch = Randomizer.nextInt(3);
+        
+        if (sourceBranch == 2) {
+            // Source branch is parent (normal situation)
+            
+            // Reject if nothing to split:
+            if (node.getChangeCount()==0)
+                return Double.NEGATIVE_INFINITY;
+            
+            MultiTypeNode left = (MultiTypeNode)node.getLeft();
+            MultiTypeNode right = (MultiTypeNode)node.getRight();
+            
+            
+            
+            
+            
+        } else {
+            // Source branch is a child (generalized situation)
+            
+        }
         
         return logHR;
     }
