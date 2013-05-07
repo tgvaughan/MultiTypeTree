@@ -194,17 +194,79 @@ public class TypeMergeSplitExtended extends MultiTypeTreeOperator {
             // Reject if nothing to split:
             if (node.getChangeCount()==0)
                 return Double.NEGATIVE_INFINITY;
+
             
             MultiTypeNode left = (MultiTypeNode)node.getLeft();
             MultiTypeNode right = (MultiTypeNode)node.getRight();
             
+            // Change removal half of split move:
+            int changeType = node.getChangeType(0);
+            node.removeChange(0);
+
+            // HR contribution of reverse move
+            double timeMaxParent;
+            if (node.getChangeCount()==0)
+                timeMaxParent = node.getParent().getHeight();
+            else
+                timeMaxParent = node.getChangeTime(0);
+            logHR += Math.log(1.0/(timeMaxParent-node.getHeight()));
             
+            // HR contribution of forward move
+            logHR -= Math.log(1.0/((node.getHeight()-left.getFinalChangeTime())
+                    *(node.getHeight()-right.getFinalChangeTime())));
             
+            // Select new change times
+            double newTimeLeft = left.getFinalChangeTime()
+                    + (node.getHeight()-left.getFinalChangeTime())*Randomizer.nextDouble();
+            double newTimeRight = right.getFinalChangeTime()
+                    + (node.getHeight()-right.getFinalChangeTime())*Randomizer.nextDouble();
+            
+            // Add new changes to child branches
+            left.addChange(changeType, newTimeLeft);
+            right.addChange(changeType, newTimeRight);
+            
+            // Update node type
+            node.setNodeType(changeType);
             
             
         } else {
             // Source branch is a child (generalized situation)
             
+            MultiTypeNode sourceBranchNode = (MultiTypeNode)node.getChild(sourceBranch);
+            MultiTypeNode otherBranchNode = (MultiTypeNode)node.getChild(1-sourceBranch);
+            
+            // Reject if nothing to split:
+            if (sourceBranchNode.getChangeCount()==0)
+                return Double.NEGATIVE_INFINITY;
+            
+            // Change removal half of merge:
+            sourceBranchNode.removeChange(sourceBranchNode.getChangeCount()-1);
+            
+            // HR contribution of reverse move:
+            logHR += Math.log(1.0/(node.getHeight()-sourceBranchNode.getFinalChangeTime()));
+            
+            // HR contribution of forward move:
+            double maxTimeParent;
+            if (node.getChangeCount()==0)
+                maxTimeParent = node.getParent().getHeight();
+            else
+                maxTimeParent = node.getChangeTime(0);
+            logHR -= Math.log(1.0/((node.getHeight()-otherBranchNode.getFinalChangeTime())
+                    *(maxTimeParent-node.getHeight())));
+            
+            // Select new change times
+            double newTimeNode = node.getHeight()
+                    + (maxTimeParent-node.getHeight())*Randomizer.nextDouble();
+            
+            double newTimeOther = otherBranchNode.getFinalChangeTime()
+                    + (node.getHeight()-otherBranchNode.getFinalChangeTime())*Randomizer.nextDouble();
+
+            // Add new changes
+            node.insertChange(0, node.getNodeType(), newTimeNode);
+            otherBranchNode.addChange(sourceBranchNode.getFinalType(), newTimeOther);
+            
+            // Update node type
+            node.setNodeType(sourceBranchNode.getFinalType());
         }
         
         return logHR;
