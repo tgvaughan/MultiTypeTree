@@ -232,7 +232,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         // Reverse move HR contribution
         logHR += Math.log(1.0/(Cbirth
-                *(mtTree.getTotalNumberOfChanges()+mtTree.getInternalNodeCount()-1)
+                *(mtTree.getTotalNumberOfChanges()+mtTree.getInternalNodeCount()-2)
                 *(tmax-tmin)));
         
         // Construct set of illegal change types for forward move:
@@ -289,6 +289,18 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         node.removeChange(changeIdx+1);
         
         // Implement subtree type changes
+        if (changeIdx<0) {
+            MultiTypeNode startNode = findDecendentNodeWithMigration((MultiTypeNode)node.getLeft());
+            startNode.setChangeType(startNode.getChangeCount()-1, changeType);
+            retypeSubtree(changeType, (MultiTypeNode)startNode.getParent(), startNode);
+        } else {
+            node.setChangeType(changeIdx, changeType);
+            if (changeIdx>=node.getChangeCount())
+                retypeSubtree(changeType, (MultiTypeNode)node.getParent(), node);
+        }
+        
+        // Forward move HR contribution
+        logHR -= Math.log(1.0/(Cdeath*(mtTree.getTotalNumberOfChanges()+mtTree.getInternalNodeCount()-1)));
         
         return logHR;
     }
