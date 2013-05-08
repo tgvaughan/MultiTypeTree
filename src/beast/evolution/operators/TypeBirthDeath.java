@@ -22,8 +22,6 @@ import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
@@ -61,7 +59,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 node = (MultiTypeNode)mtTree.getNode(event+1);
             
         } else {
-            event -= mtTree.getNodeCount()-1;
+            event -= mtTree.getInternalNodeCount()-1;
             for (Node thisNode : mtTree.getNodesAsArray()) {
                 if (thisNode.isRoot())
                     continue;
@@ -76,10 +74,20 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             }
         }
         
-        if (Randomizer.nextBoolean())
-            return birthMove(node, changeIdx);
-        else
-            return deathMove(node, changeIdx);
+        double HR1 = birthMove(node, changeIdx);
+        double HR2 = deathMove(node, changeIdx);
+        
+        if ((HR1>0 || HR2>0)) {
+            if (Math.abs(HR1+HR2)>1e-10)
+                System.out.format("HR1+HR2=%g\n", HR1+HR2);
+        }
+        
+        return Double.NEGATIVE_INFINITY;
+        
+//        if (Randomizer.nextBoolean())
+//            return birthMove(node, changeIdx);
+//        else
+//            return deathMove(node, changeIdx);
         
     }
     
@@ -305,6 +313,8 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         return logHR;
     }
     
+    private int call;
+    
     /**
      * Populates illegalTypes set with types of subtree containing node and no
      * intervening migration events.
@@ -315,7 +325,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
      */
     private void getIllegalTypes(Set<Integer> illegalTypes,
             MultiTypeNode node, MultiTypeNode prevNode) throws Exception {
-
+        
         if (node.isLeaf())
             throw new Exception("Leaf in sub-tree.");
         
@@ -343,14 +353,14 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             
         } else {
             
-            MultiTypeNode parent = (MultiTypeNode)node.getParent();
-            MultiTypeNode sister = (MultiTypeNode)getOtherChild(parent, node);
+            MultiTypeNode sister = (MultiTypeNode)getOtherChild(node, prevNode);
             
-            if (parent.getChangeCount()>0)
-                illegalTypes.add(parent.getChangeType(0));
-            else
-                getIllegalTypes(illegalTypes, parent, node);
-
+            if (!node.isRoot()) {
+                if (node.getChangeCount()>0)
+                    illegalTypes.add(node.getChangeType(0));
+                else
+                    getIllegalTypes(illegalTypes, (MultiTypeNode)node.getParent(), node);
+            }
 
             if (sister.getChangeCount()>0) {
                 if (sister.getChangeCount()>1)
@@ -374,8 +384,10 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (node.isLeaf())
             throw new IllegalArgumentException("Leaf attached to subtree: cannot retype!");
         
+        node.setNodeType(type);
+        
         if (prevNode == node.getParent()) {
-            
+                        
             MultiTypeNode left = (MultiTypeNode)node.getLeft();
             MultiTypeNode right = (MultiTypeNode)node.getRight();
             
@@ -391,12 +403,10 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             
         } else {
             
-            MultiTypeNode parent = (MultiTypeNode)node.getParent();
-            MultiTypeNode sister = (MultiTypeNode)getOtherChild(parent, node);
+            MultiTypeNode sister = (MultiTypeNode)getOtherChild(node, prevNode);
             
-            if (parent.getChangeCount()==0)
-                retypeSubtree(type, parent, node);
-
+            if (!node.isRoot() && node.getChangeCount()==0)
+                retypeSubtree(type, (MultiTypeNode)node.getParent(), node);
 
             if (sister.getChangeCount()>0)
                 sister.setChangeType(sister.getChangeCount()-1, type);
