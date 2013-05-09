@@ -1,0 +1,83 @@
+<beast version='2.0'
+       namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent'>
+
+    <model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
+        <rateMatrix spec='RealParameter' value="0.05" dimension="12"/>
+        <popSizes spec="RealParameter" value="7.0" dimension="4"/>
+    </model>
+
+    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
+
+        <init spec='StructuredCoalescentMultiTypeTree'
+                      id="tree" 
+                      typeLabel="state" nTypes="4"
+		      leafTypes="0 1 2 3 0" migrationModel="@migmodel">
+        </init>
+      
+        <state>
+            <stateNode idref="tree"/>
+        </state>
+        
+        <distribution spec="CompoundDistribution" id="P">
+            <distribution id='scLikelihood' spec="StructuredCoalescentLikelihood" checkValidity="true">
+                <migrationModel idref="migmodel"/>
+                <multiTypeTree idref="tree"/>
+            </distribution>
+        </distribution>
+
+
+	<!-- Tree operators -->
+	<operator spec='TypedWilsonBaldingEasy' id="TWB" weight="1"
+              multiTypeTree="@tree"/>
+	<operator spec='TypedSubtreeExchangeEasy' id="TSX" weight="1"
+		  multiTypeTree='@tree' isNarrow="true"/>
+	<operator spec='MultiTypeUniform' weight="1"
+		  multiTypeTree='@tree'/>
+
+	<!-- Colour operators -->
+
+	<operator spec="MultiTypeTreeScale" id="MTTS"
+		  weight="1" multiTypeTree="@tree"
+		  scaleFactor="1.1" useOldTreeScaler="true"/>
+	<operator spec="TypePairBirthDeath" id="PairBirthDeath"
+                  weight="1" multiTypeTree="@tree"/>
+
+	<!--<operator spec="TypeMergeSplit" id="mergeSplit"
+	    weight="1" multiTypeTree="@tree"
+	    includeRoot="true"/>-->
+	
+	<operator spec="TypeMergeSplitExtended" id="mergeSplit"
+		  weight="1" multiTypeTree="@tree"/>
+
+	<operator spec="TypeBirthDeath" id="birthDeath"
+		  weight="1" multiTypeTree="@tree"/>
+
+        <logger logEvery="1000" fileName="EwingTest2.log">
+            <model idref='P'/>
+            <log idref="P"/>
+            <log spec='beast.evolution.tree.TreeHeightLogger'>
+                <tree idref="tree"/>
+            </log>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
+            </log>
+        </logger>
+
+        <logger logEvery="10000">
+            <model idref='P'/>
+            <log idref="P"/>
+            <log spec='beast.evolution.tree.TreeHeightLogger' >
+                <tree idref="tree"/>
+            </log>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
+            </log>
+        </logger>
+
+        <logger logEvery="10000" fileName="EwingTest2.trees" mode="tree">
+            <log idref="tree"/>
+        </logger>
+
+    </run>
+
+</beast>

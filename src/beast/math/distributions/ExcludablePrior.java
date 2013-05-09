@@ -37,7 +37,7 @@ public class ExcludablePrior extends Prior {
             + " of x to include", Validate.REQUIRED);
     
     @Override
-    public void initAndValidate() {        
+    public void initAndValidate() throws Exception {        
         super.initAndValidate();
         
         Valuable x = m_x.get();

@@ -145,6 +145,8 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             // Reverse move is impossible
             return Double.NEGATIVE_INFINITY;
         
+        System.out.println("Birth: Cdeath=" + Cdeath);
+        
         // Reverse move HR contribution:
         logHR += Math.log(1.0/(Cdeath
                 *(mtTree.getTotalNumberOfChanges() + mtTree.getInternalNodeCount())));
@@ -194,6 +196,8 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (changeIdx+2>=node.getChangeCount())
             retypeSubtree(changeType, (MultiTypeNode)node.getParent(), node);
         
+        System.out.println("Birth: Cbirth=" + Cbirth);
+        
         // Forward move HR contribution:
         logHR -= Math.log(1.0/(Cbirth
                 *(mtTree.getTotalNumberOfChanges()+mtTree.getInternalNodeCount()-1)
@@ -240,6 +244,8 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (Cbirth==0)
             // Reverse move impossible
             return Double.NEGATIVE_INFINITY;
+        
+        System.out.println("Death: Cbirth=" + Cbirth);
         
         // Reverse move HR contribution
         logHR += Math.log(1.0/(Cbirth
@@ -309,6 +315,8 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             if (changeIdx>=node.getChangeCount())
                 retypeSubtree(changeType, (MultiTypeNode)node.getParent(), node);
         }
+        
+        System.out.println("Death: Cdeath=" + Cdeath);
         
         // Forward move HR contribution
         logHR -= Math.log(1.0/(Cdeath*(mtTree.getTotalNumberOfChanges()+mtTree.getInternalNodeCount()-1)));
