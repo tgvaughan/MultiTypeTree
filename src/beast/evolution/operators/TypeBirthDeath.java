@@ -74,8 +74,11 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             }
         }
         
+        String tree1 = mtTree.toString();
         double HR1 = birthMove(node, changeIdx);
+        String tree2 = mtTree.toString();
         double HR2 = deathMove(node, changeIdx);
+        String tree3 = mtTree.toString();
         
         if ((HR1>0 || HR2>0)) {
             if (Math.abs(HR1+HR2)>1e-10)
@@ -180,7 +183,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
        
         // Select legal change type:
         int changeType = selectLegalChangeType();
-        
+
         // Choose new change time:
         double tnew = tmin + (tmax-tmin)*Randomizer.nextDouble();
         
@@ -448,6 +451,6 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             n -= 1;
         }
         
-        return n;
+        return changeType;
     }
 }
