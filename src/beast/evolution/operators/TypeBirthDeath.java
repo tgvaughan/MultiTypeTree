@@ -29,7 +29,6 @@ import java.util.Set;
 @Description("Migration birth/death operator from Ewing et al., 2004.")
 public class TypeBirthDeath extends MultiTypeTreeOperator {
 
-    
     private Set<Integer> illegalTypes;
     
     @Override
@@ -39,6 +38,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
     
     @Override
     public double proposal() {
+        
         mtTree = multiTypeTreeInput.get();
         
         // Immediate reject if <3 types in model
@@ -54,9 +54,9 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (event < mtTree.getInternalNodeCount()-1) {            
             node = (MultiTypeNode)mtTree.getNode(event + mtTree.getLeafNodeCount());
             
-            // Stop-gap in case Remco discards the "last node is root" convention:
+            // Insurance against Remco discarding the "last node is root" convention:
             if (node.isRoot())
-                node = (MultiTypeNode)mtTree.getNode(event+1);
+                node = (MultiTypeNode)mtTree.getNode(event + mtTree.getLeafNodeCount() + 1);
             
         } else {
             event -= mtTree.getInternalNodeCount()-1;
@@ -73,24 +73,14 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 event -= ((MultiTypeNode)thisNode).getChangeCount();
             }
         }
+
+        double logHR;
+        if (Randomizer.nextBoolean())
+            logHR = birthMove(node, changeIdx);
+        else
+            logHR = deathMove(node, changeIdx);
         
-        String tree1 = mtTree.toString();
-        double HR1 = birthMove(node, changeIdx);
-        String tree2 = mtTree.toString();
-        double HR2 = deathMove(node, changeIdx);
-        String tree3 = mtTree.toString();
-        
-        if ((HR1>0 || HR2>0)) {
-            if (Math.abs(HR1+HR2)>1e-10)
-                System.out.format("HR1+HR2=%g\n", HR1+HR2);
-        }
-        
-        return Double.NEGATIVE_INFINITY;
-        
-//        if (Randomizer.nextBoolean())
-//            return birthMove(node, changeIdx);
-//        else
-//            return deathMove(node, changeIdx);
+        return logHR;
         
     }
     
@@ -145,11 +135,9 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             // Reverse move is impossible
             return Double.NEGATIVE_INFINITY;
         
-        System.out.println("Birth: Cdeath=" + Cdeath);
-        
         // Reverse move HR contribution:
         logHR += Math.log(1.0/(Cdeath
-                *(mtTree.getTotalNumberOfChanges() + mtTree.getInternalNodeCount())));
+                *(mtTree.getTotalNumberOfChanges()+1 + mtTree.getInternalNodeCount()-1)));
         
         // Construct set of illegal change types for the forward move:
         illegalTypes.clear();
@@ -196,11 +184,9 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (changeIdx+2>=node.getChangeCount())
             retypeSubtree(changeType, (MultiTypeNode)node.getParent(), node);
         
-        System.out.println("Birth: Cbirth=" + Cbirth);
-        
         // Forward move HR contribution:
         logHR -= Math.log(1.0/(Cbirth
-                *(mtTree.getTotalNumberOfChanges()+mtTree.getInternalNodeCount()-1)
+                *(mtTree.getTotalNumberOfChanges()-1+mtTree.getInternalNodeCount()-1)
                 *(tmax-tmin)));
         
         return logHR;
@@ -245,12 +231,16 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             // Reverse move impossible
             return Double.NEGATIVE_INFINITY;
         
-        System.out.println("Death: Cbirth=" + Cbirth);
-        
         // Reverse move HR contribution
         logHR += Math.log(1.0/(Cbirth
-                *(mtTree.getTotalNumberOfChanges()+mtTree.getInternalNodeCount()-2)
+                *(mtTree.getTotalNumberOfChanges()-1+mtTree.getInternalNodeCount()-1)
                 *(tmax-tmin)));
+        
+        // Remove dying type change WITHOUT MODIFYING NODE COLOURS:
+        // (Must do this here, otherwise the illegal types calculation will
+        // include the type of the dying move.  This means that changeIdx+1
+        // now refers to the change _above_ the removed change.)
+        node.removeChange(changeIdx+1);
         
         // Construct set of illegal change types for forward move:
         illegalTypes.clear();
@@ -280,8 +270,8 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             else
                 illegalTypes.add(node.getChangeType(changeIdx-1));
             
-            if (changeIdx+2<node.getChangeCount()) {
-                illegalTypes.add(node.getChangeType(changeIdx+2));
+            if (changeIdx+1<node.getChangeCount()) {
+                illegalTypes.add(node.getChangeType(changeIdx+1));
             } else {
                 try {
                     getIllegalTypes(illegalTypes, (MultiTypeNode)node.getParent(), node);
@@ -301,10 +291,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         // Select legal change type:
         int changeType = selectLegalChangeType();
-        
-        // Remove dying type change:
-        node.removeChange(changeIdx+1);
-        
+
         // Implement subtree type changes
         if (changeIdx<0) {
             MultiTypeNode startNode = findDecendentNodeWithMigration((MultiTypeNode)node.getLeft());
@@ -312,19 +299,17 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             retypeSubtree(changeType, (MultiTypeNode)startNode.getParent(), startNode);
         } else {
             node.setChangeType(changeIdx, changeType);
-            if (changeIdx>=node.getChangeCount())
+            if (changeIdx+1>=node.getChangeCount())
                 retypeSubtree(changeType, (MultiTypeNode)node.getParent(), node);
         }
         
-        System.out.println("Death: Cdeath=" + Cdeath);
-        
         // Forward move HR contribution
-        logHR -= Math.log(1.0/(Cdeath*(mtTree.getTotalNumberOfChanges()+mtTree.getInternalNodeCount()-1)));
+        logHR -= Math.log(1.0/(Cdeath
+                *(mtTree.getTotalNumberOfChanges()+1+mtTree.getInternalNodeCount()-1)));        
         
         return logHR;
     }
     
-    private int call;
     
     /**
      * Populates illegalTypes set with types of subtree containing node and no
