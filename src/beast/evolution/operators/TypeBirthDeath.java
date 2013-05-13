@@ -51,14 +51,10 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         MultiTypeNode node = null;
         int changeIdx = -1;
-        if (event < mtTree.getInternalNodeCount()-1) {            
-            node = (MultiTypeNode)mtTree.getNode(event + mtTree.getLeafNodeCount());
-            
-            // Insurance against Remco discarding the "last node is root" convention:
-            if (node.isRoot())
-                node = (MultiTypeNode)mtTree.getNode(event + mtTree.getLeafNodeCount() + 1);
-            
-        } else {
+        if (event < mtTree.getInternalNodeCount()-1)
+            node = (MultiTypeNode)mtTree.getNode(event + mtTree.getLeafNodeCount());           
+        
+        else {
             event -= mtTree.getInternalNodeCount()-1;
             for (Node thisNode : mtTree.getNodesAsArray()) {
                 if (thisNode.isRoot())
@@ -75,58 +71,24 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         }
 
         double logHR;
-        if (Randomizer.nextBoolean())
+        boolean birth = Randomizer.nextBoolean();
+        if (birth)
             logHR = birthMove(node, changeIdx);
         else
             logHR = deathMove(node, changeIdx);
         
         return logHR;
-        
     }
     
     private double birthMove(MultiTypeNode node, int changeIdx) {
         double logHR = 0.0;
         
         // Construct the set of illegal change types for the reverse move:
-        illegalTypes.clear();
-        
-        if (changeIdx<0) {
-            MultiTypeNode startNode = findDecendentNodeWithMigration((MultiTypeNode)node.getLeft());
-            
-            if (startNode.getChangeCount()==0)
-                // Termiated at leaf: move would be irreversable
-                return Double.NEGATIVE_INFINITY;
-            
-            if (startNode.getChangeCount()==1)
-                illegalTypes.add(startNode.getNodeType());
-            else
-                illegalTypes.add(startNode.getChangeType(startNode.getChangeCount()-2));
-            
-            try {
-                getIllegalTypes(illegalTypes,
-                        (MultiTypeNode)startNode.getParent(), startNode);
-            } catch (Exception ex) {
-                // Subtree contains leaf node
-                return Double.NEGATIVE_INFINITY;
-            }
-            
-        } else {
-            if (changeIdx==0) {
-                illegalTypes.add(node.getNodeType());
-            } else {
-                illegalTypes.add(node.getChangeType(changeIdx-1));
-            }
-            
-            if (changeIdx+1<node.getChangeCount()) {
-                illegalTypes.add(node.getChangeType(changeIdx+1));
-            } else {
-                try {
-                    getIllegalTypes(illegalTypes, (MultiTypeNode)node.getParent(), node);
-                } catch (Exception ex) {
-                    // Subtree contains leaf node
-                    return Double.NEGATIVE_INFINITY;
-                }
-            }
+        try {
+            getIllegalTypes(changeIdx, node);
+        } catch (Exception ex) {
+            // Subtree contains leaf node:
+            return Double.NEGATIVE_INFINITY;
         }
         
         // Record number of legal change types in reverse move for HR:
@@ -139,29 +101,24 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         logHR += Math.log(1.0/(Cdeath
                 *(mtTree.getTotalNumberOfChanges()+1 + mtTree.getInternalNodeCount()-1)));
         
-        // Construct set of illegal change types for the forward move:
-        illegalTypes.clear();
+        // Determine time boundaries for new event:
+        double tmin = changeIdx<0
+                ? node.getHeight()
+                : node.getChangeTime(changeIdx);
+        double tmax = changeIdx+1>=node.getChangeCount()
+                ? node.getParent().getHeight()
+                : node.getChangeTime(changeIdx+1);
         
-        double tmin, tmax;
-        if (changeIdx<0) {
-            illegalTypes.add(node.getNodeType());
-            tmin = node.getHeight();
-        } else {
-            illegalTypes.add(node.getChangeType(changeIdx));
-            tmin = node.getChangeTime(changeIdx);
-        }
-
-        if (changeIdx+1<node.getChangeCount()) {
-            illegalTypes.add(node.getChangeType(changeIdx+1));
-            tmax = node.getChangeTime(changeIdx+1);
-        } else {
-            try {
-                getIllegalTypes(illegalTypes, (MultiTypeNode)node.getParent(), node);
-            } catch (Exception ex) {
-                // Subtree contains leaf node
-                return Double.NEGATIVE_INFINITY;
-            }
-            tmax = node.getParent().getHeight();
+        double tnew = tmin + (tmax-tmin)*Randomizer.nextDouble();
+        
+        // Insert new change with dummy type:
+        node.insertChange(changeIdx+1, 0, tnew);
+        
+        // Construct the set of illegal change types for the forward move:
+        try {
+            getIllegalTypes(changeIdx+1, node);
+        } catch (Exception ex) {
+            return Double.NEGATIVE_INFINITY;
         }
         
         // Record number of legal change types in forward move for HR:
@@ -171,18 +128,11 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (Cbirth == 0)
             return Double.NEGATIVE_INFINITY;
        
-        // Select legal change type:
+        // Select change type:
         int changeType = selectLegalChangeType();
-
-        // Choose new change time:
-        double tnew = tmin + (tmax-tmin)*Randomizer.nextDouble();
-        
-        // Implement new change:
-        node.insertChange(changeIdx+1, changeType, tnew);
         
         // Propagate changes across subtree:
-        if (changeIdx+2>=node.getChangeCount())
-            retypeSubtree(changeType, (MultiTypeNode)node.getParent(), node);
+        retypeSubtree(changeIdx+1, node, changeType);
         
         // Forward move HR contribution:
         logHR -= Math.log(1.0/(Cbirth
@@ -200,29 +150,10 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             return Double.NEGATIVE_INFINITY;
         
         // Construct set of illegal change types for reverse move:
-        illegalTypes.clear();
-        
-        double tmin;
-        if (changeIdx<0) {
-            illegalTypes.add(node.getNodeType());
-            tmin = node.getHeight();
-        } else {
-            illegalTypes.add(node.getChangeType(changeIdx));
-            tmin = node.getChangeTime(changeIdx);
-        }
-
-        double tmax;
-        if (changeIdx+2<node.getChangeCount()) {
-            illegalTypes.add(node.getChangeType(changeIdx+2));
-            tmax = node.getChangeTime(changeIdx+2);
-        } else {
-            try {
-                getIllegalTypes(illegalTypes, (MultiTypeNode)node.getParent(), node);
-            } catch (Exception ex) {
-                // Subtree contains a leaf
-                return Double.NEGATIVE_INFINITY;
-            }
-            tmax = node.getParent().getHeight();
+        try {
+            getIllegalTypes(changeIdx+1, node);
+        } catch (Exception ex) {
+            return Double.NEGATIVE_INFINITY;
         }
         
         // Record number of legal change types for reverse move HR
@@ -230,6 +161,13 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (Cbirth==0)
             // Reverse move impossible
             return Double.NEGATIVE_INFINITY;
+        
+        double tmin = changeIdx<0
+                ? node.getHeight()
+                : node.getChangeTime(changeIdx);
+        double tmax = changeIdx+2>=node.getChangeCount()
+                ? node.getParent().getHeight()
+                : node.getChangeTime(changeIdx+2);
         
         // Reverse move HR contribution
         logHR += Math.log(1.0/(Cbirth
@@ -243,43 +181,11 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         node.removeChange(changeIdx+1);
         
         // Construct set of illegal change types for forward move:
-        illegalTypes.clear();
-        
-        if (changeIdx<0) {
-            MultiTypeNode startNode = findDecendentNodeWithMigration((MultiTypeNode)node.getLeft());
-            
-            if (startNode.getChangeCount()==0)
-                // subtree includes leaf: abort
-                return Double.NEGATIVE_INFINITY;
-            
-            if (startNode.getChangeCount()==1)
-                illegalTypes.add(startNode.getNodeType());
-            else
-                illegalTypes.add(startNode.getChangeType(startNode.getChangeCount()-2));
-            
-            try {
-                getIllegalTypes(illegalTypes, (MultiTypeNode)startNode.getParent(), startNode);
-            } catch (Exception ex) {
-                // subtree includes leaf: abort
-                return Double.NEGATIVE_INFINITY;
-            }
-            
-        } else {
-            if (changeIdx==0)
-                illegalTypes.add(node.getNodeType());
-            else
-                illegalTypes.add(node.getChangeType(changeIdx-1));
-            
-            if (changeIdx+1<node.getChangeCount()) {
-                illegalTypes.add(node.getChangeType(changeIdx+1));
-            } else {
-                try {
-                    getIllegalTypes(illegalTypes, (MultiTypeNode)node.getParent(), node);
-                } catch (Exception ex) {
-                    // subtree includes leaf: abort
-                    return Double.NEGATIVE_INFINITY;
-                }
-            }
+        try {
+            getIllegalTypes(changeIdx, node);
+        } catch (Exception ex) {
+            // Subtree contains leaf
+            return Double.NEGATIVE_INFINITY;
         }
         
         // Record number of legal change types in forward move for HR
@@ -293,15 +199,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         int changeType = selectLegalChangeType();
 
         // Implement subtree type changes
-        if (changeIdx<0) {
-            MultiTypeNode startNode = findDecendentNodeWithMigration((MultiTypeNode)node.getLeft());
-            startNode.setChangeType(startNode.getChangeCount()-1, changeType);
-            retypeSubtree(changeType, (MultiTypeNode)startNode.getParent(), startNode);
-        } else {
-            node.setChangeType(changeIdx, changeType);
-            if (changeIdx+1>=node.getChangeCount())
-                retypeSubtree(changeType, (MultiTypeNode)node.getParent(), node);
-        }
+        retypeSubtree(changeIdx, node, changeType);
         
         // Forward move HR contribution
         logHR -= Math.log(1.0/(Cdeath
@@ -310,16 +208,55 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         return logHR;
     }
     
-    
     /**
      * Populates illegalTypes set with types of subtree containing node and no
      * intervening migration events.
      * 
+     * @param changeIdx Position of event r.
+     * @param node Node on which event r sits.
+     * @throws Exception when subtree contains a leaf node.
+     */
+    public void getIllegalTypes(int changeIdx, MultiTypeNode node) throws Exception {
+        illegalTypes.clear();
+        
+        if (changeIdx<0) {
+            MultiTypeNode startNode = findDecendentNodeWithMigration((MultiTypeNode)node.getLeft());
+            
+            if (startNode.getChangeCount()==0)
+                // Termiated at leaf: move would be irreversable
+                throw new Exception("Leaf in sub-tree.");
+            
+            if (startNode.getChangeCount()==1)
+                illegalTypes.add(startNode.getNodeType());
+            else
+                illegalTypes.add(startNode.getChangeType(startNode.getChangeCount()-2));
+            
+            getIllegalTypesRecurse(illegalTypes,
+                    (MultiTypeNode)startNode.getParent(), startNode);
+            
+        } else {
+            if (changeIdx==0) {
+                illegalTypes.add(node.getNodeType());
+            } else {
+                illegalTypes.add(node.getChangeType(changeIdx-1));
+            }
+            
+            if (changeIdx+1<node.getChangeCount()) {
+                illegalTypes.add(node.getChangeType(changeIdx+1));
+            } else {
+                getIllegalTypesRecurse(illegalTypes,
+                        (MultiTypeNode)node.getParent(), node);
+            }
+        }
+    }
+    
+    /**
+     * Recursive method used by getIllegalTypes.
+     * 
      * @param node
      * @param prevNode 
-     * @return 
      */
-    private void getIllegalTypes(Set<Integer> illegalTypes,
+    private void getIllegalTypesRecurse(Set<Integer> illegalTypes,
             MultiTypeNode node, MultiTypeNode prevNode) throws Exception {
         
         if (node.isLeaf())
@@ -337,7 +274,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                     illegalTypes.add(left.getNodeType());
                 
             } else
-                getIllegalTypes(illegalTypes, left, node);
+                getIllegalTypesRecurse(illegalTypes, left, node);
             
             if (right.getChangeCount()>0)
                 if (right.getChangeCount()>1)
@@ -345,7 +282,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 else
                     illegalTypes.add(right.getNodeType());
             else
-                getIllegalTypes(illegalTypes, right, node);
+                getIllegalTypesRecurse(illegalTypes, right, node);
             
         } else {
             
@@ -355,7 +292,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 if (node.getChangeCount()>0)
                     illegalTypes.add(node.getChangeType(0));
                 else
-                    getIllegalTypes(illegalTypes, (MultiTypeNode)node.getParent(), node);
+                    getIllegalTypesRecurse(illegalTypes, (MultiTypeNode)node.getParent(), node);
             }
 
             if (sister.getChangeCount()>0) {
@@ -364,9 +301,29 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 else
                     illegalTypes.add(sister.getNodeType());
             } else
-                getIllegalTypes(illegalTypes, sister, node);
+                getIllegalTypesRecurse(illegalTypes, sister, node);
         }
         
+    }
+    
+    /**
+     * Retype subtree including edge from changeIdx to changeIdx+1 on node
+     * with new type changeType.
+     * 
+     * @param changeIdx
+     * @param node
+     * @param changeType 
+     */
+    private void retypeSubtree(int changeIdx, MultiTypeNode node, int changeType) {
+        if (changeIdx<0) {
+            MultiTypeNode startNode = findDecendentNodeWithMigration((MultiTypeNode)node.getLeft());
+            startNode.setChangeType(startNode.getChangeCount()-1, changeType);
+            retypeSubtreeRecurse(changeType, (MultiTypeNode)startNode.getParent(), startNode);
+        } else {
+            node.setChangeType(changeIdx, changeType);
+            if (changeIdx+1>=node.getChangeCount())
+                retypeSubtreeRecurse(changeType, (MultiTypeNode)node.getParent(), node);
+        }
     }
     
     /**
@@ -376,7 +333,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
      * @param node
      * @param prevNode 
      */
-    private void retypeSubtree(int type, MultiTypeNode node, MultiTypeNode prevNode) {
+    private void retypeSubtreeRecurse(int type, MultiTypeNode node, MultiTypeNode prevNode) {
         if (node.isLeaf())
             throw new IllegalArgumentException("Leaf attached to subtree: cannot retype!");
         
@@ -390,24 +347,24 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             if (left.getChangeCount()>0)
                 left.setChangeType(left.getChangeCount()-1, type);
             else
-                retypeSubtree(type, left, node);
+                retypeSubtreeRecurse(type, left, node);
             
             if (right.getChangeCount()>0)
                 right.setChangeType(right.getChangeCount()-1, type);
             else
-                retypeSubtree(type, right, node);
+                retypeSubtreeRecurse(type, right, node);
             
         } else {
             
             MultiTypeNode sister = (MultiTypeNode)getOtherChild(node, prevNode);
             
             if (!node.isRoot() && node.getChangeCount()==0)
-                retypeSubtree(type, (MultiTypeNode)node.getParent(), node);
+                retypeSubtreeRecurse(type, (MultiTypeNode)node.getParent(), node);
 
             if (sister.getChangeCount()>0)
                 sister.setChangeType(sister.getChangeCount()-1, type);
             else
-                retypeSubtree(type, sister, node);
+                retypeSubtreeRecurse(type, sister, node);
             
         }
             
@@ -446,4 +403,5 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         return changeType;
     }
+    
 }
