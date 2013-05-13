@@ -6,7 +6,7 @@
         <popSizes spec="RealParameter" value="7.0" dimension="3"/>
     </model>
 
-    <run spec="MCMC" id="mcmc" chainLength="1000000"> 
+    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
         <init spec='StructuredCoalescentMultiTypeTree'
                       id="tree" 
@@ -53,8 +53,15 @@
 	<operator spec="TypeMergeSplitExtended" id="mergeSplit"
 		  weight="1" multiTypeTree="@tree"/>
 
+
+        <!--
 	<operator spec="TypeBirthDeath" id="birthDeath"
 		  weight="1" multiTypeTree="@tree"/>
+                  -->
+
+        <operator spec="SpecialTypeBirthDeath" id="birthDeath"
+		  weight="1" multiTypeTree="@tree"/>
+
 
         <logger logEvery="1000" fileName="EwingTest2.log">
             <model idref='P'/>
