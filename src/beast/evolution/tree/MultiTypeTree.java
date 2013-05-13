@@ -614,7 +614,7 @@ public class MultiTypeTree extends Tree {
     @Override
     public void fromXML(org.w3c.dom.Node node) {
         try {
-            String sNewick = node.getTextContent();
+            String sNewick = node.getTextContent().replace("&", "");
 
             TreeParser parser = new TreeParser();
             parser.initByName(
@@ -622,14 +622,10 @@ public class MultiTypeTree extends Tree {
                     "adjustTipHeights", true,
                     "singlechild", true,
                     "newick", sNewick);
-            Tree flatTree = parser;
-
-            initFromFlatTree(flatTree);
-
-            parser.m_nThreshold.setValue(1e-10, parser);
-
-            parser.m_nOffset.setValue(0, parser);
-            setRoot(parser.parseNewick(sNewick));
+            //parser.m_nThreshold.setValue(1e-10, parser);
+            //parser.m_nOffset.setValue(0, parser);
+            
+            initFromFlatTree(parser);
 
             initArrays();
         } catch (Exception ex) {
