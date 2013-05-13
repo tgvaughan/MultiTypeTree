@@ -488,9 +488,9 @@ public class MultiTypeTree extends Tree {
     }
 
     /**
-     * Return string representation of coloured tree.
+     * Return string representation of multi-type tree.
      *
-     * @return Coloured tree string in Newick format.
+     * @return Multi-type tree string in Newick format.
      */
     @Override
     public String toString() {

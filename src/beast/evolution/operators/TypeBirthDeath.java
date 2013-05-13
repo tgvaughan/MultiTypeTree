@@ -20,8 +20,12 @@ import beast.core.Description;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
@@ -31,9 +35,17 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
 
     private Set<Integer> illegalTypes;
     
+    PrintStream treeOut, deetsOut;
+    
     @Override
     public void initAndValidate() {
         illegalTypes = new HashSet<Integer>();
+        try {
+            treeOut = new PrintStream("trees.txt");
+            deetsOut = new PrintStream("deets.txt");
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(TypeBirthDeath.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     @Override
@@ -69,15 +81,31 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 event -= ((MultiTypeNode)thisNode).getChangeCount();
             }
         }
+        
+        String treeString = mtTree.getFlattenedTree().getRoot().toShortNewick(true);
 
         double logHR;
         boolean birth = Randomizer.nextBoolean();
-        if (birth)
+        if (birth) {
             logHR = birthMove(node, changeIdx);
-        else
+        } else {
             logHR = deathMove(node, changeIdx);
+//            if (logHR == Double.NEGATIVE_INFINITY) {
+//                treeOut.println(treeString + ";");
+//                deetsOut.format("Node: %d changeIdx: %d\n", node.getNr(), changeIdx);
+//            }
+        }
         
         return logHR;
+        
+//        double logHR1 = birthMove(node, changeIdx);
+//        double logHR2 = deathMove(node, changeIdx);
+//        
+//        if (logHR1 != Double.NEGATIVE_INFINITY) {
+//            System.out.format("logHR1+logHR2=%g, Cbirth1-Cbirth2=%d\n",logHR1+logHR2, Cbirth1-Cbirth2);
+//        }
+//        
+//        return Double.NEGATIVE_INFINITY;
     }
     
     private double birthMove(MultiTypeNode node, int changeIdx) {
@@ -93,8 +121,9 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         // Record number of legal change types in reverse move for HR:
         int Cdeath = mtTree.getNTypes() - illegalTypes.size();
+     
+        // Reverse move is impossible
         if (Cdeath == 0)
-            // Reverse move is impossible
             return Double.NEGATIVE_INFINITY;
         
         // Reverse move HR contribution:
@@ -136,7 +165,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         // Forward move HR contribution:
         logHR -= Math.log(1.0/(Cbirth
-                *(mtTree.getTotalNumberOfChanges()-1+mtTree.getInternalNodeCount()-1)
+                *(mtTree.getTotalNumberOfChanges()-1 + mtTree.getInternalNodeCount()-1)
                 *(tmax-tmin)));
         
         return logHR;
@@ -158,8 +187,9 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         // Record number of legal change types for reverse move HR
         int Cbirth = mtTree.getNTypes() - illegalTypes.size();
+        
+        // Reverse move impossible        
         if (Cbirth==0)
-            // Reverse move impossible
             return Double.NEGATIVE_INFINITY;
         
         double tmin = changeIdx<0
@@ -171,7 +201,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         // Reverse move HR contribution
         logHR += Math.log(1.0/(Cbirth
-                *(mtTree.getTotalNumberOfChanges()-1+mtTree.getInternalNodeCount()-1)
+                *(mtTree.getTotalNumberOfChanges()-1 + mtTree.getInternalNodeCount()-1)
                 *(tmax-tmin)));
         
         // Remove dying type change WITHOUT MODIFYING NODE COLOURS:
@@ -203,7 +233,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         // Forward move HR contribution
         logHR -= Math.log(1.0/(Cdeath
-                *(mtTree.getTotalNumberOfChanges()+1+mtTree.getInternalNodeCount()-1)));        
+                *(mtTree.getTotalNumberOfChanges()+1 + mtTree.getInternalNodeCount()-1)));        
         
         return logHR;
     }

@@ -481,11 +481,11 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         RealParameter rateMatrix = new RealParameter();
         rateMatrix.initByName(
                 "value", "0.05",
-                "dimension", "12");
+                "dimension", "6");
         RealParameter popSizes = new RealParameter();
         popSizes.initByName(
                 "value", "7.0",
-                "dimension", "4");
+                "dimension", "3");
         MigrationModel migrationModel = new MigrationModel();
         migrationModel.initByName(
                 "rateMatrix", rateMatrix,
@@ -494,7 +494,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         // Specify leaf types:
         IntegerParameter leafTypes = new IntegerParameter();
         leafTypes.initByName(
-                "value", "0 1 2 3 0");
+                "value", "0 1");
 
         // Generate ensemble:
         int reps = 100000;
@@ -512,7 +512,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             sctree.initByName(
                     "migrationModel", migrationModel,
                     "leafTypes", leafTypes,
-                    "nTypes", 4);
+                    "nTypes", 3);
 
             heights[i] = sctree.getRoot().getHeight();
         }
