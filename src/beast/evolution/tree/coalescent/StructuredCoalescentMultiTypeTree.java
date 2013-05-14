@@ -499,6 +499,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         // Generate ensemble:
         int reps = 100000;
         double[] heights = new double[reps];
+        double[] changes = new double[reps];
 
         long startTime = System.currentTimeMillis();
 
@@ -515,6 +516,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                     "nTypes", 3);
 
             heights[i] = sctree.getRoot().getHeight();
+            changes[i] = sctree.getTotalNumberOfChanges();
         }
 
         long time = System.currentTimeMillis() - startTime;
@@ -522,6 +524,10 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         System.out.printf("E[T] = %1.4f +/- %1.4f\n",
                 DiscreteStatistics.mean(heights), DiscreteStatistics.stdev(heights) / Math.sqrt(reps));
         System.out.printf("V[T] = %1.4f\n", DiscreteStatistics.variance(heights));
+
+        System.out.printf("E[C] = %1.4f +/- %1.4f\n",
+                DiscreteStatistics.mean(changes), DiscreteStatistics.stdev(changes) / Math.sqrt(reps));
+        System.out.printf("V[C] = %1.4f\n", DiscreteStatistics.variance(changes));
 
         System.out.printf("Took %1.2f seconds\n", time / 1000.0);
 

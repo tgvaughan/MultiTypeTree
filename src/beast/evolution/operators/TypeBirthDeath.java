@@ -36,6 +36,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
     private Set<Integer> illegalTypes;
     
     PrintStream treeOut, deetsOut;
+    private int count = 0;
     
     @Override
     public void initAndValidate() {
@@ -50,8 +51,9 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
     
     @Override
     public double proposal() {
-        
         mtTree = multiTypeTreeInput.get();
+        
+        //System.out.println("Count = " + (++count));
         
         // Immediate reject if <3 types in model
         if (mtTree.getNTypes()<3)
@@ -138,6 +140,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 ? node.getParent().getHeight()
                 : node.getChangeTime(changeIdx+1);
         
+        // Draw new event time:
         double tnew = tmin + (tmax-tmin)*Randomizer.nextDouble();
         
         // Insert new change with dummy type:

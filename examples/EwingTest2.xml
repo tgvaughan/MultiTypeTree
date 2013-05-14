@@ -53,15 +53,8 @@
 	<operator spec="TypeMergeSplitExtended" id="mergeSplit"
 		  weight="1" multiTypeTree="@tree"/>
 
-
-        <!--
-	<operator spec="TypeBirthDeath" id="birthDeath"
+	<operator spec="SpecialTypeBirthDeath" id="birthDeath"
 		  weight="1" multiTypeTree="@tree"/>
-                  -->
-
-        <operator spec="SpecialTypeBirthDeath" id="birthDeath"
-		  weight="1" multiTypeTree="@tree"/>
-
 
         <logger logEvery="1000" fileName="EwingTest2.log">
             <model idref='P'/>
@@ -74,6 +67,10 @@
             </log>
         </logger>
 
+        <logger logEvery="10000" fileName="EwingTest2.trees" mode="tree">
+            <log idref="tree"/>
+        </logger>
+
         <logger logEvery="10000">
             <model idref='P'/>
             <log idref="P"/>
@@ -83,10 +80,6 @@
             <log spec='beast.evolution.tree.TypeChangeCountLogger'>
                 <multiTypeTree idref="tree"/>
             </log>
-        </logger>
-
-        <logger logEvery="10000" fileName="EwingTest2.trees" mode="tree">
-            <log idref="tree"/>
         </logger>
 
     </run>

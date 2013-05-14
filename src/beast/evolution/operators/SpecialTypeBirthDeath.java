@@ -29,13 +29,16 @@ import java.util.Set;
 @Description("Special move specific to two taxon trees for debugging only.")
 public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
     
+    private int count = 0;
+    
     @Override
     public void initAndValidate() { };
 
     @Override
     public double proposal() {
-        
         mtTree = multiTypeTreeInput.get();
+        
+        //System.out.println("Count = " + (++count));
         
         if (mtTree.getLeafNodeCount() != 2)
             throw new IllegalArgumentException("SpecialTypeBirthDeath only valid for 2 taxon trees.");
@@ -89,8 +92,13 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
         
         if (changeIdx+1>=node.getChangeCount()) {
             if (sister.getChangeCount()>0) {
-                illegalTypesDeath.add(sister.getChangeType(sister.getChangeCount()-1));
-                illegalTypesBirth.add(sister.getChangeType(sister.getChangeCount()-1));
+                if (sister.getChangeCount()>1) {
+                    illegalTypesDeath.add(sister.getChangeType(sister.getChangeCount()-2));
+                    illegalTypesBirth.add(sister.getChangeType(sister.getChangeCount()-2));
+                } else {
+                    illegalTypesDeath.add(sister.getNodeType());
+                    illegalTypesBirth.add(sister.getNodeType());
+                }
             } else {
                 return Double.NEGATIVE_INFINITY;
             }
@@ -155,8 +163,13 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
         
         if (changeIdx+2>=node.getChangeCount()) {
             if (sister.getChangeCount()>0) {
-                illegalTypesDeath.add(sister.getChangeType(sister.getChangeCount()-1));
-                illegalTypesBirth.add(sister.getChangeType(sister.getChangeCount()-1));
+                if (sister.getChangeCount()>1) {
+                    illegalTypesDeath.add(sister.getChangeType(sister.getChangeCount()-2));
+                    illegalTypesBirth.add(sister.getChangeType(sister.getChangeCount()-2));
+                } else {
+                    illegalTypesDeath.add(sister.getNodeType());
+                    illegalTypesBirth.add(sister.getNodeType());
+                }
             } else {
                 return Double.NEGATIVE_INFINITY;
             }
