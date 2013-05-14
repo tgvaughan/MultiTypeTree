@@ -1,0 +1,84 @@
+<beast version='2.0'
+       namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent'>
+
+    <model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
+        <rateMatrix spec='RealParameter' value="0.05" dimension="6"/>
+        <popSizes spec="RealParameter" value="7.0" dimension="3"/>
+    </model>
+
+    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
+
+        <init spec='StructuredCoalescentMultiTypeTree'
+                      id="tree" 
+                      typeLabel="state" nTypes="3"
+		      leafTypes="0 1" migrationModel="@migmodel">
+        </init>
+      
+        <state>
+            <stateNode idref="tree"/>
+        </state>
+        
+        <distribution spec="CompoundDistribution" id="P">
+            <distribution id='scLikelihood' spec="StructuredCoalescentLikelihood" checkValidity="true">
+                <migrationModel idref="migmodel"/>
+                <multiTypeTree idref="tree"/>
+            </distribution>
+        </distribution>
+
+	<operator spec="NodeRetype" id="NR"
+		  weight="10" multiTypeTree="@tree"
+		  migrationModel="@migmodel"/>
+
+	<operator spec="NodeShiftRetype" id="NSR1"
+		  weight="10" multiTypeTree="@tree"
+		  rootScaleFactor="0.8"
+		  migrationModel="@migmodel" rootOnly="true"/>
+               
+	<!--<operator spec="NodeShiftRetype" id="NSR2"
+		  weight="10" multiTypeTree="@tree"
+		  migrationModel="@migmodel" noRoot="true"/>-->
+	
+	<operator spec="MultiTypeTreeScale" id="MTTS"
+		  weight="10" multiTypeTree="@tree"
+		  scaleFactor="0.8" useOldTreeScaler="true"/>
+
+        <!--
+	<operator spec="TypedWilsonBalding" id="CWB"
+		  weight="10" multiTypeTree="@tree"
+		  migrationModel="@migmodel" alpha="0.2"/>
+
+	<operator spec='TypedSubtreeExchange' id='STX'
+		  weight="10" multiTypeTree="@tree"
+		  migrationModel="@migmodel"/>
+                  -->
+
+
+        <logger logEvery="100" fileName="Sanity.log">
+            <model idref='P'/>
+            <log idref="P"/>
+            <log spec='beast.evolution.tree.TreeHeightLogger'>
+                <tree idref="tree"/>
+            </log>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
+            </log>
+        </logger>
+
+        <logger logEvery="10000">
+            <model idref='P'/>
+            <log idref="P"/>
+            <log spec='beast.evolution.tree.TreeHeightLogger' >
+                <tree idref="tree"/>
+            </log>
+            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
+                <multiTypeTree idref="tree"/>
+            </log>
+        </logger>
+
+        <logger logEvery="10000" fileName="Sanity.trees" mode="tree">
+            <log idref="tree"/>
+        </logger>
+
+    </run>
+
+</beast>
