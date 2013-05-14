@@ -31,7 +31,7 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
                 "newick", newickStringInput.get());
         Tree flatTree = parser;
         
-        initFromFlatTree(flatTree);
+        initFromFlatTree(flatTree, true);
     }
 
     @Override

@@ -200,6 +200,71 @@ public class MultiTypeTree extends Tree {
         leafNodeCount = mtTree.leafNodeCount;
         initArrays();
     }
+    
+    /**
+     * Copy all values aside from IDs from an existing multi-type tree.
+     * 
+     * @param other
+     */
+    @Override
+    public void assignFromFragile(StateNode other) {
+        MultiTypeTree mtTree = (MultiTypeTree) other;
+        if (m_nodes == null) {
+            initArrays();
+        }
+        root = m_nodes[mtTree.root.getNr()];
+        Node[] otherNodes = mtTree.m_nodes;
+        int iRoot = root.getNr();
+        assignFromFragileHelper(0, iRoot, otherNodes);
+        root.m_fHeight = otherNodes[iRoot].m_fHeight;
+        root.m_Parent = null;
+        
+        MultiTypeNode mtRoot = (MultiTypeNode)root;
+        mtRoot.nodeType = ((MultiTypeNode)(otherNodes[iRoot])).nodeType;
+        mtRoot.changeTimes.clear();
+        mtRoot.changeTypes.clear();
+        mtRoot.nTypeChanges = 0;
+        
+        if (otherNodes[iRoot].getLeft() != null) {
+            root.setLeft(m_nodes[otherNodes[iRoot].getLeft().getNr()]);
+        } else {
+            root.setLeft(null);
+        }
+        if (otherNodes[iRoot].getRight() != null) {
+            root.setRight(m_nodes[otherNodes[iRoot].getRight().getNr()]);
+        } else {
+            root.setRight(null);
+        }
+        assignFromFragileHelper(iRoot + 1, nodeCount, otherNodes);
+    }
+
+    /**
+     * helper to assignFromFragile *
+     */
+    private void assignFromFragileHelper(int iStart, int iEnd, Node[] otherNodes) {
+        for (int i = iStart; i < iEnd; i++) {
+            MultiTypeNode sink = (MultiTypeNode)m_nodes[i];
+            MultiTypeNode src = (MultiTypeNode)otherNodes[i];
+            sink.m_fHeight = src.m_fHeight;
+            sink.m_Parent = m_nodes[src.m_Parent.getNr()];
+            
+            sink.nTypeChanges = src.nTypeChanges;
+            sink.changeTimes.clear();
+            sink.changeTimes.addAll(src.changeTimes);
+            sink.changeTypes.clear();
+            sink.changeTypes.addAll(src.changeTypes);
+            sink.nodeType = src.nodeType;
+            
+            if (src.getLeft() != null) {
+                sink.setLeft(m_nodes[src.getLeft().getNr()]);
+                if (src.getRight() != null) {
+                    sink.setRight(m_nodes[src.getRight().getNr()]);
+                } else {
+                    sink.setRight(null);
+                }
+            }
+        }
+    }
 
     /**
      * Retrieve total number of allowed types on tree.
@@ -337,29 +402,13 @@ public class MultiTypeTree extends Tree {
     /**
      * Initialise colours and tree topology from Tree object in which colour
      * changes are marked by single-child nodes and colours are stored in
-     * metadata tags.
+     * meta-data tags. Node numbers of non-singleton nodes in flat tree
+     * are preserved.
      *
      * @param flatTree
+     * @param takeNrsFromFlatTree 
      */
-    public void initFromFlatTree(Tree flatTree) throws Exception {
-
-
-        // Obtain number of nodes and leaves in tree to construct:
-        int nNodes = getTrueNodeCount(flatTree.root);
-        int nLeaves = flatTree.root.getLeafNodeCount();
-
-        // Initialise lists of available node numbers:
-        List<Integer> leafNrs = new ArrayList<Integer>();
-        List<Integer> internalNrs = new ArrayList<Integer>();
-
-        for (int i = 0; i<nLeaves; i++)
-            leafNrs.add(i);
-
-        for (int i = 0; i<nNodes; i++)
-            if (i<nLeaves)
-                leafNrs.add(i);
-            else
-                internalNrs.add(i);
+    public void initFromFlatTree(Tree flatTree, boolean takeNrsFromFlatTree) throws Exception {
 
         // Build new coloured tree:
 
@@ -372,6 +421,10 @@ public class MultiTypeTree extends Tree {
         activeFlatTreeNodes.add(flatTree.getRoot());
         MultiTypeNode newRoot = new MultiTypeNode();
         activeTreeNodes.add(newRoot);
+        
+        // Initialise counter used to number leaves when takeNrsFromFlatTree
+        // is false:
+        int nextNr = 0;
 
         while (!activeFlatTreeNodes.isEmpty()) {
 
@@ -382,43 +435,44 @@ public class MultiTypeTree extends Tree {
                 Node flatTreeNode = activeFlatTreeNodes.get(idx);
                 MultiTypeNode treeNode = activeTreeNodes.get(idx);
 
-                Node thisFlatNode = flatTreeNode;
                 List<Integer> colours = new ArrayList<Integer>();
                 List<Double> times = new ArrayList<Double>();
 
-                while (thisFlatNode.getChildCount()==1) {
+                while (flatTreeNode.getChildCount()==1) {
                     int col = (int) Math.round(
-                            (Double) thisFlatNode.getMetaData(typeLabel));
+                            (Double) flatTreeNode.getMetaData(typeLabel));
                     colours.add(col);
-                    times.add(thisFlatNode.getHeight());
+                    times.add(flatTreeNode.getHeight());
 
-                    thisFlatNode = thisFlatNode.getLeft();
+                    flatTreeNode = flatTreeNode.getLeft();
                 }
 
                 // Order changes from youngest to oldest:
                 colours = Lists.reverse(colours);
                 times = Lists.reverse(times);
 
-                switch (thisFlatNode.getChildCount()) {
+                switch (flatTreeNode.getChildCount()) {
                     case 0:
                         // Leaf at base of branch
-                        treeNode.setNr(leafNrs.get(0));
-                        treeNode.setID(thisFlatNode.getID());
-                        leafNrs.remove(0);
+                        if (takeNrsFromFlatTree) {
+                            treeNode.setNr(flatTreeNode.getNr());
+                            treeNode.setID(String.valueOf(flatTreeNode.getNr()));
+                        } else {
+                            treeNode.setNr(nextNr);
+                            treeNode.setID(String.valueOf(nextNr));
+                            nextNr += 1;
+                        }
                         break;
 
                     case 2:
                         // Non-leaf at base of branch
-                        treeNode.setNr(internalNrs.get(0));
-                        internalNrs.remove(0);
-
-                        nextActiveFlatTreeNodes.add(thisFlatNode.getLeft());
-                        nextActiveFlatTreeNodes.add(thisFlatNode.getRight());
+                        nextActiveFlatTreeNodes.add(flatTreeNode.getLeft());
+                        nextActiveFlatTreeNodes.add(flatTreeNode.getRight());
 
                         MultiTypeNode daughter = new MultiTypeNode();
                         MultiTypeNode son = new MultiTypeNode();
-                        treeNode.setLeft(daughter);
-                        treeNode.setRight(son);
+                        treeNode.addChild(daughter);
+                        treeNode.addChild(son);
                         nextActiveTreeNodes.add(daughter);
                         nextActiveTreeNodes.add(son);
 
@@ -431,11 +485,11 @@ public class MultiTypeTree extends Tree {
 
                 // Set node type at base of multi-type tree branch:
                 int nodeType = (int) Math.round(
-                        (Double) thisFlatNode.getMetaData(typeLabel));
+                        (Double) flatTreeNode.getMetaData(typeLabel));
                 treeNode.setNodeType(nodeType);
 
                 // Set node height:
-                treeNode.setHeight(thisFlatNode.getHeight());
+                treeNode.setHeight(flatTreeNode.getHeight());
             }
 
             // Replace old active node lists with new:
@@ -446,10 +500,37 @@ public class MultiTypeTree extends Tree {
             activeTreeNodes.addAll(nextActiveTreeNodes);
 
         }
-
+        
+        
+        // Number internal nodes:
+        numberInternalNodes(newRoot, newRoot.getAllLeafNodes().size());
+        
         // Assign tree topology:
         assignFromWithoutID(new MultiTypeTree(newRoot));
         initArrays();
+        
+    }
+    
+    /**
+     * Helper method used by initFromFlattenedTree to assign sensible node numbers
+     * to each internal node.  This is a post-order traversal, meaning the
+     * root is given the largest number.
+     * 
+     * @param node
+     * @param nextNr
+     * @return 
+     */
+    private int numberInternalNodes(Node node, int nextNr) {
+        if (node.isLeaf())
+            return nextNr;
+        
+        for (Node child : node.getChildren())
+            nextNr = numberInternalNodes(child, nextNr);
+        
+        node.setNr(nextNr);
+        node.setID(String.valueOf(nextNr));
+        
+        return nextNr+1;
     }
 
     /**
@@ -618,14 +699,15 @@ public class MultiTypeTree extends Tree {
 
             TreeParser parser = new TreeParser();
             parser.initByName(
-                    "IsLabelledNewick", true,
-                    "adjustTipHeights", true,
+                    "IsLabelledNewick", false,
+                    "offset", 0,
+                    "adjustTipHeights", false,
                     "singlechild", true,
                     "newick", sNewick);
             //parser.m_nThreshold.setValue(1e-10, parser);
             //parser.m_nOffset.setValue(0, parser);
             
-            initFromFlatTree(parser);
+            initFromFlatTree(parser, true);
 
             initArrays();
         } catch (Exception ex) {
