@@ -193,27 +193,15 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
         
         // Forward move probability:
         logHR -= Math.log(1.0/mtTree.getTotalNumberOfChanges());
+                
+        // Record colour above node to remove:
+        int changeType = node.getChangeType(changeIdx+1);
         
         // Remove change:
         node.removeChange(changeIdx+1);
         
-        // Select new colour:
-        int n = Randomizer.nextInt(Cdeath);
-        int changeType;
-        for (changeType = 0; changeType<mtTree.getNTypes(); changeType++) {
-            if (illegalTypesDeath.contains(changeType))
-                continue;
-            if (n==0)
-                break;
-            n -= 1;
-        }
-        
         // Update colouring
         node.setChangeType(changeIdx, changeType);
-        if (changeIdx+1>=node.getChangeCount()) {
-            ((MultiTypeNode)node.getParent()).setNodeType(changeType);
-            sister.setChangeType(sister.getChangeCount()-1, changeType);
-        }
         
         return logHR;
     }
