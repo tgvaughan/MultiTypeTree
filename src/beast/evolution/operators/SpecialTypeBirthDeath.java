@@ -18,15 +18,9 @@ package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.Tree;
 import beast.util.Randomizer;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -124,46 +118,34 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
         double tmin, tmax;
 
         Set<Integer> illegalTypesBirth = new HashSet<Integer>();
-        Set<Integer> illegalTypesDeath = new HashSet<Integer>();
-        
-        if (changeIdx==0)
-            illegalTypesDeath.add(node.getNodeType());
-        else
-            illegalTypesDeath.add(node.getChangeType(changeIdx-1));
         
         illegalTypesBirth.add(node.getChangeType(changeIdx));
+        if (changeIdx>0)
+            illegalTypesBirth.add(node.getChangeType(changeIdx-1));
+        else
+            illegalTypesBirth.add(node.getNodeType());
         
         tmin = node.getChangeTime(changeIdx);
         
         if (changeIdx+1>=node.getChangeCount()) {
-            if (sister.getChangeCount()>0) {
-                if (sister.getChangeCount()>1) {
-                    illegalTypesDeath.add(sister.getChangeType(sister.getChangeCount()-2));
-                    illegalTypesBirth.add(sister.getChangeType(sister.getChangeCount()-2));
-                } else {
-                    illegalTypesDeath.add(sister.getNodeType());
-                    illegalTypesBirth.add(sister.getNodeType());
-                }
-            } else {
-                return Double.NEGATIVE_INFINITY;
-            }
             tmax = node.getParent().getHeight();
-        } else {
-            illegalTypesDeath.add(node.getChangeType(changeIdx+1));
-            illegalTypesBirth.add(node.getChangeType(changeIdx+1));
+        } else
             tmax = node.getChangeTime(changeIdx+1);
-        }
-
+        
+        
         // Backward move probability:
-        int Cdeath = mtTree.getNTypes() - illegalTypesDeath.size();
-        logHR += Math.log(1.0/(Cdeath*(mtTree.getTotalNumberOfChanges()+1)));
+        logHR += Math.log(1.0/(mtTree.getTotalNumberOfChanges()+1));
         
         // Forward move probability:
         int Cbirth = mtTree.getNTypes() - illegalTypesBirth.size();
         logHR -= Math.log(1.0/(Cbirth*mtTree.getTotalNumberOfChanges()*(tmax-tmin)));
-        
-        // Select new change time and colour:
+
+        // Add new event:
         double tnew = tmin + Randomizer.nextDouble()*(tmax-tmin);
+        int aboveType = node.getChangeType(changeIdx);
+        node.insertChange(changeIdx+1, aboveType, tnew);
+        
+        // Select and apply new type:
         int n = Randomizer.nextInt(Cbirth);
         int changeType;
         for (changeType = 0; changeType<mtTree.getNTypes(); changeType++) {
@@ -173,13 +155,9 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
                 break;
             n -= 1;
         }
-        node.insertChange(changeIdx+1, changeType, tnew);
         
-        // Propagate colour changes:
-        if (changeIdx+2>=node.getChangeCount()) {
-            ((MultiTypeNode)node.getParent()).setNodeType(changeType);
-            sister.setChangeType(sister.getChangeCount()-1, changeType);
-        }
+        // Apply type change:
+        node.setChangeType(changeIdx, changeType);
         
         return logHR;
     }
@@ -195,43 +173,26 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
         double tmin, tmax;
 
         Set<Integer> illegalTypesBirth = new HashSet<Integer>();
-        Set<Integer> illegalTypesDeath = new HashSet<Integer>();
         
-        if (changeIdx==0)
-            illegalTypesDeath.add(node.getNodeType());
+        illegalTypesBirth.add(node.getChangeType(changeIdx+1));
+        if (changeIdx>0)
+            illegalTypesBirth.add(node.getChangeType(changeIdx-1));
         else
-            illegalTypesDeath.add(node.getChangeType(changeIdx-1));
-        
-        illegalTypesBirth.add(node.getChangeType(changeIdx));
+            illegalTypesBirth.add(node.getNodeType());
         
         tmin = node.getChangeTime(changeIdx);
         
-        if (changeIdx+2>=node.getChangeCount()) {
-            if (sister.getChangeCount()>0) {
-                if (sister.getChangeCount()>1) {
-                    illegalTypesDeath.add(sister.getChangeType(sister.getChangeCount()-2));
-                    illegalTypesBirth.add(sister.getChangeType(sister.getChangeCount()-2));
-                } else {
-                    illegalTypesDeath.add(sister.getNodeType());
-                    illegalTypesBirth.add(sister.getNodeType());
-                }
-            } else {
-                return Double.NEGATIVE_INFINITY;
-            }
+        if (changeIdx+2>=node.getChangeCount())
             tmax = node.getParent().getHeight();
-        } else {
-            illegalTypesDeath.add(node.getChangeType(changeIdx+2));
-            illegalTypesBirth.add(node.getChangeType(changeIdx+2));
+        else
             tmax = node.getChangeTime(changeIdx+2);
-        }
 
         // Backward move probability:
         int Cbirth = mtTree.getNTypes() - illegalTypesBirth.size();
         logHR += Math.log(1.0/(Cbirth*(mtTree.getTotalNumberOfChanges()-1)*(tmax-tmin)));
         
         // Forward move probability:
-        int Cdeath = mtTree.getNTypes() - illegalTypesDeath.size();
-        logHR -= Math.log(1.0/(Cdeath*mtTree.getTotalNumberOfChanges()));
+        logHR -= Math.log(1.0/mtTree.getTotalNumberOfChanges());
         
         // Remove change:
         node.removeChange(changeIdx+1);
