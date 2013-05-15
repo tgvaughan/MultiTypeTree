@@ -53,7 +53,7 @@
 	<operator spec="TypeMergeSplitExtended" id="mergeSplit"
 		  weight="1" multiTypeTree="@tree"/>
 
-	<operator spec="SpecialTypeBirthDeath" id="birthDeath"
+	<operator spec="TypeBirthDeath" id="birthDeath"
 		  weight="1" multiTypeTree="@tree"/>
 
         <logger logEvery="100" fileName="EwingTest2.log">

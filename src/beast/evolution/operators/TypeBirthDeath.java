@@ -36,7 +36,6 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
     private Set<Integer> illegalTypes;
     
     PrintStream treeOut, deetsOut;
-    private int count = 0;
     
     @Override
     public void initAndValidate() {
@@ -52,8 +51,6 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
     @Override
     public double proposal() {
         mtTree = multiTypeTreeInput.get();
-        
-        //System.out.println("Count = " + (++count));
         
         // Immediate reject if <3 types in model
         if (mtTree.getNTypes()<3)
@@ -84,53 +81,22 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
             }
         }
         
-        String treeString = mtTree.getFlattenedTree().getRoot().toShortNewick(true);
-
         double logHR;
         boolean birth = Randomizer.nextBoolean();
         if (birth) {
             logHR = birthMove(node, changeIdx);
         } else {
             logHR = deathMove(node, changeIdx);
-//            if (logHR == Double.NEGATIVE_INFINITY) {
-//                treeOut.println(treeString + ";");
-//                deetsOut.format("Node: %d changeIdx: %d\n", node.getNr(), changeIdx);
-//            }
         }
         
         return logHR;
-        
-//        double logHR1 = birthMove(node, changeIdx);
-//        double logHR2 = deathMove(node, changeIdx);
-//        
-//        if (logHR1 != Double.NEGATIVE_INFINITY) {
-//            System.out.format("logHR1+logHR2=%g, Cbirth1-Cbirth2=%d\n",logHR1+logHR2, Cbirth1-Cbirth2);
-//        }
-//        
-//        return Double.NEGATIVE_INFINITY;
     }
     
     private double birthMove(MultiTypeNode node, int changeIdx) {
         double logHR = 0.0;
-        
-        // Construct the set of illegal change types for the reverse move:
-        try {
-            getIllegalTypes(changeIdx, node);
-        } catch (Exception ex) {
-            // Subtree contains leaf node:
-            return Double.NEGATIVE_INFINITY;
-        }
-        
-        // Record number of legal change types in reverse move for HR:
-        int Cdeath = mtTree.getNTypes() - illegalTypes.size();
-     
-        // Reverse move is impossible
-        if (Cdeath == 0)
-            return Double.NEGATIVE_INFINITY;
-        
+ 
         // Reverse move HR contribution:
-        logHR += Math.log(1.0/(Cdeath
-                *(mtTree.getTotalNumberOfChanges()+1 + mtTree.getInternalNodeCount()-1)));
+        logHR += Math.log(1.0/(mtTree.getTotalNumberOfChanges()+1 + mtTree.getInternalNodeCount()-1));
         
         // Determine time boundaries for new event:
         double tmin = changeIdx<0
@@ -143,12 +109,17 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         // Draw new event time:
         double tnew = tmin + (tmax-tmin)*Randomizer.nextDouble();
         
+        // Get type above new change:
+        int changeTypeAbove = changeIdx<0
+                ? node.getNodeType()
+                : node.getChangeType(changeIdx);
+        
         // Insert new change with dummy type:
-        node.insertChange(changeIdx+1, 0, tnew);
+        node.insertChange(changeIdx+1, changeTypeAbove, tnew);
         
         // Construct the set of illegal change types for the forward move:
         try {
-            getIllegalTypes(changeIdx+1, node);
+            getIllegalTypes(changeIdx, node);
         } catch (Exception ex) {
             return Double.NEGATIVE_INFINITY;
         }
@@ -164,7 +135,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         int changeType = selectLegalChangeType();
         
         // Propagate changes across subtree:
-        retypeSubtree(changeIdx+1, node, changeType);
+        retypeSubtree(changeIdx, node, changeType);
         
         // Forward move HR contribution:
         logHR -= Math.log(1.0/(Cbirth
@@ -181,9 +152,12 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (changeIdx+1>=node.getChangeCount())
             return Double.NEGATIVE_INFINITY;
         
+        // Reject if edge above (node,changeIdx+1) has the same colour as
+        // edge below (node,changeIdx):
+
         // Construct set of illegal change types for reverse move:
         try {
-            getIllegalTypes(changeIdx+1, node);
+            getIllegalTypes(changeIdx, node);
         } catch (Exception ex) {
             return Double.NEGATIVE_INFINITY;
         }
