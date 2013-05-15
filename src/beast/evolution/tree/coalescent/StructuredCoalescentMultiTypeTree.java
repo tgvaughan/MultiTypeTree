@@ -532,9 +532,9 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         System.out.printf("Took %1.2f seconds\n", time / 1000.0);
 
         PrintStream outStream = new PrintStream("heights.txt");
-        outStream.println("h");
+        outStream.println("h c");
         for (int i = 0; i < reps; i++)
-            outStream.println(heights[i]);
+            outStream.format("%g %g\n", heights[i], changes[i]);
         outStream.close();
     }
 

@@ -52,31 +52,24 @@
 		  migrationModel="@migmodel"/>
                   -->
 
-
         <logger logEvery="100" fileName="Sanity.log">
             <model idref='P'/>
             <log idref="P"/>
-            <log spec='beast.evolution.tree.TreeHeightLogger'>
-                <tree idref="tree"/>
-            </log>
-            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
-                <multiTypeTree idref="tree"/>
-            </log>
+            <log spec="TreeHeightLogger" tree="@tree"/>
+            <log spec="TreeRootTypeLogger" multiTypeTree="@tree"/>
+            <log spec="TypeChangeCountLogger" multiTypeTree="@tree"/>
+        </logger>
+
+        <logger logEvery="10000" fileName="Sanity.trees" mode="tree">
+            <log idref="tree"/>
         </logger>
 
         <logger logEvery="10000">
             <model idref='P'/>
             <log idref="P"/>
-            <log spec='beast.evolution.tree.TreeHeightLogger' >
-                <tree idref="tree"/>
-            </log>
-            <log spec='beast.evolution.tree.TypeChangeCountLogger'>
-                <multiTypeTree idref="tree"/>
-            </log>
-        </logger>
-
-        <logger logEvery="10000" fileName="Sanity.trees" mode="tree">
-            <log idref="tree"/>
+            <log spec="TreeHeightLogger" tree="@tree"/>
+            <log spec="TreeRootTypeLogger" multiTypeTree="@tree"/>
+            <log spec="TypeChangeCountLogger" multiTypeTree="@tree"/>
         </logger>
 
     </run>

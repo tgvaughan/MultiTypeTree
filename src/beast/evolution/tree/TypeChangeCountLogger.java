@@ -44,15 +44,13 @@ public class TypeChangeCountLogger extends Plugin implements Loggable {
 
     public TypeChangeCountLogger() { };
 	
-	@Override
+    @Override
     public void initAndValidate() {
         logEachDirection = logEachDirectionInput.get();
         mtTree = multiTypeTreeInput.get();
-    }
+    };
 
-    ;
-
-	@Override
+    @Override
     public void init(PrintStream out) throws Exception {
 
         String idString;

@@ -532,23 +532,6 @@ public class MultiTypeTree extends Tree {
         
         return nextNr+1;
     }
-
-    /**
-     * Obtain total number of non-single-child nodes in subtree under node.
-     *
-     * @param node Root of subtree.
-     * @return
-     */
-    private static int getTrueNodeCount(Node node) {
-        if (node.isLeaf())
-            return 1;
-
-        if (node.getChildCount()>1)
-            return 1+getTrueNodeCount(node.getLeft())
-                    +getTrueNodeCount(node.getRight());
-
-        return getTrueNodeCount(node.getLeft());
-    }
     
     /**
      * Obtain total number of type changes along nodes on tree.
