@@ -142,6 +142,8 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 *(mtTree.getTotalNumberOfChanges()-1 + mtTree.getInternalNodeCount()-1)
                 *(tmax-tmin)));
         
+        System.out.format("Birth: node=%d changeIdx=%d Cbirth=%d tmin=%g tmax=%g\n", node.getNr(), changeIdx, Cbirth, tmin, tmax);
+        
         return logHR;
     }
     
@@ -152,22 +154,26 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         if (changeIdx+1>=node.getChangeCount())
             return Double.NEGATIVE_INFINITY;
         
+        int changeTypeAbove = node.getChangeType(changeIdx+1);
+        
         // Reject if edge above (node,changeIdx+1) has the same colour as
-        // edge below (node,changeIdx):
+        // an edge below (node,changeIdx):
         if (changeIdx<1) {
-            if (node.getNodeType() != node.getChangeType(changeIdx+1))
+            illegalTypes.clear();
+            try {
+                getIllegalTypesRecurse(illegalTypes, (MultiTypeNode)node.getLeft(), node);
+                if (illegalTypes.contains(changeTypeAbove))
+                    return Double.NEGATIVE_INFINITY;
+            } catch (Exception ex) {
                 return Double.NEGATIVE_INFINITY;
+            }
         } else {
-            if (node.getChangeType(changeIdx-1) != node.getChangeType(changeIdx+1))
+            if (node.getChangeType(changeIdx-1) != changeTypeAbove)
                 return Double.NEGATIVE_INFINITY;
         }
 
         // Construct set of illegal change types for reverse move:
-        try {
-            getIllegalTypes(changeIdx, node);
-        } catch (Exception ex) {
-            return Double.NEGATIVE_INFINITY;
-        }
+        illegalTypes.add(changeTypeAbove);
         
         // Record number of legal change types for reverse move HR
         int Cbirth = mtTree.getNTypes() - illegalTypes.size();
@@ -188,14 +194,17 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 *(mtTree.getTotalNumberOfChanges()-1 + mtTree.getInternalNodeCount()-1)
                 *(tmax-tmin)));
         
-        
+        // Propagate type changes down subtree
+        retypeSubtree(changeIdx, node, changeTypeAbove);
+                
         // Remove dying type
         node.removeChange(changeIdx+1);
         
-        // Construct set of illegal change types for forward move:
-        
         // Forward move HR contribution
         logHR -= Math.log(1.0/(mtTree.getTotalNumberOfChanges()+1 + mtTree.getInternalNodeCount()-1));
+        
+        
+        System.out.format("Death: node=%d changeIdx=%d Cbirth=%d tmin=%g tmax=%g\n", node.getNr(), changeIdx, Cbirth, tmin, tmax);
         
         return logHR;
     }
