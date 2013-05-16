@@ -154,6 +154,13 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         
         // Reject if edge above (node,changeIdx+1) has the same colour as
         // edge below (node,changeIdx):
+        if (changeIdx<1) {
+            if (node.getNodeType() != node.getChangeType(changeIdx+1))
+                return Double.NEGATIVE_INFINITY;
+        } else {
+            if (node.getChangeType(changeIdx-1) != node.getChangeType(changeIdx+1))
+                return Double.NEGATIVE_INFINITY;
+        }
 
         // Construct set of illegal change types for reverse move:
         try {
@@ -181,36 +188,14 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 *(mtTree.getTotalNumberOfChanges()-1 + mtTree.getInternalNodeCount()-1)
                 *(tmax-tmin)));
         
-        // Remove dying type change WITHOUT MODIFYING NODE COLOURS:
-        // (Must do this here, otherwise the illegal types calculation will
-        // include the type of the dying move.  This means that changeIdx+1
-        // now refers to the change _above_ the removed change.)
+        
+        // Remove dying type
         node.removeChange(changeIdx+1);
         
         // Construct set of illegal change types for forward move:
-        try {
-            getIllegalTypes(changeIdx, node);
-        } catch (Exception ex) {
-            // Subtree contains leaf
-            return Double.NEGATIVE_INFINITY;
-        }
-        
-        // Record number of legal change types in forward move for HR
-        int Cdeath = mtTree.getNTypes() - illegalTypes.size();
-        
-        // Reject if no legal change types:
-        if (Cdeath == 0)
-            return Double.NEGATIVE_INFINITY;
-        
-        // Select legal change type:
-        int changeType = selectLegalChangeType();
-
-        // Implement subtree type changes
-        retypeSubtree(changeIdx, node, changeType);
         
         // Forward move HR contribution
-        logHR -= Math.log(1.0/(Cdeath
-                *(mtTree.getTotalNumberOfChanges()+1 + mtTree.getInternalNodeCount()-1)));        
+        logHR -= Math.log(1.0/(mtTree.getTotalNumberOfChanges()+1 + mtTree.getInternalNodeCount()-1));
         
         return logHR;
     }
