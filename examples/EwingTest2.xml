@@ -6,12 +6,12 @@
         <popSizes spec="RealParameter" value="7.0" dimension="3"/>
     </model>
 
-    <run spec="MCMC" id="mcmc" chainLength="200"> 
+    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
         <init spec='StructuredCoalescentMultiTypeTree'
                       id="tree" 
                       typeLabel="state" nTypes="3"
-		      leafTypes="0 1" migrationModel="@migmodel">
+		      leafTypes="0 1 2 0" migrationModel="@migmodel">
         </init>
       
         <state>
@@ -56,7 +56,7 @@
 	<operator spec="TypeBirthDeath" id="birthDeath"
 		  weight="1" multiTypeTree="@tree"/>
 
-        <logger logEvery="1" fileName="EwingTest2.log">
+        <logger logEvery="1000" fileName="EwingTest2.log">
             <model idref='P'/>
             <log idref="P"/>
             <log spec="TreeHeightLogger" tree="@tree"/>
@@ -64,11 +64,11 @@
             <log spec="TypeChangeCountLogger" multiTypeTree="@tree"/>
         </logger>
 
-        <logger logEvery="1" fileName="EwingTest2.trees" mode="tree">
+        <logger logEvery="1000" fileName="EwingTest2.trees" mode="tree">
             <log idref="tree"/>
         </logger>
 
-        <logger logEvery="1">
+        <logger logEvery="10000">
             <model idref='P'/>
             <log idref="P"/>
             <log spec="TreeHeightLogger" tree="@tree"/>
