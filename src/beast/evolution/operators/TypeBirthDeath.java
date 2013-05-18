@@ -20,32 +20,22 @@ import beast.core.Description;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-@Description("Migration birth/death operator from Ewing et al., 2004.")
+@Description("Migration birth/death operator from Ewing et al., 2004.  Note that"
+        + " this is an interpretation, which solves the irreversibility problem"
+        + " in the published description by only recolouring on a birth.")
 public class TypeBirthDeath extends MultiTypeTreeOperator {
 
     private Set<Integer> illegalTypes;
     
-    PrintStream treeOut, deetsOut;
-    
     @Override
     public void initAndValidate() {
         illegalTypes = new HashSet<Integer>();
-        try {
-            treeOut = new PrintStream("trees.txt");
-            deetsOut = new PrintStream("deets.txt");
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(TypeBirthDeath.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
     
     @Override
@@ -80,18 +70,21 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 event -= ((MultiTypeNode)thisNode).getChangeCount();
             }
         }
-        
-        double logHR;
-        boolean birth = Randomizer.nextBoolean();
-        if (birth) {
-            logHR = birthMove(node, changeIdx);
-        } else {
-            logHR = deathMove(node, changeIdx);
-        }
-        
-        return logHR;
+
+        // Perform either birth or death move
+        if (Randomizer.nextBoolean())
+            return birthMove(node, changeIdx);
+        else
+            return deathMove(node, changeIdx);
     }
     
+    /**
+     * Perform birth move.
+     * 
+     * @param node
+     * @param changeIdx
+     * @return log of move's HR
+     */
     private double birthMove(MultiTypeNode node, int changeIdx) {
         double logHR = 0.0;
  
@@ -142,11 +135,16 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
                 *(mtTree.getTotalNumberOfChanges()-1 + mtTree.getInternalNodeCount()-1)
                 *(tmax-tmin)));
         
-        //System.out.format("Birth: node=%d changeIdx=%d Cbirth=%d tmin=%g tmax=%g\n", node.getNr(), changeIdx, Cbirth, tmin, tmax);
-        
         return logHR;
     }
     
+    /**
+     * Death move.
+     * 
+     * @param node
+     * @param changeIdx
+     * @return log of move's HR.
+     */
     private double deathMove(MultiTypeNode node, int changeIdx) {
         double logHR = 0.0;
         
@@ -161,7 +159,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         illegalTypes.clear();
         if (changeIdx<0) {
             try {
-                getIllegalTypesRecurse(illegalTypes, (MultiTypeNode)node.getLeft(), node);
+                getIllegalTypesRecurse(illegalTypes, (MultiTypeNode)node, (MultiTypeNode)node.getParent());
                 if (illegalTypes.contains(changeTypeAbove))
                     return Double.NEGATIVE_INFINITY;
             } catch (Exception ex) {
@@ -210,9 +208,6 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         logHR -= Math.log(1.0/(
                 mtTree.getTotalNumberOfChanges()+1
                 +mtTree.getInternalNodeCount()-1));
-        
-        
-        //System.out.format("Death: node=%d changeIdx=%d Cbirth=%d tmin=%g tmax=%g\n", node.getNr(), changeIdx, Cbirth, tmin, tmax);
         
         return logHR;
     }

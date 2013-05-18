@@ -27,14 +27,12 @@
 
 
 	<!-- Tree operators -->
-        <!--
 	<operator spec='TypedWilsonBaldingEasy' id="TWB" weight="1"
               multiTypeTree="@tree"/>
 	<operator spec='TypedSubtreeExchangeEasy' id="TSX" weight="1"
 		  multiTypeTree='@tree' isNarrow="true"/>
 	<operator spec='MultiTypeUniform' weight="1"
 		  multiTypeTree='@tree'/>
-        -->
 
 	<!-- Colour operators -->
 

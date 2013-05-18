@@ -11,7 +11,7 @@
         <init spec='StructuredCoalescentMultiTypeTree'
                       id="tree" 
                       typeLabel="state" nTypes="3"
-		      leafTypes="0 1" migrationModel="@migmodel">
+		      leafTypes="0 1 2 0" migrationModel="@migmodel">
         </init>
       
         <state>
@@ -34,15 +34,14 @@
 		  rootScaleFactor="0.8"
 		  migrationModel="@migmodel" rootOnly="true"/>
                
-	<!--<operator spec="NodeShiftRetype" id="NSR2"
+	<operator spec="NodeShiftRetype" id="NSR2"
 		  weight="10" multiTypeTree="@tree"
-		  migrationModel="@migmodel" noRoot="true"/>-->
+		  migrationModel="@migmodel" noRoot="true"/>
 	
 	<operator spec="MultiTypeTreeScale" id="MTTS"
 		  weight="10" multiTypeTree="@tree"
 		  scaleFactor="0.8" useOldTreeScaler="true"/>
 
-        <!--
 	<operator spec="TypedWilsonBalding" id="CWB"
 		  weight="10" multiTypeTree="@tree"
 		  migrationModel="@migmodel" alpha="0.2"/>
@@ -50,7 +49,6 @@
 	<operator spec='TypedSubtreeExchange' id='STX'
 		  weight="10" multiTypeTree="@tree"
 		  migrationModel="@migmodel"/>
-                  -->
 
         <logger logEvery="100" fileName="Sanity.log">
             <model idref='P'/>
