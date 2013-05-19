@@ -84,11 +84,10 @@ public class TypedWilsonBaldingEasy extends MultiTypeTreeOperator {
 
             // Implement tree changes:
             disconnectBranch(srcNode);
-
             ((MultiTypeNode)destNode).clearChanges();
             connectBranchToRoot(srcNode, destNode, newTime);
             mtTree.setRoot(srcNodeP);
-
+            
             // Abort if colouring inconsistent:
             if (((MultiTypeNode)srcNode).getFinalType()
                     != ((MultiTypeNode)destNode).getFinalType())
@@ -96,6 +95,10 @@ public class TypedWilsonBaldingEasy extends MultiTypeTreeOperator {
             
             // Update colour of root node:
             ((MultiTypeNode)srcNodeP).setNodeType(((MultiTypeNode)srcNode).getFinalType());
+            
+            // Final test of tree validity:
+            if (!mtTree.isValid())
+                return Double.NEGATIVE_INFINITY;
             
             // Incorporate HR contribution of tree topology and node
             // height changes:
@@ -135,6 +138,10 @@ public class TypedWilsonBaldingEasy extends MultiTypeTreeOperator {
                     != ((MultiTypeNode)srcNode).getFinalType())
                 return Double.NEGATIVE_INFINITY;
             
+            // Final test of tree validity:
+            if (!mtTree.isValid())
+                return Double.NEGATIVE_INFINITY;
+            
             // Incorporate HR contribution of tree topology and node
             // height changes:
             return Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
@@ -160,6 +167,10 @@ public class TypedWilsonBaldingEasy extends MultiTypeTreeOperator {
         
         // Reject outright if new colouring inconsistent:
         if (((MultiTypeNode)srcNodeP).getNodeType() != ((MultiTypeNode)srcNode).getFinalType())
+            return Double.NEGATIVE_INFINITY;
+        
+        // Final test of tree validity:
+        if (!mtTree.isValid())
             return Double.NEGATIVE_INFINITY;
 
         // Incorporate HR contribution of tree topology and node

@@ -6,7 +6,7 @@
         <popSizes spec="RealParameter" value="7.0" dimension="4"/>
     </model>
 
-    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
+    <run spec="MCMC" id="mcmc" chainLength="20000000"> 
 
         <init spec='StructuredCoalescentMultiTypeTree'
                       id="tree" 
@@ -19,7 +19,7 @@
         </state>
         
         <distribution spec="CompoundDistribution" id="P">
-            <distribution id='scLikelihood' spec="StructuredCoalescentLikelihood" checkValidity="true">
+            <distribution id='scLikelihood' spec="StructuredCoalescentLikelihood">
                 <migrationModel idref="migmodel"/>
                 <multiTypeTree idref="tree"/>
             </distribution>

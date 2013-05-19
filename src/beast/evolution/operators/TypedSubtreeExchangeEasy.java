@@ -18,7 +18,6 @@ package beast.evolution.operators;
 
 import beast.core.Description;
 import beast.core.Input;
-import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
@@ -86,9 +85,8 @@ public class TypedSubtreeExchangeEasy extends MultiTypeTreeOperator {
         replace(srcNodeParent, srcNode, destNode);
         replace(destNodeParent, destNode, srcNode);
         
-        // Force rejection if colouring inconsistent:
-        if ((((MultiTypeNode)srcNode).getFinalType() != ((MultiTypeNode)destNodeParent).getNodeType())
-                || (((MultiTypeNode)destNode).getFinalType() != ((MultiTypeNode)srcNodeParent).getNodeType()))
+        // Force rejection if resulting multi-type tree invalid:
+        if (!mtTree.isValid())
             return Double.NEGATIVE_INFINITY;
         
         return 0.0;
