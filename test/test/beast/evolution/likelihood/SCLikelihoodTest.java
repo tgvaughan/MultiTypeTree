@@ -56,8 +56,7 @@ public class SCLikelihoodTest {
 		MigrationModel migrationModel = new MigrationModel();
 		migrationModel.initByName(
                         "rateMatrix", rateMatrix,
-                        "popSizes", popSizes,
-                        "rateMatrixIsBackward", false);
+                        "popSizes", popSizes);
 
 		// Set up likelihood instance:
 		StructuredCoalescentLikelihood likelihood = new StructuredCoalescentLikelihood();

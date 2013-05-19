@@ -17,10 +17,12 @@
 package test.beast.evolution.operators;
 
 import beast.core.MCMC;
+import beast.core.Operator;
 import beast.core.State;
 import beast.core.parameter.RealParameter;
 import beast.evolution.likelihood.StructuredCoalescentLikelihood;
 import beast.evolution.migrationmodel.MigrationModel;
+import beast.evolution.operators.MultiTypeTreeScale;
 import beast.evolution.operators.TypedWilsonBaldingRandom;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
 import beast.util.Randomizer;
@@ -32,14 +34,14 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class TWBR_Test {
+public class TWBR_TS_Test {
  
     @Test
     public void test1() throws Exception {
         System.out.println("TWBR_test 1");
         
         // Fix seed.
-        Randomizer.setSeed(53);
+        Randomizer.setSeed(42);
         
         // Assemble initial MultiTypeTree
         String newickStr =
@@ -72,27 +74,35 @@ public class TWBR_Test {
         state.initByName("stateNode", mtTree);
         
         // Set up operator:
-        TypedWilsonBaldingRandom operator = new TypedWilsonBaldingRandom();
-        operator.initByName(
+        TypedWilsonBaldingRandom operatorTWBR = new TypedWilsonBaldingRandom();
+        operatorTWBR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
                 "mu", 0.2,
                 "alpha", 0.2);
         
+        Operator operatorMTTS = new MultiTypeTreeScale();
+        operatorMTTS.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree,
+                "scaleFactor", 0.8,
+                "useOldTreeScaler", false);
+        
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
         logger.initByName(
                 "multiTypeTree", mtTree,
-                "burninFrac", 0.1,
+                "burninFrac", 0.2,
                 "logEvery", 1000);
         
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "10000000",
+                "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operator,
+                "operator", operatorTWBR,
+                "operator", operatorMTTS,
                 "logger", logger);
         
         // Run MCMC:
@@ -103,7 +113,7 @@ public class TWBR_Test {
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>1000)
+        boolean withinTol = (logger.getHeightESS()>500)
                 && (Math.abs(logger.getHeightMean()-19)<0.5)
                 && (Math.abs(logger.getHeightVar()-300)<50);
         
@@ -148,12 +158,19 @@ public class TWBR_Test {
         state.initByName("stateNode", mtTree);
         
         // Set up operator:
-        TypedWilsonBaldingRandom operator = new TypedWilsonBaldingRandom();
-        operator.initByName(
+        TypedWilsonBaldingRandom operatorTWBR = new TypedWilsonBaldingRandom();
+        operatorTWBR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
                 "mu", 0.2,
                 "alpha", 0.2);
+        
+        Operator operatorMTTS = new MultiTypeTreeScale();
+        operatorMTTS.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree,
+                "scaleFactor", 0.8,
+                "useOldTreeScaler", false);
         
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
@@ -165,10 +182,11 @@ public class TWBR_Test {
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "10000000",
+                "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operator,
+                "operator", operatorTWBR,
+                "operator", operatorMTTS,
                 "logger", logger);
         
         // Run MCMC:
@@ -179,8 +197,8 @@ public class TWBR_Test {
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>1000)
-                && (Math.abs(logger.getHeightMean()-23)<0.3)
+        boolean withinTol = (logger.getHeightESS()>200)
+                && (Math.abs(logger.getHeightMean()-23)<1)
                 && (Math.abs(logger.getHeightVar()-300)<30);
         
         Assert.assertTrue(withinTol);
