@@ -185,7 +185,7 @@ public class MultiTypeTreeScale extends MultiTypeTreeOperator {
                         indicatorsInput.get().get(pidx).getValue(i)) {
                     double oldValue = param.getValue(i);
                     param.setValue(i, oldValue*f);
-                    logHR += f;
+                    logHR += logf;
                 }
             } 
         }
@@ -198,7 +198,7 @@ public class MultiTypeTreeScale extends MultiTypeTreeOperator {
                         indicatorsInverseInput.get().get(pidx).getValue(i)) {
                     double oldValue = param.getValue(i);
                     param.setValue(i, oldValue/f);
-                    logHR -= f;
+                    logHR -= logf;
                 }
             }
         }
