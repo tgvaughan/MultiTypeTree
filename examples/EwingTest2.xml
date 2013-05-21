@@ -32,6 +32,7 @@
 	<operator spec='TypedSubtreeExchangeEasy' id="TSX" weight="1"
 		  multiTypeTree='@tree' isNarrow="true"/>
 	<operator spec='MultiTypeUniform' weight="1"
+		  includeRoot="true"
 		  multiTypeTree='@tree'/>
 
 	<!-- Colour operators -->
@@ -39,15 +40,10 @@
 	<operator spec="MultiTypeTreeScale" id="MTTS"
 		  weight="1" multiTypeTree="@tree"
 		  scaleFactor="1.1" useOldTreeScaler="true"/>
+
 	<operator spec="TypePairBirthDeath" id="PairBirthDeath"
                   weight="1" multiTypeTree="@tree"/>
 
-        <!--
-	<operator spec="TypeMergeSplit" id="mergeSplit"
-	    weight="1" multiTypeTree="@tree"
-	    includeRoot="true"/>
-        -->
-	
 	<operator spec="TypeMergeSplitExtended" id="mergeSplit"
 		  weight="1" multiTypeTree="@tree"/>
 

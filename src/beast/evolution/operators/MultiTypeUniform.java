@@ -36,7 +36,7 @@ public class MultiTypeUniform extends MultiTypeTreeOperator {
             "Allow modification of root node.", false);
     
     public Input<Double> rootScaleFactorInput = new Input<Double>("rootScaleFactor",
-            "Root scale factor.", 0.1);
+            "Root scale factor.", 0.9);
     
     @Override
     public void initAndValidate() {
@@ -51,21 +51,19 @@ public class MultiTypeUniform extends MultiTypeTreeOperator {
     public double proposal() {
 
         mtTree = multiTypeTreeInput.get();
-        
-        int nodeSetSize = mtTree.getInternalNodeCount();
-        if (!includeRootInput.get())
-            nodeSetSize -= 1;
 
         // Randomly select event on tree:
-        int event = Randomizer.nextInt(nodeSetSize + mtTree.getTotalNumberOfChanges());
+        int event = Randomizer.nextInt(mtTree.getInternalNodeCount() + mtTree.getTotalNumberOfChanges());
         
         
         MultiTypeNode node = null;
         int changeIdx = -1;
-        if (event<nodeSetSize)
+        if (event<mtTree.getInternalNodeCount()) {
             node = (MultiTypeNode)mtTree.getNode(mtTree.getLeafNodeCount() + event);
-        else {
-            event -= nodeSetSize;
+            if (!includeRootInput.get() && node.isRoot())
+                return Double.NEGATIVE_INFINITY;
+        } else {
+            event -= mtTree.getInternalNodeCount();
             for (Node thisNode : mtTree.getNodesAsArray()) {
                 if (thisNode.isRoot())
                     continue;                
@@ -98,14 +96,14 @@ public class MultiTypeUniform extends MultiTypeTreeOperator {
             } else {
                 // Reposition node randomly between closest events
                 double tmin = Math.max(((MultiTypeNode)node.getLeft()).getFinalChangeTime(),
-                        ((MultiTypeNode)node.getLeft()).getFinalChangeTime());
+                        ((MultiTypeNode)node.getRight()).getFinalChangeTime());
                 
                 double tmax = node.getChangeCount()>0
                         ? node.getChangeTime(0)
                         : node.getParent().getHeight();
                 
                 double u = Randomizer.nextDouble();
-                double tnew = u*tmin + (1-u)*tmax;
+                double tnew = u*tmin + (1.0-u)*tmax;
                 
                 node.setHeight(tnew);
                 return 0.0;
