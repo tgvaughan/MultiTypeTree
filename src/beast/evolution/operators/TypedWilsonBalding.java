@@ -185,7 +185,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
 
         Node parent = srcNode.getParent();
 
-        // This check is important in avoiding situations where it is
+        // This check is important for avoiding situations where it is
         // impossible to choose a valid destNode:
         if (parent.isRoot()) {
 
@@ -216,7 +216,6 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
                 ||destNode.getParent()==srcNode.getParent())
             return true;
 
-        Node srcNodeP = srcNode.getParent();
         Node destNodeP = destNode.getParent();
 
         if (destNodeP!=null&&(destNodeP.getHeight()<=srcNode.getHeight()))
@@ -224,4 +223,53 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
 
         return false;
     }
+    
+    /**
+     * Retype branches with nChanges between srcNode and the root (srcNode's
+     * parent) and nChangesSister between the root and srcNode's sister.
+     *
+     * @param srcNode
+     * @return Probability of new state.
+     */
+    private double retypeRootBranches(Node srcNode) {
+        
+        double logProb = 0.0;
+
+        Node srcNodeP = srcNode.getParent();
+        Node srcNodeS = getOtherChild(srcNodeP, srcNode);
+
+        // Select new root colour:
+        ((MultiTypeNode)srcNodeP).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
+
+        // Recolour branches conditional on root type:
+        logProb += retypeBranch(srcNode);
+        logProb += retypeBranch(srcNodeS);
+
+        // Return probability of new colouring given boundary conditions:
+        return logProb;
+    }
+    
+    
+    /**
+     * Obtain joint probability of typing along branches between srcNode and
+     * the root, the sister of srcNode and the root, and the node type of the
+     * root.
+     *
+     * @param srcNode
+     * @return
+     */
+    protected double getRootBranchTypeProb(Node srcNode) {
+        
+        double logProb = 0.0;
+
+        Node srcNodeP = srcNode.getParent();
+        Node srcNodeS = getOtherChild(srcNodeP, srcNode);
+
+        // Probability of branch types conditional on node types:
+        logProb += getBranchTypeProb(srcNode);
+        logProb += getBranchTypeProb(srcNodeS);
+
+        return logProb;
+    }
+    
 }

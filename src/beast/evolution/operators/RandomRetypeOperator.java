@@ -78,30 +78,6 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
     }
 
     /**
-     * Retype branches between srcNode and the root (srcNode's
-     * parent) and between the root and srcNode's sister with a rate fixed
-     * by the tuning parameter mu.
-     *
-     * @param srcNode
-     * @param nChangesNode
-     * @param nChangesSister
-     * @return Probability of branch typing.
-     */
-    protected double retypeRootBranches(Node srcNode) {
-
-        Node root = srcNode.getParent();
-        Node srcNodeSister = getOtherChild(root, srcNode);
-
-        // Recolour first branch:
-        double logP = retypeBranch(srcNode);
-
-        // Adjust colour of root node:
-        ((MultiTypeNode)root).setNodeType(((MultiTypeNode)srcNode).getFinalType());
-
-        return logP + retypeBranch(srcNodeSister);
-    }
-
-    /**
      * Get probability of the colouring along the branch between srcNode
      * and its parent.
      * 
@@ -122,28 +98,4 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
             return -mu*T + n*Math.log(mu/(N-1));
     }
 
-    /**
-     * Get probability of the colouring along the branch between srcNode
-     * and its parent, and between that parent and srcNode's sister.
-     * @param srcNode
-     * @return 
-     */
-    protected double getRootBranchTypeProb(Node srcNode) {
-
-        Node srcNodeS = getOtherChild(srcNode.getParent(), srcNode);
-
-        double mu = muInput.get();
-        double T = 2.0 * srcNode.getParent().getHeight()
-                - srcNode.getHeight()
-                - srcNodeS.getHeight();
-        int n = ((MultiTypeNode)srcNode).getChangeCount()
-                + ((MultiTypeNode)srcNodeS).getChangeCount();
-        int N = mtTree.getNTypes();
-
-        if (N == 0)
-            return 0.0;
-        else
-            return -mu*T + n*Math.log(mu/(N-1));
-
-    }
 }

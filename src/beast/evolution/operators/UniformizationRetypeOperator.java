@@ -41,6 +41,8 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             + "(Default 10000.)",
             10000);
     
+    
+    
     /**
      * Retype branch between srcNode and its parent.  Uses the combined
      * uniformization/forward-backward approach of Fearnhead and Sherlock (2006)
@@ -73,7 +75,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         while (u1>0.0) {            
             nVirt += 1;
             
-            if (maxIterationsInput.get() != null && nVirt>maxIterationsInput.get()) {
+            if (nVirt>maxIterationsInput.get()) {
                 System.err.println("WARNING: Maximum number of iterations "
                         + "in uniformized branch recolouring operator exceeded. "
                         + "Rejecting move.");
@@ -147,44 +149,6 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     
     
     /**
-     * Retype branches with nChanges between srcNode and the root (srcNode's
-     * parent) and nChangesSister between the root and srcNode's sister.
-     *
-     * @param srcNode
-     * @return Probability of new state.
-     */
-    protected double retypeRootBranches(Node srcNode) {
-        
-        MigrationModel migrationModel = migrationModelInput.get();
-
-        double logProb = 0.0;
-
-        Node srcNodeP = srcNode.getParent();
-        Node srcNodeS = getOtherChild(srcNodeP, srcNode);
-
-        // Select new root colour:
-        double u = Randomizer.nextDouble()*migrationModel.getTotalPopSize();
-        int rootCol;
-        for (rootCol = 0; rootCol<mtTree.getNTypes(); rootCol++) {
-            u -= migrationModel.getPopSize(rootCol);
-            if (u<0)
-                break;
-        }
-        ((MultiTypeNode)srcNodeP).setNodeType(rootCol);
-
-        // Incorporate probability of choosing new root type:
-        logProb += Math.log(migrationModel.getPopSize(rootCol)
-                /migrationModel.getTotalPopSize());
-
-        // Recolour branches conditional on root type:
-        logProb += retypeBranch(srcNode);
-        logProb += retypeBranch(srcNodeS);
-
-        // Return probability of new colouring given boundary conditions:
-        return logProb;
-    }
-
-    /**
      * Obtain probability of the current migratory path above srcNode.
      *
      * @param srcNode
@@ -225,33 +189,4 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         return logProb;
     }
 
-    /**
-     * Obtain joint probability of typing along branches between srcNode and
-     * the root, the sister of srcNode and the root, and the node type of the
-     * root.
-     *
-     * @param srcNode
-     * @return
-     */
-    protected double getRootBranchTypeProb(Node srcNode) {
-        
-        MigrationModel migrationModel = migrationModelInput.get();
-
-        double logProb = 0.0;
-
-        Node srcNodeP = srcNode.getParent();
-        Node srcNodeS = getOtherChild(srcNodeP, srcNode);
-        int col_srcNodeP = ((MultiTypeNode)srcNodeP).getNodeType();
-
-        // Probability of choosing root type:
-        logProb += Math.log(migrationModel.getPopSize(col_srcNodeP)
-                /migrationModel.getTotalPopSize());
-
-        // Probability of branch types conditional on node types:
-        logProb += getBranchTypeProb(srcNode);
-        logProb += getBranchTypeProb(srcNodeS);
-
-        return logProb;
-    }
-    
 }
