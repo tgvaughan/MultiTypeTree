@@ -76,8 +76,16 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             double u = Randomizer.nextDouble()*Pba;
             double poisAcc = Math.exp(-muL);
             u -= poisAcc*migrationModel.getRpowElement(0, 1.0, typeEnd, typeStart);
-            while (u>0.0) {            
+            while (u>0.0) {
                 nVirt += 1;
+                
+                if (nVirt>1e6) {
+                    System.err.println("WARNING: direct P(n|a,b) sampler in "
+                            + "UniformizationRetypeOperator has exceeded 1e6 "
+                            + "iterations.  This should never happen! "
+                            + "Rejecting move.");
+                    return -1;
+                }
                 
                 poisAcc *= muL/nVirt;
                 u -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, typeEnd, typeStart);
@@ -112,7 +120,8 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         double muL = migrationModel.getMu()*L;        
         int nVirt = drawEventCount(type_srcNode, type_srcNodeP, muL, Pba, migrationModel);
         
-        //System.out.println(nVirt);
+        if (nVirt<0)
+            return Double.NEGATIVE_INFINITY;
         
         // Select times of virtual events:
         double[] times = new double[nVirt];
