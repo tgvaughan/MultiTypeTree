@@ -17,10 +17,14 @@
 package beast.evolution.operators;
 
 import beast.core.Input;
+import beast.core.State;
+import beast.core.parameter.RealParameter;
 import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
+import beast.evolution.tree.MultiTypeTreeFromNewick;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
+import java.io.PrintStream;
 import java.util.Arrays;
 
 /**
@@ -41,8 +45,45 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             + "(Default 10000.)",
             10000);
     
-    
-    
+    /**
+     * Sample the number of virtual events to occur along branch.
+     * @param typeStart Type at start (bottom) of branch
+     * @param typeEnd Type at end (top) of branch
+     * @param muL Expected unconditioned number of virtual events
+     * @param Pba Probability of final type given start type
+     * @param migrationModel Migration model to use.
+     * @return number of virtual events.
+     */
+    private int drawEventCount(int typeStart, int typeEnd, double muL, double Pba,
+            MigrationModel migrationModel) {
+        
+        int nVirt;
+        
+        if (false) {
+            
+            double P_b_given_na;
+            do {
+                nVirt = (int) Randomizer.nextPoisson(muL);
+            
+                P_b_given_na = migrationModel.getRpowElement(nVirt, 1.0, typeEnd, typeStart);
+            } while (Randomizer.nextDouble()>P_b_given_na);
+            
+        } else {
+
+            nVirt = 0;
+            double u = Randomizer.nextDouble()*Pba;
+            double poisAcc = Math.exp(-muL);
+            u -= poisAcc*migrationModel.getRpowElement(0, 1.0, typeEnd, typeStart);
+            while (u>0.0) {            
+                nVirt += 1;
+                
+                poisAcc *= muL/nVirt;
+                u -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, typeEnd, typeStart);
+            }
+        }
+        return nVirt;
+    }
+        
     /**
      * Retype branch between srcNode and its parent.  Uses the combined
      * uniformization/forward-backward approach of Fearnhead and Sherlock (2006)
@@ -67,25 +108,14 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         // Select number of virtual events:
         double Pba = migrationModel.getQexpElement(L, type_srcNodeP, type_srcNode);
         double muL = migrationModel.getMu()*L;        
-        
-        double u1 = Randomizer.nextDouble()*Pba;
-        int nVirt = 0;
-        double poisAcc = Math.exp(-muL);
-        u1 -= poisAcc*migrationModel.getRpowElement(0, 1.0, type_srcNodeP, type_srcNode);
-        while (u1>0.0) {            
-            nVirt += 1;
-            
-            if (nVirt>maxIterationsInput.get()) {
-                System.err.println("WARNING: Maximum number of iterations "
-                        + "in uniformized branch recolouring operator exceeded. "
-                        + "Rejecting move.");
-                return Double.NEGATIVE_INFINITY;
-            }
-            
-            poisAcc *= muL/nVirt;
-            u1 -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, type_srcNodeP, type_srcNode);
-        }
+        int nVirt = drawEventCount(type_srcNode, type_srcNodeP, muL, Pba, migrationModel);
 
+        // Reject move when sampling of virtual event count fails
+        if (nVirt<0)
+            throw new RuntimeException("Crap!");
+        
+        //System.out.println(nVirt);
+        
         // Select times of virtual events:
         double[] times = new double[nVirt];
         for (int i = 0; i<nVirt; i++)
@@ -187,6 +217,64 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
                 migrationModel.getQexpElement(L, col_srcNodeP, col_srcNode));
 
         return logProb;
+    }
+
+
+    /**
+     * Main method for testing.
+     * 
+     * @param args 
+     */
+    public static void main(String[] args) throws Exception {
+       
+        // Generate an ensemble of paths along a branch of a tree.
+        
+        // Assemble initial MultiTypeTree
+        String newickStr =
+                "((1[deme='1']:0.5)[deme='0']:0.5,2[deme='0']:1)[deme='0']:0;";
+        
+        MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
+        mtTree.initByName(
+                "newick", newickStr,
+                "typeLabel", "deme",
+                "nTypes", 2);
+        
+        // Assemble migration model:
+        RealParameter rateMatrix = new RealParameter("100 100");
+        RealParameter popSizes = new RealParameter("7.0 7.0");
+        MigrationModel migModel = new MigrationModel();
+        migModel.initByName(
+                "rateMatrix", rateMatrix,
+                "popSizes", popSizes);
+        
+        // Set up state:
+        State state = new State();
+        state.initByName("stateNode", mtTree);
+        
+        UniformizationRetypeOperator op = new UniformizationRetypeOperator() {
+            
+            @Override
+            public void initAndValidate() { };
+
+            @Override
+            public double proposal() {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        };
+        op.initByName(
+                "multiTypeTree", mtTree,
+                "migrationModel", migModel);
+        
+        op.mtTree = mtTree;
+        
+        PrintStream outfile = new PrintStream("counts.txt");
+        outfile.println("count");
+        for (int i=0; i<10; i++) {
+            MultiTypeNode srcNode = (MultiTypeNode)mtTree.getRoot().getLeft();
+            op.retypeBranch(srcNode);
+            outfile.println(srcNode.getChangeCount());
+        }
+        outfile.close();
     }
 
 }
