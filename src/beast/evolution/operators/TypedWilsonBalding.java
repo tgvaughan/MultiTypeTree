@@ -240,6 +240,9 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
 
         // Select new root colour:
         ((MultiTypeNode)srcNodeP).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
+        
+        // Incorporate probability of new root colour:
+        logProb += Math.log(1.0/mtTree.getNTypes());
 
         // Recolour branches conditional on root type:
         logProb += retypeBranch(srcNode);
@@ -264,6 +267,9 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
 
         Node srcNodeP = srcNode.getParent();
         Node srcNodeS = getOtherChild(srcNodeP, srcNode);
+        
+        // Probability of node type:
+        logProb += Math.log(1.0/mtTree.getNTypes());
 
         // Probability of branch types conditional on node types:
         logProb += getBranchTypeProb(srcNode);
