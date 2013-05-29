@@ -39,11 +39,10 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             "migrationModel",
             "Migration model for proposal distribution", Input.Validate.REQUIRED);
     
-    public Input<Integer> maxIterationsInput = new Input<Integer>(
-            "maxIterations",
-            "Places an upper bound on number of iterations before rejection. "
-            + "(Default 10000.)",
-            10000);
+    public Input<Integer> rejectThresholdInput = new Input<Integer>(
+            "rejectThreshold",
+            "Expected number of changes on branch above which safer but slower"
+            + " rejection sampling is used. (Default 20.)", 50);
     
     /**
      * Sample the number of virtual events to occur along branch.
@@ -59,7 +58,9 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         
         int nVirt;
         
-        if (false) {
+        if (muL>rejectThresholdInput.get()) {
+            // Rejection sample for large mu*L
+            // (Avoids numerical difficulties produced by direct method.)
             
             double P_b_given_na;
             do {
@@ -69,6 +70,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             } while (Randomizer.nextDouble()>P_b_given_na);
             
         } else {
+            // Direct sampling for smaller mu*L
 
             nVirt = 0;
             double u = Randomizer.nextDouble()*Pba;
@@ -109,10 +111,6 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         double Pba = migrationModel.getQexpElement(L, type_srcNodeP, type_srcNode);
         double muL = migrationModel.getMu()*L;        
         int nVirt = drawEventCount(type_srcNode, type_srcNodeP, muL, Pba, migrationModel);
-
-        // Reject move when sampling of virtual event count fails
-        if (nVirt<0)
-            throw new RuntimeException("Crap!");
         
         //System.out.println(nVirt);
         

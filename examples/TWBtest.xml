@@ -2,15 +2,15 @@
        namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree'>
 
     <model spec='beast.evolution.migrationmodel.MigrationModel' id="migmodel">
-        <rateMatrix spec='RealParameter' value="0.0 0.1 0.1 0.0" minordimension="2"/>
-        <popSizes spec="RealParameter" value="7.0 7.0"/>
+        <rateMatrix spec='RealParameter' value="0.05" dimension="12"/>
+        <popSizes spec="RealParameter" value="7.0" dimension="4"/>
     </model>
 
     <run spec="MCMC" id="mcmc" chainLength="10000000">
 
         <init spec='MultiTypeTreeFromNewick'
               id="tree"
-              typeLabel="deme" nTypes="2">
+              typeLabel="deme" nTypes="4">
             <input name='newick'>
                 ((1[deme='0']:1,2[deme='0']:1)[deme='0']:1,3[deme='0']:2)[deme='0']:0;                
             </input>
