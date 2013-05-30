@@ -22,11 +22,13 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Loggable;
 import beast.core.parameter.RealParameter;
-import cern.colt.matrix.DoubleMatrix2D;
-import cern.colt.matrix.impl.DenseDoubleMatrix2D;
-import cern.colt.matrix.linalg.Algebra;
-import cern.colt.matrix.linalg.EigenvalueDecomposition;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import org.jblas.ComplexDoubleMatrix;
+import org.jblas.DoubleMatrix;
+import org.jblas.Eigen;
+import org.jblas.MatrixFunctions;
 
 /**
  * Basic plugin describing a simple Markovian migration model, for use by
@@ -61,9 +63,8 @@ public class MigrationModel extends CalculationNode implements Loggable {
     private double totalPopSize;
     private double mu;
     private int nTypes;
-    private DoubleMatrix2D Q, R;
-    private EigenvalueDecomposition Qdecomp, Rdecomp;
-    private DoubleMatrix2D QVinv, RVinv;
+    private DoubleMatrix Q, R;
+    private List<DoubleMatrix> RpowN;
     
     private boolean rateMatrixIsSquare;
     
@@ -104,6 +105,10 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 rateMatrixIsSquare = false;
         }
         
+        // Initialise caching array for powers of uniformized
+        // transition matrix:
+        RpowN = new ArrayList<DoubleMatrix>();
+        
         dirty = true;
         updateMatrices();
     }
@@ -125,15 +130,15 @@ public class MigrationModel extends CalculationNode implements Loggable {
             totalPopSize += popSizes.getArrayValue(i);
 
         mu = 0.0;
-        Q = new DenseDoubleMatrix2D(nTypes, nTypes);
+        Q = new DoubleMatrix(nTypes, nTypes);
 
-        // Set up _symmetrized_ backward transition rate matrix:
+        // Set up backward transition rate matrix:
         for (int i = 0; i < nTypes; i++) {
-            Q.set(i, i, 0.0);
+            Q.put(i,i, 0.0);
             for (int j = 0; j < nTypes; j++)
                 if (i != j) {
-                    Q.set(j, i, 0.5*(getRate(j, i) + getRate(i,j)));
-                    Q.set(i, i, Q.get(i, i) - Q.get(j, i));
+                    Q.put(j, i, getRate(j, i));
+                    Q.put(i, i, Q.get(i, i) - Q.get(j, i));
                 }
 
             if (-Q.get(i, i) > mu)
@@ -141,22 +146,19 @@ public class MigrationModel extends CalculationNode implements Loggable {
         }
 
         // Set up uniformised backward transition rate matrix:
-        R = new DenseDoubleMatrix2D(nTypes, nTypes);
+        R = new DoubleMatrix(nTypes, nTypes);
         for (int i = 0; i < nTypes; i++)
             for (int j = 0; j < nTypes; j++) {
-                R.set(j, i, Q.get(j, i) / mu);
+                R.put(j, i, Q.get(j, i) / mu);
                 if (j == i)
-                    R.set(j, i, R.get(j, i) + 1.0);
+                    R.put(j, i, R.get(j, i) + 1.0);
             }
-
-        // Calculate eigenvalue decomps:
-        Qdecomp = new EigenvalueDecomposition(Q);
-        Rdecomp = new EigenvalueDecomposition(R);
-        QVinv = Algebra.DEFAULT.inverse(Qdecomp.getV());
-        RVinv = Algebra.DEFAULT.inverse(Rdecomp.getV());
         
-        dirty = false;
+        // Clear cached powers of R:
+        RpowN.clear();
+        RpowN.add(DoubleMatrix.eye(nTypes));
 
+        dirty = false;
     }
 
     /**
@@ -242,147 +244,30 @@ public class MigrationModel extends CalculationNode implements Loggable {
         updateMatrices();
         return mu;
     }
-
-    public double getQelement(int i, int j) {
+    
+    public DoubleMatrix getR() {
         updateMatrices();
-        return Q.get(i, j);
-    }
-
-    public double getRelement(int i, int j) {
-        updateMatrices();
-        return R.get(i, j);
-    }
-
-    /**
-     * Calculate exponential of the product factor*A, where A is the matrix with
-     * eigendecomp decomp and eigenvector matrix inverse Vinv.
-     *
-     * @param decomp
-     * @param Vinv
-     * @param factor
-     * @return exp(factor*A)
-     */
-    public DoubleMatrix2D getMatrixExp(EigenvalueDecomposition decomp,
-            DoubleMatrix2D Vinv, double factor) {
-        
-        DoubleMatrix2D V = decomp.getV();
-        DoubleMatrix2D D = decomp.getD().copy();
-
-        for (int i = 0; i < D.rows(); i++)
-            D.set(i, i, Math.exp(factor * D.get(i, i)));
-
-        // V*exp(factor*D)*Vinv:
-        return Algebra.DEFAULT.mult(Algebra.DEFAULT.mult(V, D), Vinv);
-    }
-
-    public DoubleMatrix2D getMatrixPow(EigenvalueDecomposition decomp,
-            DoubleMatrix2D Vinv, double power, double factor) {
-        
-        DoubleMatrix2D V = decomp.getV();
-        DoubleMatrix2D D = decomp.getD().copy();
-
-        for (int i = 0; i < D.rows(); i++)
-            D.set(i, i, Math.pow(factor * D.get(i, i), power));
-
-        return Algebra.DEFAULT.mult(Algebra.DEFAULT.mult(V, D), Vinv);
-    }
-
-    /**
-     * Calculate exp(factor*Q)
-     *
-     * @param factor
-     * @return exp(factor*Q)
-     */
-    public DoubleMatrix2D getQexp(double factor) {        
-        updateMatrices();
-        return getMatrixExp(Qdecomp, QVinv, factor);
-    }
-
-    /**
-     * Calculate (factor*Q)^power
-     *
-     * @param power
-     * @param factor
-     * @return (factor*Q)^power
-     */
-    public DoubleMatrix2D getQpow(double power, double factor) {
-        updateMatrices();
-        return getMatrixPow(Qdecomp, QVinv, power, factor);
-    }
-
-    /**
-     * Obtain element (i,j) of exp(factor*Q).
-     *
-     * @param factor
-     * @param i
-     * @param j
-     * @return [exp(factor*Q)]_ij
-     */
-    public double getQexpElement(double factor, int i, int j) {
-        return getQexp(factor).get(i, j);
-    }
-
-    /**
-     * Obtain element (i,j) of (factor*Q)^power.
-     *
-     * @param power
-     * @param factor
-     * @param i
-     * @param j
-     * @return [(factor*Q)^power]_ij
-     */
-    public double getQpowElement(double power, double factor, int i, int j) {
-        return getQpow(power, factor).get(i, j);
-    }
-
-    /**
-     * Calculate exp(factor*R).
-     *
-     * @param factor
-     * @return exp(factor*R)
-     */
-    public DoubleMatrix2D getRexp(double factor) {
-        updateMatrices();
-        return getMatrixExp(Rdecomp, RVinv, factor);
-    }
-
-    /**
-     * Calculate (factor*R)^power.
-     *
-     * @param power
-     * @param factor
-     * @return (factor*R)^power
-     */
-    public DoubleMatrix2D getRpow(double power, double factor) {
-        updateMatrices();
-        return getMatrixPow(Rdecomp, RVinv, power, factor);
-    }
-
-    /**
-     * Calculate element (i,j) of exp(factor*R).
-     *
-     * @param factor
-     * @param i
-     * @param j
-     * @return [exp(factor*R)_ij
-     */
-    public double getRexpElement(double factor, int i, int j) {
-        return getRexp(factor).get(i, j);
-    }
-
-    /**
-     * Calculate element (i,j) of (factor*R)^power.
-     *
-     * @param power
-     * @param factor
-     * @param i
-     * @param j
-     * @return [(factor*R)^power]_ij
-     */
-    public double getRpowElement(double power, double factor, int i, int j) {
-        return getRpow(power, factor).get(i, j);
+        return R;
     }
     
+    public DoubleMatrix getQ() {
+        updateMatrices();
+        return Q;
+    }
+    
+    public DoubleMatrix getRpowN(int n) {
+        updateMatrices();
+        
+        if (n>=RpowN.size()) {
+            int startN = RpowN.size();
+            for (int i=startN; i<=n; i++) {
+                RpowN.add(RpowN.get(i-1).mmul(R));
+            }
+        }
+        
+        return RpowN.get(n);
+    }
+
     /**
      * CalculationNode implementations *
      */
@@ -397,17 +282,6 @@ public class MigrationModel extends CalculationNode implements Loggable {
     protected void restore() {
         dirty = true;
         super.restore();
-    }
-
-    /**
-     * Main method for debugging only.
-     *
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) {
-
-
     }
 
     /*
@@ -470,5 +344,23 @@ public class MigrationModel extends CalculationNode implements Loggable {
 
     @Override
     public void close(PrintStream out) {
+    }
+    
+    /**
+     *
+     * @param args
+     */
+    public static void main (String [] args) {
+        
+        int n=10;
+        DoubleMatrix Q = new DoubleMatrix(n, n);
+        for (int i=0; i<n; i++) {
+            for (int j=0; j<n; j++) {
+                Q.put(i, j, i*n+j);
+            }
+        }
+        MatrixFunctions.expm(Q.mul(0.001)).print();
+        Q.print();
+        
     }
 }
