@@ -80,6 +80,9 @@ public class MigrationModel extends CalculationNode implements Loggable {
         nTypes = popSizes.getDimension();
         rateMatrix = rateMatrixInput.get();
         
+        rateMatrix.setLower(0.0);
+        popSizes.setLower(0.0);
+        
         if (uniformInitialRateInput.get() != null) {
             
             double rate = uniformInitialRateInput.get();

@@ -289,7 +289,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         
         PrintStream outfile = new PrintStream("counts.txt");
         outfile.println("count");
-        for (int i=0; i<1000; i++) {
+        for (int i=0; i<10000; i++) {
             MultiTypeNode srcNode = (MultiTypeNode)mtTree.getRoot().getLeft();
             op.retypeBranch(srcNode);
             outfile.println(srcNode.getChangeCount());
