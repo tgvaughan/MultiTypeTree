@@ -45,6 +45,10 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             "Expected number of changes on branch above which safer but slower"
             + " rejection sampling is used. (Default 20.)", 50);
     
+    public Input<Boolean> useSymmetrizedRatesInput = new Input<Boolean>(
+            "useSymmetrizedRates",
+            "Use symmetrized rate matrix to propose migration paths.", true);
+    
     /**
      * Sample the number of virtual events to occur along branch.
      * @param typeStart Type at start (bottom) of branch
@@ -55,7 +59,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
      * @return number of virtual events.
      */
     private int drawEventCount(int typeStart, int typeEnd, double muL, double Pba,
-            MigrationModel migrationModel) {
+            MigrationModel migrationModel, boolean sym) {
         
         int nVirt;
 
@@ -69,9 +73,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             do {
                 nVirt = (int) Randomizer.nextPoisson(muL);
 
-                P_b_given_na = migrationModel.getRpowN(nVirt).get(typeEnd, typeStart);
-                
-               // P_b_given_na = migrationModel.getRpowElement(nVirt, 1.0, typeEnd, typeStart);
+                P_b_given_na = migrationModel.getRpowN(nVirt,sym).get(typeEnd, typeStart);
                 
             } while (Randomizer.nextDouble()>P_b_given_na);
             
@@ -81,8 +83,8 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             nVirt = 0;
             double u = Randomizer.nextDouble()*Pba;
             double poisAcc = Math.exp(-muL);
-            //u -= poisAcc*migrationModel.getRpowElement(0, 1.0, typeEnd, typeStart);
-            u -= poisAcc*migrationModel.getRpowN(0).get(typeEnd, typeStart);
+            u -= poisAcc*migrationModel.getRpowN(0,
+                    useSymmetrizedRatesInput.get()).get(typeEnd, typeStart);
             while (u>0.0) {
                 nVirt += 1;
                 
@@ -96,7 +98,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
                 
                 poisAcc *= muL/nVirt;
                 //u -= poisAcc*migrationModel.getRpowElement(nVirt, 1.0, typeEnd, typeStart);
-                u -= poisAcc*migrationModel.getRpowN(nVirt).get(typeEnd, typeStart);
+                u -= poisAcc*migrationModel.getRpowN(nVirt,sym).get(typeEnd, typeStart);
             }
         }
         return nVirt;
@@ -112,6 +114,8 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
      */
     protected double retypeBranch(Node srcNode) {
         
+        boolean sym = useSymmetrizedRatesInput.get();
+        
         MigrationModel migrationModel = migrationModelInput.get();
 
         Node srcNodeP = srcNode.getParent();
@@ -124,11 +128,14 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         int type_srcNodeP = ((MultiTypeNode)srcNodeP).getNodeType();
 
         // Pre-calculate some stuff:
-        double Pba = MatrixFunctions.expm(migrationModel.getQ().mul(L)).get(type_srcNodeP,type_srcNode);
-        double muL = migrationModel.getMu()*L;
+        double Pba = MatrixFunctions.expm(
+                migrationModel.getQ(sym)
+                .mul(L)).get(type_srcNodeP,type_srcNode);
+        double muL = migrationModel.getMu(sym)*L;
         
         // Select number of virtual events:
-        int nVirt = drawEventCount(type_srcNode, type_srcNodeP, muL, Pba, migrationModel);
+        int nVirt = drawEventCount(type_srcNode, type_srcNodeP, muL, Pba,
+                migrationModel, sym);
         
         if (nVirt<0)
             return Double.NEGATIVE_INFINITY;
@@ -144,11 +151,11 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         int lastType = type_srcNodeP;
         for (int i = nVirt; i>=1; i--) {
             double u2 = Randomizer.nextDouble()
-                    *migrationModel.getRpowN(i).get(lastType, type_srcNode);
+                    *migrationModel.getRpowN(i, sym).get(lastType, type_srcNode);
             int c;
             for (c = 0; c<mtTree.getNTypes(); c++) {
-                u2 -= migrationModel.getR().get(lastType, c)
-                        *migrationModel.getRpowN(i-1).get(c, type_srcNode);
+                u2 -= migrationModel.getR(sym).get(lastType, c)
+                        *migrationModel.getRpowN(i-1, sym).get(c, type_srcNode);
                 if (u2<0.0)
                     break;
             }
@@ -178,14 +185,14 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
                 ((MultiTypeNode)srcNode).addChange(nextType, times[i]);
 
                 // Add probability contribution:
-                logProb += migrationModel.getQ().get(lastType, lastType)*(times[i]-lastTime)
-                        +Math.log(migrationModel.getQ().get(nextType, lastType));
+                logProb += migrationModel.getQ(sym).get(lastType, lastType)*(times[i]-lastTime)
+                        +Math.log(migrationModel.getQ(sym).get(nextType, lastType));
 
                 lastType = nextType;
                 lastTime = times[i];
             }
         }
-        logProb += migrationModel.getQ().get(lastType, lastType)*(t_srcNodeP-lastTime);
+        logProb += migrationModel.getQ(sym).get(lastType, lastType)*(t_srcNodeP-lastTime);
 
         // Adjust probability to account for end condition:
         logProb -= Math.log(Pba);
@@ -204,6 +211,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     protected double getBranchTypeProb(Node srcNode) {
         
         MigrationModel migrationModel = migrationModelInput.get();
+        boolean sym = useSymmetrizedRatesInput.get();
 
         double logProb = 0.0;
 
@@ -221,21 +229,19 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             double thisTime = ((MultiTypeNode)srcNode).getChangeTime(i);
             int thisCol = ((MultiTypeNode)srcNode).getChangeType(i);
 
-            logProb += (thisTime-lastTime)*migrationModel.getQ().get(lastCol, lastCol)
-                    +Math.log(migrationModel.getQ().get(thisCol, lastCol));
+            logProb += (thisTime-lastTime)*migrationModel.getQ(sym).get(lastCol, lastCol)
+                    +Math.log(migrationModel.getQ(sym).get(thisCol, lastCol));
 
             lastTime = thisTime;
             lastCol = thisCol;
         }
-        logProb += (t_srcNodeP-lastTime)*migrationModel.getQ().get(lastCol, lastCol);
+        logProb += (t_srcNodeP-lastTime)*migrationModel.getQ(sym).get(lastCol, lastCol);
 
         // Adjust to account for end condition of path:
         double Pba = MatrixFunctions.expm(
-                migrationModel.getQ().mul(L)).get(col_srcNodeP, col_srcNode);
+                migrationModel.getQ(sym).mul(L)).get(col_srcNodeP, col_srcNode);
         logProb -= Math.log(Pba);
                 
-                //migrationModel.getQ().expElement(L, col_srcNodeP, col_srcNode));
-
         return logProb;
     }
 

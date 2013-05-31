@@ -363,7 +363,13 @@ t64=3">
  	      weight="10" multiTypeTree="@tree"
  	      scaleFactor="0.98" useOldTreeScaler="true">
      </operator>
-     
+
+     <operator spec="TypePairBirthDeath" id="PairBirthDeath"
+	       weight="10" multiTypeTree="@tree"/>
+
+     <operator spec="TypeMergeSplitExtended" id="mergeSplit"
+	       weight="10" multiTypeTree="@tree"/>
+
 
      <!-- Loggers -->
      

@@ -61,10 +61,11 @@ public class MigrationModel extends CalculationNode implements Loggable {
     
     private RealParameter rateMatrix, popSizes;
     private double totalPopSize;
-    private double mu;
+    private double mu, muSym;
     private int nTypes;
     private DoubleMatrix Q, R;
-    private List<DoubleMatrix> RpowN;
+    private DoubleMatrix Qsym, Rsym;
+    private List<DoubleMatrix> RpowN, RsymPowN;
     
     private boolean rateMatrixIsSquare;
     
@@ -111,11 +112,12 @@ public class MigrationModel extends CalculationNode implements Loggable {
         // Initialise caching array for powers of uniformized
         // transition matrix:
         RpowN = new ArrayList<DoubleMatrix>();
+        RsymPowN = new ArrayList<DoubleMatrix>();
         
         dirty = true;
         updateMatrices();
     }
-
+    
     /**
      * Ensure all local fields including matrices and eigenvalue decomposition
      * objects are consistent with current values held by inputs.
@@ -133,33 +135,51 @@ public class MigrationModel extends CalculationNode implements Loggable {
             totalPopSize += popSizes.getArrayValue(i);
 
         mu = 0.0;
+        muSym = 0.0;
         Q = new DoubleMatrix(nTypes, nTypes);
+        Qsym = new DoubleMatrix(nTypes, nTypes);
 
-        // Set up backward transition rate matrix:
+        // Set up backward transition rate matrix Q and symmetrized backward
+        // transition rate matrix Qsym:
         for (int i = 0; i < nTypes; i++) {
             Q.put(i,i, 0.0);
+            Qsym.put(i,i, 0.0);
             for (int j = 0; j < nTypes; j++)
                 if (i != j) {
                     Q.put(j, i, getRate(j, i));
                     Q.put(i, i, Q.get(i, i) - Q.get(j, i));
+                    
+                    Qsym.put(j, i, 0.5*(getRate(j, i) + getRate(i,j)));
+                    Qsym.put(i, i, Qsym.get(i, i) - Qsym.get(j, i));
                 }
 
             if (-Q.get(i, i) > mu)
                 mu = -Q.get(i, i);
+            
+            if (-Qsym.get(i,i) > muSym)
+                muSym = -Qsym.get(i,i);
         }
 
-        // Set up uniformised backward transition rate matrix:
+        // Set up uniformised backward transition rate matrices R and Rsym:
         R = new DoubleMatrix(nTypes, nTypes);
+        Rsym = new DoubleMatrix(nTypes, nTypes);
         for (int i = 0; i < nTypes; i++)
             for (int j = 0; j < nTypes; j++) {
                 R.put(j, i, Q.get(j, i) / mu);
-                if (j == i)
+                Rsym.put(j,i, Qsym.get(j,i)/muSym);
+                if (j == i) {
                     R.put(j, i, R.get(j, i) + 1.0);
+                    Rsym.put(j, i, Rsym.get(j, i) + 1.0);
+                }
             }
         
-        // Clear cached powers of R:
+        // Clear cached powers of R and Rsym:
         RpowN.clear();
+        RsymPowN.clear();
+        
+        // Power sequences initially contain R^0 = I
         RpowN.add(DoubleMatrix.eye(nTypes));
+        RsymPowN.add(DoubleMatrix.eye(nTypes));
 
         dirty = false;
     }
@@ -243,32 +263,55 @@ public class MigrationModel extends CalculationNode implements Loggable {
         return totalPopSize;
     }
 
-    public double getMu() {
+    public double getMu(boolean symmetric) {
         updateMatrices();
-        return mu;
+        if (symmetric)
+            return muSym;
+        else
+            return mu;
     }
     
-    public DoubleMatrix getR() {
+    public DoubleMatrix getR(boolean symmetric) {
         updateMatrices();
-        return R;
+        if (symmetric)
+            return Rsym;
+        else
+            return R;
     }
     
-    public DoubleMatrix getQ() {
+    public DoubleMatrix getQ(boolean symmetric) {
         updateMatrices();
-        return Q;
+        if (symmetric)
+            return Qsym;
+        else
+            return Q;
     }
     
-    public DoubleMatrix getRpowN(int n) {
+    public DoubleMatrix getRpowN(int n, boolean symmetric) {
         updateMatrices();
         
-        if (n>=RpowN.size()) {
-            int startN = RpowN.size();
-            for (int i=startN; i<=n; i++) {
-                RpowN.add(RpowN.get(i-1).mmul(R));
+        if (symmetric) {
+                    
+            if (n>=RsymPowN.size()) {
+                int startN = RsymPowN.size();
+                for (int i=startN; i<=n; i++) {
+                    RsymPowN.add(RsymPowN.get(i-1).mmul(Rsym));
+                }
             }
-        }
         
-        return RpowN.get(n);
+            return RsymPowN.get(n);
+            
+        } else {
+        
+            if (n>=RpowN.size()) {
+                int startN = RpowN.size();
+                for (int i=startN; i<=n; i++) {
+                    RpowN.add(RpowN.get(i-1).mmul(R));
+                }
+            }
+        
+            return RpowN.get(n);
+        }
     }
 
     /**
