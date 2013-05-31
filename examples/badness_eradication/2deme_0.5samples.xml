@@ -318,10 +318,6 @@ t64=3">
        <down idref="rateMatrix"/>
      </operator>
 
-     <operator spec="DeltaExchangeOperator" id="migrationExchanger"
-	       parameter="@rateMatrix"
-	       delta="0.1" weight="1"/>
-
 
      <!-- Multi-type tree operators -->
 
@@ -365,10 +361,10 @@ t64=3">
      </operator>
 
      <operator spec="TypePairBirthDeath" id="PairBirthDeath"
-	       weight="10" multiTypeTree="@tree"/>
+	       weight="0" multiTypeTree="@tree"/>
 
      <operator spec="TypeMergeSplitExtended" id="mergeSplit"
-	       weight="10" multiTypeTree="@tree"/>
+	       weight="0" multiTypeTree="@tree"/>
 
 
      <!-- Loggers -->
