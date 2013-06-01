@@ -47,7 +47,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     
     public Input<Boolean> useSymmetrizedRatesInput = new Input<Boolean>(
             "useSymmetrizedRates",
-            "Use symmetrized rate matrix to propose migration paths.", true);
+            "Use symmetrized rate matrix to propose migration paths.", false);
     
     /**
      * Sample the number of virtual events to occur along branch.
@@ -250,17 +250,20 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         
         // Assemble initial MultiTypeTree
         String newickStr =
-                "((1[deme='1']:0.5)[deme='0']:0.5,2[deme='0']:1)[deme='0']:0;";
+                "((1[deme='0']:50)[deme='1']:150,2[deme='1']:200)[deme='1']:0;";
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
                 "newick", newickStr,
                 "typeLabel", "deme",
-                "nTypes", 2);
+                "nTypes", 4);
         
         // Assemble migration model:
-        RealParameter rateMatrix = new RealParameter("100 1000");
-        RealParameter popSizes = new RealParameter("7.0 7.0");
+        RealParameter rateMatrix = new RealParameter(
+                "0.01 0.02 0.03 0.04 "
+                + "0.05 0.06 0.07 0.08 "
+                + "0.09 0.10 0.11 0.12");
+        RealParameter popSizes = new RealParameter("7.0 7.0 7.0 7.0");
         MigrationModel migModel = new MigrationModel();
         migModel.initByName(
                 "rateMatrix", rateMatrix,
@@ -287,12 +290,27 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         op.mtTree = mtTree;
         
         PrintStream outfile = new PrintStream("counts.txt");
-        outfile.println("count");
+        outfile.print("totalCounts");
+        for (int c=0; c<mtTree.getNTypes(); c++)
+            outfile.print(" counts" + c);
+        outfile.println();
+        
         for (int i=0; i<10000; i++) {
             MultiTypeNode srcNode = (MultiTypeNode)mtTree.getRoot().getLeft();
             op.retypeBranch(srcNode);
-            outfile.println(srcNode.getChangeCount());
+            outfile.print(srcNode.getChangeCount());
+            
+            int[] counts = new int[4];
+            for (int j=0; j<srcNode.getChangeCount(); j++) {
+                counts[srcNode.getChangeType(j)] += 1;
+            }
+            
+            for (int c=0; c<mtTree.getNTypes(); c++)
+                outfile.print(" " + counts[c]);
+            
+            outfile.println();
         }
+        
         outfile.close();
     }
 

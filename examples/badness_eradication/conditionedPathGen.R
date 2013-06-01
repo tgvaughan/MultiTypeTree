@@ -8,9 +8,11 @@ drawPath <- function (startType, m, L) {
   t <- 0
   d <- startType
   while (TRUE) {
+
+    t <- t + rexp(1,-Q[d,d])
     
-    t <- t + rexp(1,m[d+1])
-    d <- 1 - d
+    destTypes <- which(Q[d,]>=0)
+    d <- sample(destTypes, 1, prob=Q[d,destTypes])
 
     if (t>L) {
       break
@@ -43,13 +45,32 @@ drawConditionedPath <- function (startType, endType, m, L) {
   
 }
 
-generateCountEnsemble <- function (N, startType, endType, m, L) {
+generateEnsemble <- function (N, startType, endType, m, L) {
 
-  counts <- c()
+  totalCounts <- c()
+  counts <- list()
   
-  for (i in 1:N)
-    counts <- append(counts, length(drawConditionedPath(startType, endType, m, L)$times))
+  for (i in 1:N) {
+      path <- drawConditionedPath(startType, endType, m, L)
+      totalCounts <- append(totalCounts, length(path$times))
+      if (i == 1) {
+          for (c in 1:dim(m)[1])
+              counts[[c]] <- sum(path$types==c)
+      } else {
+          for (c in 1:dim(m)[1])
+              counts[[c]] <- append(counts[[c]], sum(path$types==c))
+      }
+  }
 
-  return (counts)
+  res <- list()
+  res$totalCounts <- totalCounts
+  res$counts <- counts
+  
+  return (res)
   
 }
+
+# Four-colour path generation
+Q = matrix(data=c(-0.210000, 0.010000, 0.020000, 0.030000, 0.040000, -0.200000, 0.050000, 0.060000, 0.070000, 0.080000, -0.190000, 0.090000, 0.100000, 0.110000, 0.120000, -0.180000), nrow=4, ncol=4, byrow=T)
+
+ensemble <- generateEnsemble(10000, 1, 2, Q, 200)

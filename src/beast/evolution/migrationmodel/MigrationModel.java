@@ -144,14 +144,15 @@ public class MigrationModel extends CalculationNode implements Loggable {
         for (int i = 0; i < nTypes; i++) {
             Q.put(i,i, 0.0);
             Qsym.put(i,i, 0.0);
-            for (int j = 0; j < nTypes; j++)
+            for (int j = 0; j < nTypes; j++) {
                 if (i != j) {
-                    Q.put(j, i, getRate(j, i));
-                    Q.put(i, i, Q.get(i, i) - Q.get(j, i));
+                    Q.put(i, j, getRate(i, j));
+                    Q.put(i, i, Q.get(i, i) - Q.get(i, j));
                     
-                    Qsym.put(j, i, 0.5*(getRate(j, i) + getRate(i,j)));
-                    Qsym.put(i, i, Qsym.get(i, i) - Qsym.get(j, i));
+                    Qsym.put(j, i, 0.5*(getRate(i, j) + getRate(j, i)));
+                    Qsym.put(i, i, Qsym.get(i, i) - Qsym.get(i, j));
                 }
+            }
 
             if (-Q.get(i, i) > mu)
                 mu = -Q.get(i, i);
@@ -160,18 +161,9 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 muSym = -Qsym.get(i,i);
         }
 
-        // Set up uniformised backward transition rate matrices R and Rsym:
-        R = new DoubleMatrix(nTypes, nTypes);
-        Rsym = new DoubleMatrix(nTypes, nTypes);
-        for (int i = 0; i < nTypes; i++)
-            for (int j = 0; j < nTypes; j++) {
-                R.put(j, i, Q.get(j, i) / mu);
-                Rsym.put(j,i, Qsym.get(j,i)/muSym);
-                if (j == i) {
-                    R.put(j, i, R.get(j, i) + 1.0);
-                    Rsym.put(j, i, Rsym.get(j, i) + 1.0);
-                }
-            }
+        // Set up uniformized backward transition rate matrices R and Rsym:
+        R = Q.mul(1.0/mu).add(DoubleMatrix.eye(nTypes));
+        Rsym = Qsym.mul(1.0/muSym).add(DoubleMatrix.eye(nTypes));
         
         // Clear cached powers of R and Rsym:
         RpowN.clear();
