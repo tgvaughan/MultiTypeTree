@@ -48,7 +48,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     
     public Input<Boolean> useSymmetrizedRatesInput = new Input<Boolean>(
             "useSymmetrizedRates",
-            "Use symmetrized rate matrix to propose migration paths.", true);
+            "Use symmetrized rate matrix to propose migration paths.", false);
     
     
     /**
@@ -132,8 +132,10 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
                 .mul(L)).get(type_srcNode,type_srcNodeP);
         
         // Catch for numerical errors
-        if (Pba>1.0 || Pba<0.0)
+        if (Pba>1.0 || Pba<0.0) {
+            System.err.println("Warning: matrix exponentiation resulted in rubbish.  Aborting move.");
             return Double.NEGATIVE_INFINITY;
+        }
             
         
         double muL = migrationModel.getMu(sym)*L;
@@ -245,8 +247,10 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
                 migrationModel.getQ(sym).mul(L)).get(col_srcNode, col_srcNodeP);
         
         // Catch for numerical errors:
-        if (Pba>1.0 || Pba < 0.0)
+        if (Pba>1.0 || Pba < 0.0) {
+            System.err.println("Warning: matrix exponentiation resulted in rubbish.  Aborting move.");
             return Double.NEGATIVE_INFINITY;
+        }
         
         logProb -= Math.log(Pba);
                 
