@@ -71,6 +71,13 @@ generateEnsemble <- function (N, startType, endType, m, L) {
 }
 
 # Four-colour path generation
-Q = matrix(data=c(-0.210000, 0.010000, 0.020000, 0.030000, 0.040000, -0.200000, 0.050000, 0.060000, 0.070000, 0.080000, -0.190000, 0.090000, 0.100000, 0.110000, 0.120000, -0.180000), nrow=4, ncol=4, byrow=T)
+Q = matrix(
+  data=c(
+    -0.25, 0.20, 0.02, 0.03,
+    0.04, -0.15, 0.05, 0.06,
+    0.07, 0.08, -0.24, 0.09,
+    0.10, 0.11, 0.12, -0.33
+    ),
+  nrow=4, ncol=4, byrow=T)
 
 ensemble <- generateEnsemble(10000, 1, 2, Q, 200)

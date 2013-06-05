@@ -149,7 +149,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
                     Q.put(i, j, getRate(i, j));
                     Q.put(i, i, Q.get(i, i) - Q.get(i, j));
                     
-                    Qsym.put(j, i, 0.5*(getRate(i, j) + getRate(j, i)));
+                    Qsym.put(i, j, 0.5*(getRate(i, j) + getRate(j, i)));
                     Qsym.put(i, i, Qsym.get(i, i) - Qsym.get(i, j));
                 }
             }
@@ -158,7 +158,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 mu = -Q.get(i, i);
             
             if (-Qsym.get(i,i) > muSym)
-                muSym = -Qsym.get(i,i);
+                muSym = -Qsym.get(i, i);
         }
 
         // Set up uniformized backward transition rate matrices R and Rsym:
@@ -385,6 +385,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
     }
     
     /**
+     * Main for debugging.
      *
      * @param args
      */
