@@ -71,12 +71,19 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             
             double P_b_given_na;
 
+            double envelope = 1.0;
+            
+            int tries = 0;
             do {
                 nVirt = (int) Randomizer.nextPoisson(muL);
 
                 P_b_given_na = migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd);
+                envelope = migrationModel.getRpowMax(sym).get(typeStart, typeEnd);
                 
-            } while (Randomizer.nextDouble()>P_b_given_na);
+                tries += 1;
+            } while (Randomizer.nextDouble()*envelope>P_b_given_na);
+            
+            //System.out.format("Tries = %d, muL = %g, nVirt = %d, P_b_given_na = %g, Pba = %g, envelope = %g\n", tries, muL, nVirt, P_b_given_na, Pba, envelope);
             
         } else {
             // Direct sampling for smaller mu*L

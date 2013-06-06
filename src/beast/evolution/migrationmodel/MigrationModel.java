@@ -66,6 +66,8 @@ public class MigrationModel extends CalculationNode implements Loggable {
     private DoubleMatrix Q, R;
     private DoubleMatrix Qsym, Rsym;
     private List<DoubleMatrix> RpowN, RsymPowN;
+    private DoubleMatrix RpowMax, RsymPowMax;
+    private boolean RpowSteady, RsymPowSteady;
     
     private boolean rateMatrixIsSquare;
     
@@ -165,13 +167,19 @@ public class MigrationModel extends CalculationNode implements Loggable {
         R = Q.mul(1.0/mu).add(DoubleMatrix.eye(nTypes));
         Rsym = Qsym.mul(1.0/muSym).add(DoubleMatrix.eye(nTypes));
         
-        // Clear cached powers of R and Rsym:
+        // Clear cached powers of R and Rsym and steady state flag:
         RpowN.clear();
         RsymPowN.clear();
+        
+        RpowSteady = false;
+        RsymPowSteady = false;
         
         // Power sequences initially contain R^0 = I
         RpowN.add(DoubleMatrix.eye(nTypes));
         RsymPowN.add(DoubleMatrix.eye(nTypes));
+        
+        RpowMax = DoubleMatrix.eye(nTypes);
+        RsymPowMax = DoubleMatrix.eye(nTypes);
 
         dirty = false;
     }
@@ -282,27 +290,71 @@ public class MigrationModel extends CalculationNode implements Loggable {
     public DoubleMatrix getRpowN(int n, boolean symmetric) {
         updateMatrices();
         
+        List <DoubleMatrix> matPowerList;
+        DoubleMatrix mat, matPowerMax;
         if (symmetric) {
-                    
-            if (n>=RsymPowN.size()) {
-                int startN = RsymPowN.size();
-                for (int i=startN; i<=n; i++) {
-                    RsymPowN.add(RsymPowN.get(i-1).mmul(Rsym));
-                }
-            }
-        
-            return RsymPowN.get(n);
-            
+            matPowerList = RsymPowN;
+            mat = Rsym;
+            matPowerMax = RsymPowMax;
         } else {
+            matPowerList = RpowN;
+            mat = R;
+            matPowerMax = RpowMax;
+        }
         
-            if (n>=RpowN.size()) {
-                int startN = RpowN.size();
-                for (int i=startN; i<=n; i++) {
-                    RpowN.add(RpowN.get(i-1).mmul(R));
+        if (n>=matPowerList.size()) {
+                
+            // Steady state of matrix iteration already reached
+            if ((symmetric && RsymPowSteady) || (!symmetric && RpowSteady)) {
+                //System.out.println("Assuming R SS.");
+                return matPowerList.get(matPowerList.size()-1);
+            }
+                
+            int startN = matPowerList.size();
+            for (int i=startN; i<=n; i++) {
+                matPowerList.add(matPowerList.get(i-1).mmul(mat));
+                
+                matPowerMax.maxi(matPowerList.get(i));
+                    
+                // Occasionally check whether matrix iteration has reached steady state
+                if (i%10 == 0) {
+                    double maxDiff = 0.0;
+                    for (double el : matPowerList.get(i).sub(matPowerList.get(i-1)).toArray())
+                        maxDiff = Math.max(maxDiff, Math.abs(el));
+                        
+                    if (!(maxDiff>1e-15)) {
+                        if (symmetric)
+                            RsymPowSteady = true;
+                        else
+                            RpowSteady = true;
+                        
+                        return matPowerList.get(i);
+                    }
                 }
             }
-        
-            return RpowN.get(n);
+        }
+        return matPowerList.get(n);
+    }
+    
+    /**
+     * Return matrix containing upper bounds on elements from the powers
+     * of R if known.  Returns a matrix of ones if steady state has not yet
+     * been reached.
+     * 
+     * @param symmetric
+     * @return Matrix of upper bounds.
+     */
+    public DoubleMatrix getRpowMax(boolean symmetric) {
+        if (symmetric) {
+            if (RsymPowSteady)
+                return RsymPowMax;
+            else
+                return DoubleMatrix.ones(nTypes, nTypes);
+        } else {
+            if (RpowSteady)
+                return RpowMax;
+            else
+                return DoubleMatrix.ones(nTypes, nTypes);
         }
     }
 
