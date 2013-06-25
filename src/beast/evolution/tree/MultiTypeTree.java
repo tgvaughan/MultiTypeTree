@@ -558,7 +558,7 @@ public class MultiTypeTree extends Tree {
      */
     @Override
     public String toString() {
-        return getFlattenedTree().getRoot().toNewick(null);
+        return getFlattenedTree().getRoot().toNewick();
     }
 
     /////////////////////////////////////////////////
@@ -655,7 +655,7 @@ public class MultiTypeTree extends Tree {
     public void log(int i, PrintStream printStream) {
         Tree flatTree = getFlattenedTree();
         printStream.print("tree STATE_"+i+" = ");
-        String sNewick = flatTree.getRoot().toNewick(null);
+        String sNewick = flatTree.getRoot().toNewick();
         printStream.print(sNewick);
         printStream.print(";");
 
