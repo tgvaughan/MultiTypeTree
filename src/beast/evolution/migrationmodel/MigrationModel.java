@@ -25,9 +25,7 @@ import beast.core.parameter.RealParameter;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import org.jblas.ComplexDoubleMatrix;
 import org.jblas.DoubleMatrix;
-import org.jblas.Eigen;
 import org.jblas.MatrixFunctions;
 
 /**

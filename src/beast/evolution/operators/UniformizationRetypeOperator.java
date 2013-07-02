@@ -26,7 +26,6 @@ import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 import java.io.PrintStream;
 import java.util.Arrays;
-import org.jblas.DoubleMatrix;
 import org.jblas.MatrixFunctions;
 
 /**
@@ -71,7 +70,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             
             double P_b_given_na;
 
-            double envelope = 1.0;
+            double envelope;
             
             int tries = 0;
             do {
