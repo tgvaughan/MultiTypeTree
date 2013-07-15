@@ -53,7 +53,12 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     /**
      * Sample the number of virtual events to occur along branch.
      * 
-     * General strategy here is to 
+     * General strategy here is to:
+     * 1. Draw u from Unif(0,1),
+     * 2. Starting from zero, evaluate P(n leq 0|a,b) up until n=thresh
+     * or P(n leq 0|a,b)>u.
+     * 3. If P(n leq 0|a,b) has exceeded u, use that n. If not, use rejection
+     * sampling to draw conditional on n being >= thresh.
      * 
      * @param typeStart Type at start (bottom) of branch
      * @param typeEnd Type at end (top) of branch
