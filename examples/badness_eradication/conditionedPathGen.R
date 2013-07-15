@@ -80,4 +80,4 @@ Q = matrix(
     ),
   nrow=4, ncol=4, byrow=T)
 
-ensemble <- generateEnsemble(10000, 1, 2, Q, 200)
+ensemble <- generateEnsemble(10000, 4, 2, Q, 200)

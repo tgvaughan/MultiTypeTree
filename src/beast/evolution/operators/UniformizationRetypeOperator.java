@@ -264,7 +264,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         
         // Assemble initial MultiTypeTree
         String newickStr =
-                "((1[deme='0']:50)[deme='1']:150,2[deme='1']:200)[deme='1']:0;";
+                "((1[deme='3']:50)[deme='1']:150,2[deme='1']:200)[deme='1']:0;";
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
