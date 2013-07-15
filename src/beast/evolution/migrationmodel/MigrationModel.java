@@ -343,6 +343,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
      * @return Matrix of upper bounds.
      */
     public DoubleMatrix getRpowMax(boolean symmetric) {
+        
         if (symmetric) {
             if (RsymPowSteady)
                 return RsymPowMax;
@@ -353,6 +354,27 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 return RpowMax;
             else
                 return DoubleMatrix.ones(nTypes, nTypes);
+        }
+    }
+    
+    
+    /**
+     * Power above which R is known to be steady.
+     * 
+     * @param symmetric
+     * @return index of first known steady element.
+     */
+    public int RpowSteadyN(boolean symmetric) {
+        if (symmetric) {
+            if (RsymPowSteady)
+                return RsymPowN.size();
+            else
+                return -1;
+        } else {
+            if (RpowSteady)
+                return RpowN.size();
+            else
+                return -1;
         }
     }
 

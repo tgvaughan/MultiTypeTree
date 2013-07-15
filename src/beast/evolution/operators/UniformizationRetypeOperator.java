@@ -52,6 +52,9 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     
     /**
      * Sample the number of virtual events to occur along branch.
+     * 
+     * General strategy here is to 
+     * 
      * @param typeStart Type at start (bottom) of branch
      * @param typeEnd Type at end (top) of branch
      * @param muL Expected unconditioned number of virtual events
@@ -64,51 +67,37 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         
         int nVirt;
 
-        if (muL>rejectThresholdInput.get()) {
-            // Rejection sample for large mu*L
-            // (Avoids numerical difficulties produced by direct method.)
+        double u = Randomizer.nextDouble();
+        double PLab = 0.0;
+        double acc = Math.exp(-muL)/Pba;
+        
+        for (nVirt=0; nVirt<rejectThresholdInput.get(); nVirt++) {
             
-            double P_b_given_na;
+            PLab += migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd)*acc;
+            
+            if (PLab>u)
+                return nVirt;
 
-            double envelope;
-            
-            int tries = 0;
+            acc *= muL/(double)(nVirt+1);
+        }
+        
+        int steadyN = migrationModel.RpowSteadyN(sym);
+        if (steadyN>=0 && steadyN < rejectThresholdInput.get()) {            
             do {
                 nVirt = (int) Randomizer.nextPoisson(muL);
-
-                P_b_given_na = migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd);
-                envelope = migrationModel.getRpowMax(sym).get(typeStart, typeEnd);
-                
-                tries += 1;
-            } while (Randomizer.nextDouble()*envelope>P_b_given_na);
-            
-            //System.out.format("Tries = %d, muL = %g, nVirt = %d, P_b_given_na = %g, Pba = %g, envelope = %g\n", tries, muL, nVirt, P_b_given_na, Pba, envelope);
-            
+            } while (nVirt < rejectThresholdInput.get());
         } else {
-            // Direct sampling for smaller mu*L
-            
-            nVirt = 0;
-            double u = Randomizer.nextDouble()*Pba;
-            double poisAcc = Math.exp(-muL);
-            u -= poisAcc*migrationModel.getRpowN(0, sym).get(typeStart, typeEnd);
-            while (u>0.0) {
-                nVirt += 1;
-                
-                if (nVirt>1e6) {
-                    System.err.println("WARNING: direct P(n|a,b) sampler in "
-                            + "UniformizationRetypeOperator has exceeded 1e6 "
-                            + "iterations.  This should never happen! "
-                            + "Rejecting move.");
-                    return -1;
-                }
-                
-                poisAcc *= muL/nVirt;
-                u -= poisAcc*migrationModel.getRpowN(nVirt,sym).get(typeStart, typeEnd);
-            }
+            do {
+                do {
+                    nVirt = (int) Randomizer.nextPoisson(muL);
+                } while (nVirt < rejectThresholdInput.get());
+            } while (Randomizer.nextDouble()
+                    > migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd) );
         }
+
         return nVirt;
     }
-        
+    
     /**
      * Retype branch between srcNode and its parent.  Uses the combined
      * uniformization/forward-backward approach of Fearnhead and Sherlock (2006)
