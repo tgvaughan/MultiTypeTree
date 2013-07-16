@@ -70,35 +70,32 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
     private int drawEventCount(int typeStart, int typeEnd, double muL, double Pba,
             MigrationModel migrationModel, boolean sym) {
         
-        int nVirt;
+        int nVirt = 0;
 
         double u = Randomizer.nextDouble();
-        double PLab = 0.0;
-        double acc = Math.exp(-muL)/Pba;
+        double P_low_given_ab = 0.0;
+        double acc = - muL - Math.log(Pba);
+        double log_muL = Math.log(muL);
         
-        for (nVirt=0; nVirt<rejectThresholdInput.get(); nVirt++) {
+        do {
+            //double offset = acc + nVirt*log_muL - Gamma.logGamma(nVirt+1);
+            P_low_given_ab += Math.exp(Math.log(migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd)) + acc);
             
-            PLab += migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd)*acc;
-            
-            if (PLab>u)
+            if (P_low_given_ab>u)
                 return nVirt;
 
-            acc *= muL/(double)(nVirt+1);
-        }
+            nVirt += 1;
+            acc += log_muL - Math.log(nVirt);
+            
+        } while (migrationModel.RpowSteadyN(sym)<0 || nVirt<migrationModel.RpowSteadyN(sym));
         
-        int steadyN = migrationModel.RpowSteadyN(sym);
-        if (steadyN>=0 && steadyN < rejectThresholdInput.get()) {            
-            do {
-                nVirt = (int) Randomizer.nextPoisson(muL);
-            } while (nVirt < rejectThresholdInput.get());
-        } else {
-            do {
-                do {
-                    nVirt = (int) Randomizer.nextPoisson(muL);
-                } while (nVirt < rejectThresholdInput.get());
-            } while (Randomizer.nextDouble()
-                    > migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd) );
-        }
+        int thresh = nVirt;
+        
+        // P_n_given_ab constant for n>= thresh: only need
+        // to sample P(n|n>=thresh)
+        do {
+            nVirt = (int) Randomizer.nextPoisson(muL);
+        } while (nVirt < thresh);
 
         return nVirt;
     }
@@ -127,6 +124,8 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         int type_srcNodeP = ((MultiTypeNode)srcNodeP).getNodeType();
 
         // Pre-calculate some stuff:
+        double muL = migrationModel.getMu(sym)*L;
+        
         double Pba = MatrixFunctions.expm(
                 migrationModel.getQ(sym)
                 .mul(L)).get(type_srcNode,type_srcNodeP);
@@ -137,8 +136,10 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             return Double.NEGATIVE_INFINITY;
         }
             
+        if (Pba == 0.0)
+            return Double.NEGATIVE_INFINITY;
         
-        double muL = migrationModel.getMu(sym)*L;
+
         
         // Select number of virtual events:
         int nVirt = drawEventCount(type_srcNode, type_srcNodeP, muL, Pba,
@@ -170,6 +171,20 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
                     fellThrough = false;
                     break;
                 }
+            }
+            
+            // Check for FB algorithm error:
+            if (fellThrough) {
+                
+                double sum1 = migrationModel.getRpowN(nVirt-i+1, sym).get(prevType, type_srcNodeP);
+                double sum2 = 0;
+                for (c = 0; c<mtTree.getNTypes(); c++) {
+                    sum2 += migrationModel.getR(sym).get(prevType,c)
+                            *migrationModel.getRpowN(nVirt-i, sym).get(c,type_srcNodeP);
+                }
+                
+                System.err.println("Warning: FB algorithm failure.  Aborting move.");
+                return Double.NEGATIVE_INFINITY;
             }
 
             types[i-1] = c;
