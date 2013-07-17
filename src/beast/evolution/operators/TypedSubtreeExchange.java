@@ -84,7 +84,11 @@ public class TypedSubtreeExchange extends UniformizationRetypeOperator {
         replace(destNodeParent, destNode, srcNode);
         
         // Recolour branches involved:
-        logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
+        try {
+            logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
+        } catch (NoValidPathException e) {
+            return Double.NEGATIVE_INFINITY;
+        }
         
         return logHR;
     }

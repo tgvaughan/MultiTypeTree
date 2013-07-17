@@ -52,11 +52,6 @@ public class MigrationModel extends CalculationNode implements Loggable {
             "Deme population sizes.",
             Validate.REQUIRED);
     
-    public Input<Double> uniformInitialRateInput = new Input<Double>(
-            "uniformInitialRate",
-            "Specify uniform rate with which to initialise matrix.  "
-            + "Overrides previous dimension and value of matrix.");
-    
     private RealParameter rateMatrix, popSizes;
     private double totalPopSize;
     private double mu, muSym;
@@ -83,21 +78,6 @@ public class MigrationModel extends CalculationNode implements Loggable {
         
         rateMatrix.setLower(0.0);
         popSizes.setLower(0.0);
-        
-        if (uniformInitialRateInput.get() != null) {
-            
-            double rate = uniformInitialRateInput.get();
-            StringBuilder sb = new StringBuilder();
-            for (int i=0; i<nTypes; i++) {
-                for (int j=0; j<nTypes; j++) {
-                    if (i==j)
-                        continue;
-                    
-                    sb.append(String.valueOf(rate)).append(" ");
-                }
-            }
-            rateMatrixInput.get().initByName("value", sb.toString());
-        }
         
         if (rateMatrix.getDimension() == nTypes*nTypes)
             rateMatrixIsSquare = true;
@@ -320,7 +300,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
                     for (double el : matPowerList.get(i).sub(matPowerList.get(i-1)).toArray())
                         maxDiff = Math.max(maxDiff, Math.abs(el));
                         
-                    if (!(maxDiff>1e-15)) {
+                    if (!(maxDiff>0)) {
                         if (symmetric)
                             RsymPowSteady = true;
                         else

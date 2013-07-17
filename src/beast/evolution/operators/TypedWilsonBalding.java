@@ -98,7 +98,11 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
             mtTree.setRoot(srcNodeP);
 
             // Recolour root branches:
-            logHR -= retypeRootBranches(srcNode);
+            try {
+                logHR -= retypeRootBranches(srcNode);
+            } catch (NoValidPathException e) {
+                return Double.NEGATIVE_INFINITY;
+            }
 
             // Return HR:
             logHR += Math.log(alpha*t_destNode)
@@ -132,7 +136,11 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
             mtTree.setRoot(srcNodeS);
 
             // Recolour new branch:
-            logHR -= retypeBranch(srcNode);
+            try {
+                logHR -= retypeBranch(srcNode);
+            } catch (NoValidPathException e) {
+                return Double.NEGATIVE_INFINITY;
+            }
 
             // Return HR:
             logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
@@ -163,7 +171,11 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
         connectBranch(srcNode, destNode, newTime);
 
         // Recolour new branch:
-        logHR -= retypeBranch(srcNode);
+        try {
+            logHR -= retypeBranch(srcNode);
+        } catch (NoValidPathException e) {
+            return Double.NEGATIVE_INFINITY;
+        }
 
         // HR contribution of topology and node height changes:
         logHR += Math.log(t_destNodeP-Math.max(t_srcNode, t_destNode))
@@ -231,7 +243,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
      * @param srcNode
      * @return Probability of new state.
      */
-    private double retypeRootBranches(Node srcNode) {
+    private double retypeRootBranches(Node srcNode) throws NoValidPathException {
         
         double logProb = 0.0;
 
@@ -247,6 +259,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
         // Recolour branches conditional on root type:
         logProb += retypeBranch(srcNode);
         logProb += retypeBranch(srcNodeS);
+
 
         // Return probability of new colouring given boundary conditions:
         return logProb;

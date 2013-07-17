@@ -49,6 +49,17 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             "useSymmetrizedRates",
             "Use symmetrized rate matrix to propose migration paths.", false);
     
+    /**
+     * Exception used to signal non-existence of allowed type sequence
+     * between node types.
+     */
+    protected class NoValidPathException extends Exception {
+        @Override
+        public String getMessage() {
+            return "No valid valid type sequence exists between chosen nodes.";
+        }
+    }
+    
     
     /**
      * Sample the number of virtual events to occur along branch.
@@ -108,7 +119,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
      * @param srcNode
      * @return Probability of new state.
      */
-    protected double retypeBranch(Node srcNode) {
+    protected double retypeBranch(Node srcNode) throws NoValidPathException {
         
         boolean sym = useSymmetrizedRatesInput.get();
         
@@ -129,17 +140,16 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         double Pba = MatrixFunctions.expm(
                 migrationModel.getQ(sym)
                 .mul(L)).get(type_srcNode,type_srcNodeP);
+
+        // Abort if transition is impossible.
+        if (Pba == 0.0)
+            throw new NoValidPathException();
         
         // Catch for numerical errors
         if (Pba>1.0 || Pba<0.0) {
             System.err.println("Warning: matrix exponentiation resulted in rubbish.  Aborting move.");
             return Double.NEGATIVE_INFINITY;
         }
-            
-        if (Pba == 0.0)
-            return Double.NEGATIVE_INFINITY;
-        
-
         
         // Select number of virtual events:
         int nVirt = drawEventCount(type_srcNode, type_srcNodeP, muL, Pba,

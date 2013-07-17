@@ -98,8 +98,12 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
         ((MultiTypeNode)root).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
         
         // Recolour branches below root:
-        logHR -= retypeBranch(root.getLeft())
-                + retypeBranch(root.getRight());
+        try {
+            logHR -= retypeBranch(root.getLeft())
+                    + retypeBranch(root.getRight());
+        } catch (NoValidPathException e) {
+            return Double.NEGATIVE_INFINITY;
+        }
         
         return logHR;
     }
@@ -129,9 +133,13 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
         ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
         
         // Recolour branches connected to node:
-        logHR -= retypeBranch(node)
-                + retypeBranch(node.getLeft())
-                + retypeBranch(node.getRight());
+        try {
+            logHR -= retypeBranch(node)
+                    + retypeBranch(node.getLeft())
+                    + retypeBranch(node.getRight());
+        } catch (NoValidPathException e) {
+            return Double.NEGATIVE_INFINITY;
+        }
         
         return logHR;        
     }

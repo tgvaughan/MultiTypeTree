@@ -52,11 +52,16 @@ public class NodeRetype extends UniformizationRetypeOperator {
         ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
         
         // Retype attached branches:
-        if (!node.isRoot())
-            logHR -= retypeBranch(node);
+        try {
+            if (!node.isRoot())
+                logHR -= retypeBranch(node);
 
-        logHR -= retypeBranch(node.getLeft())
-                + retypeBranch(node.getRight());
+            logHR -= retypeBranch(node.getLeft())
+                    + retypeBranch(node.getRight());
+        } catch (NoValidPathException e) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        
         
         return logHR;
     }

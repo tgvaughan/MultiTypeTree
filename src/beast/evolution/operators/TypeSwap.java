@@ -108,7 +108,11 @@ public class TypeSwap extends UniformizationRetypeOperator {
         for (Node leaf : mtTree.getExternalNodes()) {
             MultiTypeNode mtParent = (MultiTypeNode)leaf.getParent();
             if (mtParent.getNodeType() == typeA || mtParent.getNodeType() == typeB) {
-                logHR -= retypeBranch(leaf);
+                try {
+                    logHR -= retypeBranch(leaf);
+                } catch (NoValidPathException e) {
+                    return Double.NEGATIVE_INFINITY;
+                }
             }
         }
         
