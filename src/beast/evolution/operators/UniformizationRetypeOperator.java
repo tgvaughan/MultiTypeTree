@@ -40,11 +40,6 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             "migrationModel",
             "Migration model for proposal distribution", Input.Validate.REQUIRED);
     
-    public Input<Integer> rejectThresholdInput = new Input<Integer>(
-            "rejectThreshold",
-            "Expected number of changes on branch above which safer but slower"
-            + " rejection sampling is used. (Default 50.)", 50);
-    
     public Input<Boolean> useSymmetrizedRatesInput = new Input<Boolean>(
             "useSymmetrizedRates",
             "Use symmetrized rate matrix to propose migration paths.", false);
