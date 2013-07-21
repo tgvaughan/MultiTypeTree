@@ -552,13 +552,25 @@ public class MultiTypeTree extends Tree {
     }
 
     /**
-     * Return string representation of multi-type tree.
+     * Return string representation of multi-type tree.  We use reflection
+     * here to determine whether this is being called as part of writing
+     * the state file.
      *
      * @return Multi-type tree string in Newick format.
      */
     @Override
     public String toString() {
-        return getFlattenedTree().getRoot().toNewick();
+
+        // Behaves differently if writing a state file
+        StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+        if (ste[2].getMethodName().equals("toXML")) {            
+            // Use toShortNewick to generate Newick string without taxon labels
+            String string = getFlattenedTree().getRoot().toShortNewick(true);
+            
+            // Sanitize ampersands if this is destined for a state file.
+            return string.replaceAll("&", "&amp;");
+        } else
+            return getFlattenedTree().getRoot().toNewick();
     }
 
     /////////////////////////////////////////////////
@@ -653,10 +665,8 @@ public class MultiTypeTree extends Tree {
 
     @Override
     public void log(int i, PrintStream printStream) {
-        Tree flatTree = getFlattenedTree();
         printStream.print("tree STATE_"+i+" = ");
-        String sNewick = flatTree.getRoot().toNewick();
-        printStream.print(sNewick);
+        printStream.print(toString());
         printStream.print(";");
 
 
