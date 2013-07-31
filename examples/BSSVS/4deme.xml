@@ -959,7 +959,6 @@ t128=3">
 
      <operator spec='ScaleOperator' id='RateScaler'
  	      parameter="@rateMatrix"
-	      indicator="@rateMatrixFlags"
  	      scaleFactor="0.8" weight="1">
      </operator>
      
@@ -1028,10 +1027,7 @@ t128=3">
        <parameter idref="popSizes"/>
 
        <parameterInverse idref="mutationRate"/>
-       <indicatorInverse spec="BooleanParameter" value="true" estimate="false"/>
-
        <parameterInverse idref="rateMatrix"/>
-       <indicatorInverse idref="rateMatrixFlags"/>
      </operator>
 
      <operator spec="MultiTypeTreeScale" id="MTTS2"
@@ -1042,7 +1038,7 @@ t128=3">
 
      <!-- Loggers -->
      
-     <logger logEvery="1000" fileName="4deme.log">
+     <logger logEvery="1000" fileName="4deme2.log">
        <model idref='posterior'/>
        <log idref="posterior"/>
        <log idref="treeLikelihood"/>
@@ -1060,7 +1056,7 @@ t128=3">
        <log spec='TreeRootTypeLogger' multiTypeTree="@tree"/>
      </logger>
 
-     <logger logEvery="10000" fileName="4deme.trees" mode="tree">
+     <logger logEvery="10000" fileName="4deme2.trees" mode="tree">
        <log idref="tree"/>
      </logger>
 
