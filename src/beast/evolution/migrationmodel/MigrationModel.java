@@ -21,6 +21,7 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Loggable;
+import beast.core.parameter.BooleanParameter;
 import beast.core.parameter.RealParameter;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -51,6 +52,11 @@ public class MigrationModel extends CalculationNode implements Loggable {
             "popSizes",
             "Deme population sizes.",
             Validate.REQUIRED);
+    
+    public Input<BooleanParameter> rateMatrixFlagsInput = new Input<BooleanParameter>(
+            "rateMatrixFlags",
+            "Optional boolean parameter specifying which rates to use."
+            + " (Default is to use all rates.)");
     
     private RealParameter rateMatrix, popSizes;
     private double totalPopSize;
@@ -87,6 +93,13 @@ public class MigrationModel extends CalculationNode implements Loggable {
                         + "incorrect number of elements for given deme count.");
             } else
                 rateMatrixIsSquare = false;
+        }
+        
+        if (rateMatrixFlagsInput.get() != null) {
+            if (rateMatrixFlagsInput.get().getDimension() != rateMatrix.getDimension())
+                throw new IllegalArgumentException("Migration rate flags"
+                        + " array does not have same number of elements as"
+                        + " migration rate matrix.");
         }
         
         // Initialise caching array for powers of uniformized
@@ -179,11 +192,42 @@ public class MigrationModel extends CalculationNode implements Loggable {
             return 0;
         
         if (rateMatrixIsSquare) {
-            return rateMatrix.getValue(i*nTypes+j);            
+            if (rateMatrixFlagsInput.get() != null
+                    && !rateMatrixFlagsInput.get().getValue(i*nTypes+j))
+                return 0.0;
+            else
+                return rateMatrix.getValue(i*nTypes+j);            
         } else {
             if (j>i)
                 j -= 1;
-            return rateMatrix.getValue(i*(nTypes-1)+j);            
+            if (rateMatrixFlagsInput.get() != null
+                    && !rateMatrixFlagsInput.get().getValue(i*(nTypes-1)+j))
+                return 0.0;
+            else
+                return rateMatrix.getValue(i*(nTypes-1)+j);
+        }
+    }
+    
+    /**
+     * Obtain BSSVS flag corresponding to element of rate matrix for migration model.
+     *
+     * @return Rate matrix element BSVS flag.
+     */
+    public boolean getRateFlag(int i, int j) {
+        
+        if (rateMatrixFlagsInput.get() == null)
+            throw new RuntimeException("Programmer error: getRateFlag() called "
+                    + "when no BSVS flags defined for migration model.");
+        
+        if (i==j)
+            return false;
+        
+        if (rateMatrixIsSquare) {
+            return rateMatrixFlagsInput.get().getValue(i*nTypes+j);
+        } else {
+            if (j>i)
+                j -= 1;
+            return rateMatrixFlagsInput.get().getValue(i*(nTypes-1)+j);
         }
     }
     
@@ -406,6 +450,16 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 out.format("%s.rateMatrixForward_%d_%d\t", outName, i, j);
             }
         }
+        
+        if (rateMatrixFlagsInput.get() != null) {
+            for (int i=0; i<nTypes; i++) {
+                for (int j=0; j<nTypes; j++) {
+                    if (i==j)
+                        continue;
+                    out.format("%s.rateMatrixFlag_%d_%d\t", outName, i, j);
+                }
+            }
+        }
     }
 
     @Override
@@ -428,6 +482,19 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 if (i==j)
                     continue;
                 out.format("%g\t", getRate(j, i)*getPopSize(j)/getPopSize(i));
+            }
+        }
+        
+        if (rateMatrixFlagsInput.get() != null) {
+            for (int i=0; i<nTypes; i++) {
+                for (int j=0; j<nTypes; j++) {
+                    if (i==j)
+                        continue;
+                    if (getRateFlag(i,j))
+                        out.format("1\t");
+                    else
+                        out.format("0\t");
+                }
             }
         }
     }
