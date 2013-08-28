@@ -906,10 +906,15 @@ t128=3">
      </distribution>
 
      <distribution spec='beast.math.distributions.Prior' x="@rateMatrix">
-       <distr spec='LogNormalDistributionModel' M="0.0" S="4.0"/>
+       <distr spec='Exponential' mean="0.1"/>
      </distribution>
      <distribution spec='beast.math.distributions.Prior' x="@popSizes">
        <distr spec="LogNormalDistributionModel"  M="0.0" S="4.0"/>
+     </distribution>
+     
+     <distribution spec='beast.math.distributions.Prior'>
+         <x spec='Sum' arg="@rateMatrixFlags"/>
+         <distr spec='Poisson' lambda="5"/>
      </distribution>
    </input>
  
@@ -990,7 +995,7 @@ t128=3">
 
      <!-- BSVS -->
      <operator spec='BitFlipOperator' id='bitFlipOperator'
-               parameter='@rateMatrixFlags' weight="10"/>
+               parameter='@rateMatrixFlags' weight="1"/>
 
 
      <!-- Multi-type tree operators -->
@@ -1038,7 +1043,7 @@ t128=3">
 
      <!-- Loggers -->
      
-     <logger logEvery="1000" fileName="4deme2.log">
+     <logger logEvery="1000" fileName="4deme.log">
        <model idref='posterior'/>
        <log idref="posterior"/>
        <log idref="treeLikelihood"/>
@@ -1056,7 +1061,7 @@ t128=3">
        <log spec='TreeRootTypeLogger' multiTypeTree="@tree"/>
      </logger>
 
-     <logger logEvery="10000" fileName="4deme2.trees" mode="tree">
+     <logger logEvery="10000" fileName="4deme.trees" mode="tree">
        <log idref="tree"/>
      </logger>
 
@@ -1066,7 +1071,6 @@ t128=3">
        <log idref="treeLikelihood"/>
        <log idref="treePrior"/>
        <log spec='TreeHeightLogger' tree='@tree'/>
-       <log idref="migModel"/>
        <log idref="mutationRate"/>
        <ESS spec='ESS' name='log' arg="@treePrior"/>
      </logger>

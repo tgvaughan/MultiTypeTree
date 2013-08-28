@@ -24,7 +24,6 @@ import beast.evolution.tree.Node;
 import beast.util.Randomizer;
 
 /**
- * 
  * @author Denise Kuhnert
  */
 @Description("Randomly selects true internal tree node (i.e. not the root) and"

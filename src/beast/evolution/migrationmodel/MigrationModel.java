@@ -181,9 +181,28 @@ public class MigrationModel extends CalculationNode implements Loggable {
     public int getNDemes() {
         return nTypes;
     }
-
+    
     /**
      * Obtain element of rate matrix for migration model.
+     *
+     * @return Rate matrix element.
+     */
+    public double getRateForLog(int i, int j) {
+        if (i==j)
+            return 0;
+        
+        if (rateMatrixIsSquare) {
+            return rateMatrix.getValue(i*nTypes+j);            
+        } else {
+            if (j>i)
+                j -= 1;
+            return rateMatrix.getValue(i*(nTypes-1)+j);
+        }
+    }
+
+    /**
+     * Obtain element of rate matrix for migration model for use in likelihood
+     * calculation.  (May be switched to zero in BSSVS calculation.)
      *
      * @return Rate matrix element.
      */
@@ -473,7 +492,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
             for (int j=0; j<nTypes; j++) {
                 if (i==j)
                     continue;
-                out.format("%g\t", getRate(i, j));
+                out.format("%g\t", getRateForLog(i, j));
             }
         }
         
@@ -481,7 +500,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
             for (int j=0; j<nTypes; j++) {
                 if (i==j)
                     continue;
-                out.format("%g\t", getRate(j, i)*getPopSize(j)/getPopSize(i));
+                out.format("%g\t", getRateForLog(j, i)*getPopSize(j)/getPopSize(i));
             }
         }
         
