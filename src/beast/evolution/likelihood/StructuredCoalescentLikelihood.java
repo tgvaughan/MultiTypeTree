@@ -52,12 +52,10 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
     protected boolean checkValidity;
 
     private enum SCEventKind {
-
         COALESCE, MIGRATE, SAMPLE
     };
 
     private class SCEvent {
-
         double time;
         int type, destType;
         SCEventKind kind;
@@ -69,7 +67,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
     // Empty constructor as required:
     public StructuredCoalescentLikelihood() { };
 
-	@Override
+    @Override
     public void initAndValidate() {
         migrationModel = migrationModelInput.get();
         mtTree = mtTreeInput.get();

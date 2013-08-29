@@ -966,7 +966,7 @@ t128=3">
  	      parameter="@rateMatrix"
  	      scaleFactor="0.8" weight="1">
      </operator>
-     
+
      <operator spec="ScaleOperator" id="PopSizeScaler"
  	      parameter="@popSizes"
 	      scaleFactor="0.8" weight="1"/>
@@ -999,7 +999,6 @@ t128=3">
 
 
      <!-- Multi-type tree operators -->
-
      <operator spec='TypedSubtreeExchange' id='STX'
  	      weight="10" multiTypeTree="@tree"
  	      migrationModel="@migModel"/>
@@ -1020,6 +1019,11 @@ t128=3">
      <operator spec="NodeShiftRetype" id="NSR2"
                weight="10" multiTypeTree="@tree"
                migrationModel="@migModel" noRoot="true"/>
+     
+     <operator spec="CompoundOperator" id="JointFlipRetype" weight="10">
+         <operator idref="bitFlipOperator"/>
+         <operator idref="NR"/>
+     </operator>
 
      <operator spec="MultiTypeUniform" id="MTU"
 	       weight="10" multiTypeTree="@tree"
@@ -1039,7 +1043,6 @@ t128=3">
  	      weight="10" multiTypeTree="@tree"
  	      scaleFactor="0.98" useOldTreeScaler="true">
      </operator>
-
 
      <!-- Loggers -->
      

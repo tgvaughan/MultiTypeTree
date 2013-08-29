@@ -30,15 +30,6 @@ import org.jblas.DoubleMatrix;
 import org.jblas.MatrixFunctions;
 
 /**
- * Basic plugin describing a simple Markovian migration model, for use by
- * ColouredTree operators and likelihoods. Note that this class and package are
- * just stubs. We expect to have something similar to the SubstitutionModel
- * class/interface eventually.
- * 
- * Note that the transition rate matrices exposed for the uniformization
- * recolouring operators are symmetrized variants of the actual rate
- * matrices, to allow for easier diagonalization.
- *
  * @author Tim Vaughan
  */
 @Description("Basic plugin describing a simple Markovian migration model.")
@@ -56,9 +47,11 @@ public class MigrationModel extends CalculationNode implements Loggable {
     public Input<BooleanParameter> rateMatrixFlagsInput = new Input<BooleanParameter>(
             "rateMatrixFlags",
             "Optional boolean parameter specifying which rates to use."
-            + " (Default is to use all rates.)");
+            + " (Default is to use all rates.)",
+            Validate.OPTIONAL);
     
     private RealParameter rateMatrix, popSizes;
+    private BooleanParameter rateMatrixFlags;
     private double totalPopSize;
     private double mu, muSym;
     private int nTypes;
@@ -82,6 +75,9 @@ public class MigrationModel extends CalculationNode implements Loggable {
         nTypes = popSizes.getDimension();
         rateMatrix = rateMatrixInput.get();
         
+        if (rateMatrixFlagsInput.get() != null)
+            rateMatrixFlags = rateMatrixFlagsInput.get();
+        
         rateMatrix.setLower(0.0);
         popSizes.setLower(0.0);
         
@@ -95,8 +91,8 @@ public class MigrationModel extends CalculationNode implements Loggable {
                 rateMatrixIsSquare = false;
         }
         
-        if (rateMatrixFlagsInput.get() != null) {
-            if (rateMatrixFlagsInput.get().getDimension() != rateMatrix.getDimension())
+        if (rateMatrixFlags != null) {
+            if (rateMatrixFlags.getDimension() != rateMatrix.getDimension())
                 throw new IllegalArgumentException("Migration rate flags"
                         + " array does not have same number of elements as"
                         + " migration rate matrix.");
