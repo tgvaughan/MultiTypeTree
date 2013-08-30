@@ -1,0 +1,26 @@
+<beast version='2.0'
+       namespace='beast.evolution.alignment:beast.core:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.evolution.likelihood:beast.evolution.migrationmodel:beast.math.distributions:master.beast'>
+
+    <run spec="MCMC" id="mcmc" chainLength="10000000">
+        <state>
+            <stateNode spec="RealParameter" id="x" value="0.5" dimension="2" lower="0.0"/>
+        </state>
+        
+        <distribution spec="PriorWithPole" p0="0.2" x="@x">
+           <distr spec="Beta" alpha="2" beta="2"/>
+        </distribution>
+        
+        <operator spec='ScaleOperator' weight="1"
+                  scaleFactor="0.9" parameter="@x"/>
+        <operator spec='ZeroJump' weight="1"
+                  parameter='@x' mean="0.1"/>
+        
+        <logger logEvery="100" fileName="CVwithPole.log">
+        <log idref="x"/>
+        </logger>
+        
+        <logger logEvery="1000">
+        <log idref="x"/>
+        </logger>
+    </run>
+</beast>
