@@ -61,7 +61,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
     private DoubleMatrix RpowMax, RsymPowMax;
     private boolean RpowSteady, RsymPowSteady;
     
-    private boolean rateMatrixIsSquare;
+    private boolean rateMatrixIsSquare, symmetricRateMatrix;
     
     // Flag to indicate whether EV decompositions need updating.
     private boolean dirty;
@@ -81,14 +81,20 @@ public class MigrationModel extends CalculationNode implements Loggable {
         rateMatrix.setLower(0.0);
         popSizes.setLower(0.0);
         
-        if (rateMatrix.getDimension() == nTypes*nTypes)
+        if (rateMatrix.getDimension() == nTypes*nTypes) {
             rateMatrixIsSquare = true;
-        else {
+            symmetricRateMatrix = false;
+        } else {
             if (rateMatrix.getDimension() != nTypes*(nTypes-1)) {
-                throw new IllegalArgumentException("Migration matrix has"
-                        + "incorrect number of elements for given deme count.");
-            } else
+                if (rateMatrix.getDimension() == nTypes*(nTypes-1)/2) {
+                    symmetricRateMatrix = true;
+                } else 
+                    throw new IllegalArgumentException("Migration matrix has "
+                            + "incorrect number of elements for given deme count.");
+            } else {
                 rateMatrixIsSquare = false;
+                symmetricRateMatrix = false;
+            }
         }
         
         if (rateMatrixFlags != null) {
@@ -179,21 +185,19 @@ public class MigrationModel extends CalculationNode implements Loggable {
     }
     
     /**
-     * Obtain element of rate matrix for migration model.
+     * Obtain element of rate matrix for migration model.  Unlike getRate(),
+     * this method does not return 0 when the BSSVS indicator variable is
+     * switched off.
      *
      * @return Rate matrix element.
      */
     public double getRateForLog(int i, int j) {
+        
         if (i==j)
             return 0;
+
+        return rateMatrix.getValue(getArrayOffset(i, j));
         
-        if (rateMatrixIsSquare) {
-            return rateMatrix.getValue(i*nTypes+j);            
-        } else {
-            if (j>i)
-                j -= 1;
-            return rateMatrix.getValue(i*(nTypes-1)+j);
-        }
     }
 
     /**
@@ -206,49 +210,35 @@ public class MigrationModel extends CalculationNode implements Loggable {
         if (i==j)
             return 0;
         
-        if (rateMatrixIsSquare) {
-            if (rateMatrixFlagsInput.get() != null
-                    && !rateMatrixFlagsInput.get().getValue(i*nTypes+j))
-                return 0.0;
-            else
-                return rateMatrix.getValue(i*nTypes+j);            
-        } else {
-            if (j>i)
-                j -= 1;
-            if (rateMatrixFlagsInput.get() != null
-                    && !rateMatrixFlagsInput.get().getValue(i*(nTypes-1)+j))
-                return 0.0;
-            else
-                return rateMatrix.getValue(i*(nTypes-1)+j);
-        }
+        int offset = getArrayOffset(i, j);
+        if (rateMatrixFlagsInput.get() != null
+                && !rateMatrixFlagsInput.get().getValue(offset))
+            return 0.0;
+        else
+            return rateMatrix.getValue(offset);
     }
     
     /**
-     * Obtain BSSVS flag corresponding to element of rate matrix for migration model.
+     * Obtain BSSVS flag corresponding to element of rate matrix for migration
+     * model.  If flags are not being used, returns true.
      *
      * @return Rate matrix element BSVS flag.
      */
     public boolean getRateFlag(int i, int j) {
-        
-        if (rateMatrixFlagsInput.get() == null)
-            throw new RuntimeException("Programmer error: getRateFlag() called "
-                    + "when no BSVS flags defined for migration model.");
-        
+         
         if (i==j)
             return false;
         
-        if (rateMatrixIsSquare) {
-            return rateMatrixFlagsInput.get().getValue(i*nTypes+j);
-        } else {
-            if (j>i)
-                j -= 1;
-            return rateMatrixFlagsInput.get().getValue(i*(nTypes-1)+j);
-        }
+        if (rateMatrixFlagsInput.get() == null)
+           return true;
+
+        return rateMatrixFlagsInput.get().getValue(getArrayOffset(i, j));
     }
     
     /**
      * Set element of rate matrix for migration model.
      * This method should only be called by operators.
+     * 
      * @param i
      * @param j
      * @param rate 
@@ -257,18 +247,40 @@ public class MigrationModel extends CalculationNode implements Loggable {
         if (i==j)
             return;
         
-        if (rateMatrixIsSquare) {
-            rateMatrix.setValue(i*nTypes+j, rate);
-        } else {
-            if (j>i)
-                j -= 1;
-            rateMatrix.setValue(i*(nTypes-1)+j, rate);
-        }
-        
+        rateMatrix.setValue(getArrayOffset(i,j), rate);
+
         // Model is now dirty.
         dirty = true;
     }
 
+    /**
+     * Obtain offset into "rate matrix" and associated flag arrays.
+     * 
+     * @param i
+     * @param j
+     * @return Offset (or -1 if i==j)
+     */
+    private int getArrayOffset(int i, int j) {
+        
+        if (i==j)
+            return -1;
+        
+        if (rateMatrixIsSquare) {
+            return i*nTypes+j;
+        } else {
+            if (symmetricRateMatrix) {
+             if (j<i)
+                 return i*(i-1)/2 + j;
+             else
+                 return j*(j-1)/2 + i;
+            } else {
+                if (j>i)
+                    j -= 1;
+                return i*(nTypes-1)+j;
+            }
+        }
+    }
+    
     /**
      * Obtain effective population size of particular type/deme.
      *
