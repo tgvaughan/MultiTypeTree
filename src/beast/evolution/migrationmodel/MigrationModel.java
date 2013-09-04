@@ -263,7 +263,9 @@ public class MigrationModel extends CalculationNode implements Loggable {
     private int getArrayOffset(int i, int j) {
         
         if (i==j)
-            return -1;
+            throw new RuntimeException("Programmer error: requested migration "
+                    + "rate array offset for diagonal element of "
+                    + "migration rate matrix.");
         
         if (rateMatrixIsSquare) {
             return i*nTypes+j;
