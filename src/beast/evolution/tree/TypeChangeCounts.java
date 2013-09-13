@@ -140,6 +140,16 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
 
     @Override
     public void log(int nSample, PrintStream out) {
+        
+        /*
+         * requiresRecalculation() only called when this BEASTObject
+         * is used in the target distribution. We therefore have to
+         * force an update() here, as using TypeChangeCounts as a logger
+         * won't be enough to ensure the counts are up-to-date.
+         */
+        dirty = true;
+        update();
+        
         for (int type = 0; type < nTypes; type++) {
             for (int typeP = 0; typeP < nTypes; typeP++) {
                 if (type == typeP) {
