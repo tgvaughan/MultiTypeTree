@@ -53,7 +53,7 @@ public class MultiTypeTreeStatLogger extends Logger {
     public void initAndValidate() {
         multiTypeTree = multiTypeTreeInput.get();
         burninFrac = burninFracInput.get();
-        logEvery = m_pEvery.get();
+        logEvery = everyInput.get();
     };
 
     @Override

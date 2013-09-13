@@ -698,10 +698,8 @@ t128=3">
        <log idref="hky.freq"/>
        <log spec='TreeHeightLogger' tree='@tree'/>
        <log spec='TreeLengthLogger' tree='@tree'/>
-       <log spec='TypeChangeCountLogger' logEachDirection="true"
-            multiTypeTree="@tree"/>
-       <log spec='TypeChangeCountLogger' logEachDirection="false"
-            multiTypeTree="@tree"/>
+       <log spec='TypeChangeCounts' multiTypeTree="@tree" id="typeChangeCounts" />
+       <log spec='Sum' arg="@typeChangeCounts" id="totalTypeChanges" />
        <log spec='TreeRootTypeLogger' multiTypeTree="@tree"/>
      </logger>
 
@@ -717,6 +715,7 @@ t128=3">
        <log spec='TreeHeightLogger' tree='@tree'/>
        <log idref="migModel"/>
        <log idref="mutationRate"/>
+       <log idref="totalTypeChanges"/>
        <ESS spec='ESS' name='log' arg="@treePrior"/>
      </logger>
    </run>

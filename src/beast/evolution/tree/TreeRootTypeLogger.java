@@ -19,7 +19,7 @@ package beast.evolution.tree;
 import beast.core.CalculationNode;
 import beast.core.Description;
 import beast.core.Input;
-import beast.core.Valuable;
+import beast.core.Function;
 import beast.core.Input.Validate;
 import beast.core.Loggable;
 
@@ -32,7 +32,7 @@ import java.io.PrintStream;
  *         Time: 2:09:02 PM
  */
 @Description("Logger to report root type of a multi-type tree.")
-public class TreeRootTypeLogger extends CalculationNode implements Loggable, Valuable {
+public class TreeRootTypeLogger extends CalculationNode implements Loggable, Function {
 
     public Input<MultiTypeTree> multiTypeTreeInput = new Input<MultiTypeTree>(
             "multiTypeTree", "MultiTypeTree to report root type of.", Validate.REQUIRED);

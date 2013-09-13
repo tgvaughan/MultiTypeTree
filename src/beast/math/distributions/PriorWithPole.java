@@ -58,13 +58,13 @@ public class PriorWithPole extends Prior {
                 return Double.NEGATIVE_INFINITY;
         }
         
-        final double offset = m_dist.m_offset.get();
+        final double offset = dist.offsetInput.get();
         logP = 0.0;
         for (int i=0; i<x.getDimension(); i++) {
             double value = x.getValue(i);
             if (value>0) {
                 value -= offset;
-                logP += Math.log(1.0-p0) + m_dist.logDensity(value);
+                logP += Math.log(1.0-p0) + dist.logDensity(value);
             } else {
                 logP += Math.log(p0);
             }

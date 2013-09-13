@@ -21,7 +21,7 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Loggable;
-import beast.core.Valuable;
+import beast.core.Function;
 import java.io.PrintStream;
 
 /**
@@ -29,7 +29,7 @@ import java.io.PrintStream;
  */
 @Description("Allows logging and defining distributions over number of"
         + " type changes on a multi-type tree.")
-public class TypeChangeCounts extends CalculationNode implements Valuable, Loggable {
+public class TypeChangeCounts extends CalculationNode implements Function, Loggable {
 
     public Input<MultiTypeTree> multiTypeTreeInput = new Input<MultiTypeTree>(
             "multiTypeTree",
@@ -81,6 +81,8 @@ public class TypeChangeCounts extends CalculationNode implements Valuable, Logga
                 lastType = nextType;
             }
         }
+        
+        dirty = false;
     }
     
     /**

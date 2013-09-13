@@ -87,20 +87,20 @@ public class MultiTypeTree extends Tree {
                 // make a caterpillar
                 List<String> sTaxa = m_taxonset.get().asStringList();
                 Node left = new MultiTypeNode();
-                left.m_iLabel = 0;
-                left.m_fHeight = 0;
+                left.labelNr = 0;
+                left.height = 0;
                 left.setID(sTaxa.get(0));
                 for (int i = 1; i < sTaxa.size(); i++) {
                     Node right = new MultiTypeNode();
-                    right.m_iLabel = i;
-                    right.m_fHeight = 0;
+                    right.labelNr = i;
+                    right.height = 0;
                     right.setID(sTaxa.get(i));
                     Node parent = new MultiTypeNode();
-                    parent.m_iLabel = sTaxa.size() + i - 1;
-                    parent.m_fHeight = i;
-                    left.m_Parent = parent;
+                    parent.labelNr = sTaxa.size() + i - 1;
+                    parent.height = i;
+                    left.parent = parent;
                     parent.setLeft(left);
-                    right.m_Parent = parent;
+                    right.parent = parent;
                     parent.setRight(right);
                     left = parent;
                 }
@@ -112,8 +112,8 @@ public class MultiTypeTree extends Tree {
             } else {
                 // make dummy tree with a single root node
                 root = new MultiTypeNode();
-                root.m_iLabel = 0;
-                root.m_fHeight = 0;
+                root.labelNr = 0;
+                root.labelNr = 0;
                 root.m_tree = this;
                 nodeCount = 1;
                 internalNodeCount = 0;
@@ -166,7 +166,7 @@ public class MultiTypeTree extends Tree {
     @Override
     public MultiTypeTree copy() {
         MultiTypeTree tree = new MultiTypeTree();
-        tree.m_sID = m_sID;
+        tree.ID = ID;
         tree.index = index;
         tree.root = root.copy();
         tree.nodeCount = nodeCount;
@@ -190,10 +190,10 @@ public class MultiTypeTree extends Tree {
         for (int i=0; i<mtTree.getNodeCount(); i++)
             mtNodes[i] = new MultiTypeNode();
 
-        m_sID = mtTree.m_sID;
+        ID = mtTree.ID;
         root = mtNodes[mtTree.root.getNr()];
         root.assignFrom(mtNodes, mtTree.root);
-        root.m_Parent = null;
+        root.parent = null;
 
         nodeCount = mtTree.nodeCount;
         internalNodeCount = mtTree.internalNodeCount;
@@ -216,8 +216,8 @@ public class MultiTypeTree extends Tree {
         Node[] otherNodes = mtTree.m_nodes;
         int iRoot = root.getNr();
         assignFromFragileHelper(0, iRoot, otherNodes);
-        root.m_fHeight = otherNodes[iRoot].m_fHeight;
-        root.m_Parent = null;
+        root.height = otherNodes[iRoot].height;
+        root.parent = null;
         
         MultiTypeNode mtRoot = (MultiTypeNode)root;
         mtRoot.nodeType = ((MultiTypeNode)(otherNodes[iRoot])).nodeType;
@@ -245,8 +245,8 @@ public class MultiTypeTree extends Tree {
         for (int i = iStart; i < iEnd; i++) {
             MultiTypeNode sink = (MultiTypeNode)m_nodes[i];
             MultiTypeNode src = (MultiTypeNode)otherNodes[i];
-            sink.m_fHeight = src.m_fHeight;
-            sink.m_Parent = m_nodes[src.m_Parent.getNr()];
+            sink.height = src.height;
+            sink.parent = m_nodes[src.parent.getNr()];
             
             sink.nTypeChanges = src.nTypeChanges;
             sink.changeTimes.clear();
@@ -354,14 +354,14 @@ public class MultiTypeTree extends Tree {
 
             startNode.setMetaData(typeLabel,
                     ((MultiTypeNode)node).getNodeType());
-            startNode.m_sMetaData = String.format("%s=%d",
+            startNode.metaDataString = String.format("%s=%d",
                     typeLabel, mtNode.getNodeType());
 
             Node endNode = startNode.getParent();
             
             endNode.setMetaData(typeLabel,
                     ((MultiTypeNode)node.getParent()).getNodeType());
-            endNode.m_sMetaData = String.format("%s=%d",
+            endNode.metaDataString = String.format("%s=%d",
                     typeLabel, ((MultiTypeNode)node.getParent()).getNodeType());
 
             Node branchNode = startNode;
@@ -381,7 +381,7 @@ public class MultiTypeTree extends Tree {
                 colourChangeNode.setHeight(mtNode.getChangeTime(i));
                 colourChangeNode.setMetaData(typeLabel,
                         mtNode.getChangeType(i));
-                colourChangeNode.m_sMetaData = String.format("%s=%d",
+                colourChangeNode.metaDataString = String.format("%s=%d",
                         typeLabel, mtNode.getChangeType(i));
 
                 // Update branchNode:
@@ -583,8 +583,8 @@ public class MultiTypeTree extends Tree {
 
         storeNodes(0, iRoot);
         
-        storedRoot.m_fHeight = m_nodes[iRoot].m_fHeight;
-        storedRoot.m_Parent = null;
+        storedRoot.height = m_nodes[iRoot].height;
+        storedRoot.parent = null;
 
         if (root.getLeft()!=null)
             storedRoot.setLeft(m_storedNodes[root.getLeft().getNr()]);
@@ -615,8 +615,8 @@ public class MultiTypeTree extends Tree {
         for (int i = iStart; i<iEnd; i++) {
             MultiTypeNode sink = (MultiTypeNode)m_storedNodes[i];
             MultiTypeNode src = (MultiTypeNode)m_nodes[i];
-            sink.m_fHeight = src.m_fHeight;
-            sink.m_Parent = m_storedNodes[src.m_Parent.getNr()];
+            sink.height = src.height;
+            sink.parent = m_storedNodes[src.parent.getNr()];
             if (src.getLeft()!=null) {
                 sink.setLeft(m_storedNodes[src.getLeft().getNr()]);
                 if (src.getRight()!=null)

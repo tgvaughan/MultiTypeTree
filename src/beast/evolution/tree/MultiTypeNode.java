@@ -219,11 +219,11 @@ public class MultiTypeNode extends Node {
     @Override
     public MultiTypeNode copy() {
         MultiTypeNode node = new MultiTypeNode();
-        node.m_fHeight = m_fHeight;
-        node.m_iLabel = m_iLabel;
-        node.m_sMetaData = m_sMetaData;
-        node.m_Parent = null;
-        node.m_sID = m_sID;
+        node.height = height;
+        node.labelNr = labelNr;
+        node.metaDataString = metaDataString;
+        node.parent = null;
+        node.ID = ID;
         node.nTypeChanges = nTypeChanges;
         node.changeTimes.addAll(changeTimes);
         node.changeTypes.addAll(changeTypes);
@@ -244,11 +244,11 @@ public class MultiTypeNode extends Node {
      */
     @Override
     public void assignFrom(Node[] nodes, Node node) {
-        m_fHeight = node.m_fHeight;
-        m_iLabel = node.m_iLabel;
-        m_sMetaData = node.m_sMetaData;
-        m_Parent = null;
-        m_sID = node.getID();
+        height = node.height;
+        labelNr = node.labelNr;
+        metaDataString = node.metaDataString;
+        parent = null;
+        ID = node.getID();
         
         MultiTypeNode mtNode = (MultiTypeNode)node;
         nTypeChanges = mtNode.nTypeChanges;
@@ -261,11 +261,11 @@ public class MultiTypeNode extends Node {
         if (node.getLeft()!=null) {
             setLeft(nodes[node.getLeft().getNr()]);
             getLeft().assignFrom(nodes, node.getLeft());
-            getLeft().m_Parent = this;
+            getLeft().parent = this;
             if (node.getRight()!=null) {
                 setRight(nodes[node.getRight().getNr()]);
                 getRight().assignFrom(nodes, node.getRight());
-                getRight().m_Parent = this;
+                getRight().parent = this;
             }
         }
     }

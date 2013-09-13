@@ -9,6 +9,8 @@
         <popSizes spec="RealParameter" value="7.0" dimension="4"/>
     </model>
 
+    <input spec="TypeChangeCounts" multiTypeTree="@tree" id="typeChangeCounts"/>
+
     <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
         <init spec='StructuredCoalescentMultiTypeTree'
@@ -58,7 +60,8 @@
             <log idref="P"/>
             <log spec="TreeHeightLogger" tree="@tree"/>
             <log spec="TreeRootTypeLogger" multiTypeTree="@tree"/>
-            <log spec="TypeChangeCountLogger" multiTypeTree="@tree"/>
+            <log idref="typeChangeCounts"/>
+	    <log spec="Sum" arg="@typeChangeCounts" id="totalTypeChanges" />
         </logger>
 
         <logger logEvery="10000" fileName="Sanity.trees" mode="tree">
@@ -70,7 +73,7 @@
             <log idref="P"/>
             <log spec="TreeHeightLogger" tree="@tree"/>
             <log spec="TreeRootTypeLogger" multiTypeTree="@tree"/>
-            <log spec="TypeChangeCountLogger" multiTypeTree="@tree"/>
+            <log idref="totalTypeChanges"/>
         </logger>
 
     </run>

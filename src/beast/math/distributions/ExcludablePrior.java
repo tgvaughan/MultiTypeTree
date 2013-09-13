@@ -19,7 +19,7 @@ package beast.math.distributions;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
-import beast.core.Valuable;
+import beast.core.Function;
 import beast.core.parameter.BooleanParameter;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
@@ -40,7 +40,7 @@ public class ExcludablePrior extends Prior {
     public void initAndValidate() throws Exception {        
         super.initAndValidate();
         
-        Valuable x = m_x.get();
+        Function x = m_x.get();
         if (x instanceof RealParameter || x instanceof IntegerParameter) {
             if (x.getDimension() != xIncludeInput.get().getDimension())
                 throw new IllegalArgumentException("Length of xInclude does "
@@ -50,7 +50,7 @@ public class ExcludablePrior extends Prior {
     
     @Override
     public double calculateLogP() throws Exception {
-        Valuable x = m_x.get();
+        Function x = m_x.get();
         if (x instanceof RealParameter || x instanceof IntegerParameter) {
         	// test that parameter is inside its bounds
             double l = 0.0;
@@ -73,13 +73,13 @@ public class ExcludablePrior extends Prior {
         }
 
         // Inline modified version of ParametricDistribution.calcLogP()        
-        final double fOffset = m_dist.m_offset.get();
+        final double fOffset = dist.offsetInput.get();
         logP = 0;
         for (int i = 0; i < x.getDimension(); i++) {
             if (!xIncludeInput.get().getValue(i))
                 continue;
             final double fX = x.getArrayValue(i) - fOffset;
-            logP += m_dist.logDensity(fX);
+            logP += dist.logDensity(fX);
         }
         
         return logP;
