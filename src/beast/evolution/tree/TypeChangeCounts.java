@@ -36,12 +36,17 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
             "Multi-type tree whose changes will be counted.",
             Validate.REQUIRED);
     
+    public Input<Boolean> useCacheInput = new Input<Boolean>(
+            "useCache", "Cache counts, updating only when tree changes. "
+            + "Warning: this will cause problems if this TypeChangeCounts "
+            + "is not used in the target distribution.", false);
+    
     private MultiTypeTree mtTree;
     
     private int nTypes;
     
     private int[] typeChanges;
-    private boolean dirty;
+    private boolean useCache, dirty;
     
     public TypeChangeCounts() { };
     
@@ -52,6 +57,7 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
         
         typeChanges = new int[nTypes*(nTypes-1)];
         
+        useCache = useCacheInput.get();
         dirty = true;
         update();
     }
@@ -82,7 +88,8 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
             }
         }
         
-        dirty = false;
+        if (useCache)
+            dirty = false;
     }
     
     /**
@@ -140,14 +147,6 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
 
     @Override
     public void log(int nSample, PrintStream out) {
-        
-        /*
-         * requiresRecalculation() only called when this BEASTObject
-         * is used in the target distribution. We therefore have to
-         * force an update() here, as using TypeChangeCounts as a logger
-         * won't be enough to ensure the counts are up-to-date.
-         */
-        dirty = true;
         update();
         
         for (int type = 0; type < nTypes; type++) {

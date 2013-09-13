@@ -9,8 +9,6 @@
         <popSizes spec="RealParameter" value="7.0" dimension="4"/>
     </model>
 
-    <input spec="TypeChangeCounts" multiTypeTree="@tree" id="typeChangeCounts"/>
-
     <run spec="MCMC" id="mcmc" chainLength="10000000"> 
 
         <init spec='StructuredCoalescentMultiTypeTree'
@@ -60,7 +58,7 @@
             <log idref="P"/>
             <log spec="TreeHeightLogger" tree="@tree"/>
             <log spec="TreeRootTypeLogger" multiTypeTree="@tree"/>
-            <log idref="typeChangeCounts"/>
+            <log spec="TypeChangeCounts" multiTypeTree="@tree" id="typeChangeCounts"/>
 	    <log spec="Sum" arg="@typeChangeCounts" id="totalTypeChanges" />
         </logger>
 
