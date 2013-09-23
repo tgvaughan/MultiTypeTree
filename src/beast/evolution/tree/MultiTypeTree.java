@@ -569,8 +569,10 @@ public class MultiTypeTree extends Tree {
             
             // Sanitize ampersands if this is destined for a state file.
             return string.replaceAll("&", "&amp;");
-        } else
-            return getFlattenedTree().getRoot().toNewick();
+        } else{
+            int[] dummy = new int[1];
+            return getFlattenedTree().getRoot().toSortedNewick(dummy);
+        }
     }
 
     /////////////////////////////////////////////////
@@ -654,7 +656,7 @@ public class MultiTypeTree extends Tree {
         printStream.println("Begin trees;");
         printStream.println("\tTranslate");
         for (int i = 0; i<getLeafNodeCount(); i++) {
-            printStream.print("\t\t\t"+getNodesAsArray()[i].getNr()
+            printStream.print("\t\t\t"+(getNodesAsArray()[i].getNr()+1)
                     +" "+getNodesAsArray()[i].getID());
             if (i<getLeafNodeCount()-1)
                 printStream.print(",");
