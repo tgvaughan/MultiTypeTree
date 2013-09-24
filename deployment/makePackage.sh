@@ -12,7 +12,10 @@ mkdir $PKGNAME/lib
 mkdir $PKGNAME/doc
 
 # Create source jar file
-jar cf $PKGNAME/$PKGNAME.src.jar ../src
+pushd ..
+jar cf $PKGNAME.src.jar src test
+popd
+mv ../$PKGNAME.src.jar $PKGNAME
 
 # Copy over examples
 cp ../examples/simulated_data/full_inference.xml $PKGNAME/examples
