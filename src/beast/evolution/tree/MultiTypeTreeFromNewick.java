@@ -18,6 +18,9 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
     public Input<String> newickStringInput = new Input<String>("newick",
             "Tree in Newick format.", Validate.REQUIRED);
 
+    public Input<Boolean> adjustTipHeightsInput = new Input<Boolean>("adjustTipHeights",
+            "Adjust tip heights in tree? Default true.", true);
+
     @Override
     public void initAndValidate() throws Exception {
         
@@ -26,7 +29,7 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
         TreeParser parser = new TreeParser();
         parser.initByName(
                 "IsLabelledNewick", true,
-                "adjustTipHeights", true,
+                "adjustTipHeights", adjustTipHeightsInput.get(),
                 "singlechild", true,
                 "newick", newickStringInput.get());
         Tree flatTree = parser;
