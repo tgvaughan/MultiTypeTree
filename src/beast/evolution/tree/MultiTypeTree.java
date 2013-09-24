@@ -456,7 +456,7 @@ public class MultiTypeTree extends Tree {
                         // Leaf at base of branch
                         if (takeNrsFromFlatTree) {
                             treeNode.setNr(flatTreeNode.getNr());
-                            treeNode.setID(String.valueOf(flatTreeNode.getNr()));
+                            treeNode.setID(String.valueOf(flatTreeNode.getID()));
                         } else {
                             treeNode.setNr(nextNr);
                             treeNode.setID(String.valueOf(nextNr));
