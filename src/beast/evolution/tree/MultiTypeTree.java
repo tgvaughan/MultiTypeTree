@@ -16,6 +16,7 @@
  */
 package beast.evolution.tree;
 
+import beast.core.Citation;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.StateNode;
@@ -33,6 +34,9 @@ import java.util.logging.Logger;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 @Description("A multi-type phylogenetic tree.")
+@Citation("Tim Vaughan, Denise Kuhnert, Alex Popinga, David Welch and "
+        + "Alexei Drummond, 'Efficient sampling of multi-type trees "
+        + "for Bayesian phylogenetic inference'. (In preparation.)")
 public class MultiTypeTree extends Tree {
 
     /*
