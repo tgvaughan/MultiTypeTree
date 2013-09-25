@@ -570,8 +570,7 @@ public class MultiTypeTree extends Tree {
             // Sanitize ampersands if this is destined for a state file.
             return string.replaceAll("&", "&amp;");
         } else{
-            int[] dummy = new int[1];
-            return getFlattenedTree().getRoot().toSortedNewick(dummy);
+            return getFlattenedTree().getRoot().toSortedNewick(new int[1], true);
         }
     }
 
