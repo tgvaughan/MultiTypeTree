@@ -35,10 +35,9 @@ cp ../lib/*.jar $FULLNAME/lib
 
 # Create version.xml
 cat <<EOF > $FULLNAME/version.xml
-<addon name="MultiTypeTree" version="$VERSION">
+<addon name="$PKGNAME" version="$VERSION">
     <depends on="beast2" atleast="2.0.2"/>
 </addon>
-
 EOF
 
 # Create archive and clean up
