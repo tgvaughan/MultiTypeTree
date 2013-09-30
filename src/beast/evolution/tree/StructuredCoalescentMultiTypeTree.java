@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.evolution.tree.coalescent;
+package beast.evolution.tree;
 
 import beast.core.Description;
 import beast.core.Input;
@@ -23,11 +23,11 @@ import beast.core.StateNode;
 import beast.core.StateNodeInitialiser;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
-import beast.evolution.migrationmodel.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.TraitSet;
+import beast.evolution.tree.coalescent.MigrationModel;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;

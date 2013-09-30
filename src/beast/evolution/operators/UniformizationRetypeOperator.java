@@ -19,7 +19,7 @@ package beast.evolution.operators;
 import beast.core.Input;
 import beast.core.State;
 import beast.core.parameter.RealParameter;
-import beast.evolution.migrationmodel.MigrationModel;
+import beast.evolution.tree.coalescent.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
 import beast.evolution.tree.Node;

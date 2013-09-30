@@ -14,11 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package test.beast.evolution.tree.coalescent;
+package test.beast.evolution.tree;
 
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
-import beast.evolution.migrationmodel.MigrationModel;
+import beast.evolution.tree.coalescent.MigrationModel;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import org.junit.Assert;
@@ -61,8 +61,8 @@ public class SCSimTest {
         double[] heights = new double[reps];
 
         for (int i = 0; i < reps; i++) {
-            beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree sctree;
-            sctree = new beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree();
+            beast.evolution.tree.StructuredCoalescentMultiTypeTree sctree;
+            sctree = new beast.evolution.tree.StructuredCoalescentMultiTypeTree();
             sctree.initByName(
                     "migrationModel", migrationModel,
                     "leafTypes", leafTypes,

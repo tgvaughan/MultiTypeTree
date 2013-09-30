@@ -34,7 +34,7 @@ import beast.evolution.alignment.TaxonSet;
 import beast.evolution.operators.TipDatesRandomWalker;
 import beast.evolution.tree.TraitSet;
 import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree;
+import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

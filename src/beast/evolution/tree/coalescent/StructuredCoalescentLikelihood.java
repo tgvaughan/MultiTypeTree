@@ -14,12 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.evolution.likelihood;
+package beast.evolution.tree.coalescent;
 
 import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.RealParameter;
-import beast.evolution.migrationmodel.MigrationModel;
+import beast.evolution.tree.coalescent.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
