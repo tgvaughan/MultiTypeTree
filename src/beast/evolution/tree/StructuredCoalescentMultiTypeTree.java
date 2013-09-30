@@ -27,7 +27,6 @@ import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.TraitSet;
-import beast.evolution.tree.coalescent.MigrationModel;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;

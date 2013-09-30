@@ -18,7 +18,7 @@ package test.beast.evolution.tree;
 
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.coalescent.MigrationModel;
+import beast.evolution.tree.MigrationModel;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import org.junit.Assert;

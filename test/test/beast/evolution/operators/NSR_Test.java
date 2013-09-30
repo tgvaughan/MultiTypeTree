@@ -21,7 +21,7 @@ import beast.core.Operator;
 import beast.core.State;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.coalescent.StructuredCoalescentLikelihood;
-import beast.evolution.tree.coalescent.MigrationModel;
+import beast.evolution.tree.MigrationModel;
 import beast.evolution.operators.NodeShiftRetype;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;

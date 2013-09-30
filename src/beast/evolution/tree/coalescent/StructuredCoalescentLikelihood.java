@@ -16,10 +16,11 @@
  */
 package beast.evolution.tree.coalescent;
 
+import beast.evolution.tree.MultiTypeTreeDistribution;
 import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.coalescent.MigrationModel;
+import beast.evolution.tree.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.MultiTypeTreeFromNewick;

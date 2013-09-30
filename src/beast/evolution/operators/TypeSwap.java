@@ -17,7 +17,7 @@
 package beast.evolution.operators;
 
 import beast.core.Description;
-import beast.evolution.tree.coalescent.MigrationModel;
+import beast.evolution.tree.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
