@@ -47,8 +47,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
     public Input<BooleanParameter> rateMatrixFlagsInput = new Input<BooleanParameter>(
             "rateMatrixFlags",
             "Optional boolean parameter specifying which rates to use."
-            + " (Default is to use all rates.)",
-            Validate.OPTIONAL);
+            + " (Default is to use all rates.)");
     
     private RealParameter rateMatrix, popSizes;
     private BooleanParameter rateMatrixFlags;
