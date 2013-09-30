@@ -78,6 +78,12 @@
         />
 		<mergepoint id='aux-tipdates-panels'/>
 
+		<panel spec='BeautiPanelConfig' panelname="Tip Locations" tiptext="Allows to specify data that a taxon was sampled"
+            path='tree'
+            hasPartitions="Tree" icon='2.png.x' forceExpansion='TRUE'
+            isVisible='true'
+        />
+
 		<panel spec='BeautiPanelConfig' panelname="Site Model" tiptext="Site model and substitution model specifications"
             path='siteModel'
             hasPartitions="SiteModel" icon='3.png.x' forceExpansion='TRUE'
@@ -146,16 +152,24 @@
             
             <plugin spec='beast.evolution.tree.MultiTypeTree' id='Tree.t:$(n)' taxonset='@TaxonSet.$(n)' nTypes="2"/>
 
-            <plugin spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' initial='@Tree.t:$(n)'>
-                <taxa spec='Alignment' idref='data'/>
-                <populationModel id='ConstantPopulation0.t:$(n)' spec='ConstantPopulation'>
-            		<popSize id='randomPopSize.t:$(n)' spec='parameter.RealParameter' value='1'/>
-	            </populationModel>
+            <plugin spec='beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree' id='SCTree.t:$(n)' estimate='false' initial='@Tree.t:$(n)'>
+	    <timeTrait idref="datetrait.t:$(n)"/>
+	    <typeTrait idref="typetrait.t:$(n)"/>
+		<migrationModel spec="MigrationModel">
+		<rateMatrix spec='RealParameter' value="0.05"  dimension="2" lower="0.0"/>
+		<popSizes spec='RealParameter' value="1.0" dimension="2"/>
+		</migrationModel>
             </plugin>
 
+  <!-- Migration model -->
+  <migrationModel spec='MigrationModel' id='migModel'>
+    <rateMatrix spec='RealParameter' value="0.05"  dimension="12" id="rateMatrix" lower="0.0"/>
+    <popSizes spec='RealParameter' value="1.0" dimension="4" id="popSizes"/>
+  </migrationModel>
+
             <!-- default tree prior -->
-            <plugin spec='YuleModel' id="YuleModel.t:$(n)" tree='@Tree.t:$(n)'>
-                <parameter name='birthDiffRate' id="birthRate.t:$(n)" value='1.0' estimate='true'/>
+            <plugin spec='StructuredCoalescentLikelihood' id="SCLikelihood.t:$(n)" multiTypeTree='@Tree.t:$(n)'>
+	    <migrationModel idref="migModel"/>
             </plugin>
 
             <plugin id='TreeHeight.t:$(n)' spec='beast.evolution.tree.TreeHeightLogger' tree='@Tree.t:$(n)'/>
@@ -179,7 +193,6 @@
             <operator id='WilsonBalding.t:$(n)' spec='WilsonBalding' weight="3" tree="@Tree.t:$(n)"/>
 
 
-            <prior id='YuleBirthRatePrior.t:$(n)' x='@birthRate.t:$(n)'><distr spec="beast.math.distributions.Uniform" lower='0' upper='Infinity'/></prior>
             <prior id='GammaShapePrior.s:$(n)' x='@gammaShape.s:$(n)'><distr spec="beast.math.distributions.Exponential" mean='1'/></prior>
             <prior id='PropInvariantPrior.t:$(n)' x='@proportionInvariant.s:$(n)'><distr spec="beast.math.distributions.Uniform" lower='0' upper='1'/></prior>
   		    <operator id='YuleBirthRateScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.75" weight="3" parameter="@birthRate.t:$(n)"/>
@@ -192,11 +205,11 @@
 
 ]]>
             <connect srcID='treeLikelihood.$(n)'            targetID='likelihood' inputName='distribution' if="isInitializing"/>
-            <connect srcID='YuleModel.t:$(n)'               targetID='prior' inputName='distribution' if="isInitializing"/>
-			<connect method="beast.app.beauti.SiteModelInputEditor.customConnector"/>
+            <connect srcID='SCLikelihood.t:$(n)'               targetID='prior' inputName='distribution' if="isInitializing"/>
+	    <connect method="beast.app.beauti.SiteModelInputEditor.customConnector"/>
 
             <connect srcID='treelog.t:$(n)'                 targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
-            <connect srcID='RandomTree.t:$(n)'                targetID='mcmc' inputName='init'   if='inposterior(Tree.t:$(n))'/>
+            <connect srcID='SCTree.t:$(n)'                targetID='mcmc' inputName='init'   if='inposterior(Tree.t:$(n))'/>
 
             <connect srcID='ClockPrior.c:$(n)'                targetID='prior' inputName='distribution' if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true'/>
 <!-- when FixMeanMutationRatesOperator, the prior is uniform due to the operator -->
@@ -214,7 +227,7 @@
             <connect srcID='mutationRateScaler.s:$(n)'        targetID='mcmc' inputName='operator' if='nooperator(FixMeanMutationRatesOperator) and inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'>Scales mutation rate of partition s:$(n)</connect>
             <connect srcID='gammaShapeScaler.s:$(n)'          targetID='mcmc' inputName='operator' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'>Scales gamma shape parameter of partition s:$(n)</connect>
             <connect srcID='StrictClockRateScaler.c:$(n)'     targetID='mcmc' inputName='operator' if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true'>Scale clock rate of partition c:$(n)</connect>
-            <connect srcID='YuleBirthRateScaler.t:$(n)'       targetID='mcmc' inputName='operator' if='inposterior(birthRate.t:$(n)) and birthRate.t:$(n)/estimate=true'>Scales birth rate of Yule prior for partition t:$(n)</connect>
+
 
             <connect srcID='allTipDatesRandomWalker.t:$(n)'   targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true and allTipDatesRandomWalker.t:$(n)/weight!=0.0'>Estimates tip dates for tree t:$(n)</connect>
 
@@ -233,12 +246,10 @@
             <connect srcID='mutationRate.s:$(n)'              targetID='tracelog' inputName='log' if='inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'/>
             <connect srcID='gammaShape.s:$(n)'                targetID='tracelog' inputName='log' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'/>
             <connect srcID='clockRate.c:$(n)'                 targetID='tracelog' inputName='log' if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true'/>
-            <connect srcID='YuleModel.t:$(n)'                 targetID='tracelog' inputName='log' if='inposterior(YuleModel.t:$(n)) and inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
-            <connect srcID='birthRate.t:$(n)'                 targetID='tracelog' inputName='log' if='inposterior(YuleModel.t:$(n)) and birthRate.t:$(n)/estimate=true'/>
+            <connect srcID='SCLikelihood.t:$(n)'                 targetID='tracelog' inputName='log' if='inposterior(YuleModel.t:$(n)) and inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
 
             <connect srcID='GammaShapePrior.s:$(n)'           targetID='prior' inputName='distribution' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'/>
             <connect srcID='PropInvariantPrior.s:$(n)'        targetID='prior' inputName='distribution' if='inlikelihood(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'/>
-            <connect srcID='YuleBirthRatePrior.t:$(n)'        targetID='prior' inputName='distribution' if='inposterior(YuleModel.t:$(n)) and inposterior(Tree.t:$(n)) and birthRate.t:$(n)/estimate=true'/>
 
 			<mergepoint id='aux-partitiontemplate'/>
         </partitiontemplate>
@@ -251,29 +262,16 @@
 <!-- Tree initialisation -->
 <!-- Random tree -->
 
-        <subtemplate id='RandomTree' class='beast.evolution.tree.RandomTree' mainid='RandomTree.t:$(n)'>
+        <subtemplate id='StructuredCoalescentMultiTypeTree' class='beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree' mainid='SCTree.t:$(n)'>
 <![CDATA[
-            <tree spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' trait='@datetrait.$(n)'>
-                <taxa spec='Alignment' idref='data'/>
-                <populationModel id='ConstantPopulation0.t:$(n)' spec='ConstantPopulation'>
-            		<popSize id='randomPopSize.t:$(n)' spec='parameter.RealParameter' value='1'/>
-	            </populationModel>
-            </tree>
-]]>
-        </subtemplate>
-
-<!-- Cluster tree (for UPGMA) -->
-
-        <subtemplate id='UPGMATree' class='beast.util.ClusterTree' mainid='UPGMATree.t:$(n)'>
-<![CDATA[
-        <tree spec='beast.util.ClusterTree' id='UPGMATree.t:$(n)' clusterType='upgma' estimate='false'  trait='@datetrait.$(n)' taxa='@$(n)'/>
-]]>
-        </subtemplate>
-
-<!-- Newick tree -->
-        <subtemplate id='NewickTree' class='beast.util.ClusterTree' mainid='NewickTree.t:$(n)'>
-<![CDATA[
-        <tree spec='beast.util.TreeParser' id='NewickTree.t:$(n)' estimate='false'  trait='@datetrait.$(n)'  taxa='@$(n)' newick=""/>
+            <tree spec='beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree' id='RandomTree.t:$(n)' estimate='false'>
+	    <timeTrait idref="datetrait.t:$(n)"/>
+	    <typeTrait idref="typetrait.t:$(n)"/>
+		<migrationModel spec='MigrationModel'>
+		<rateMatrix spec='RealParameter' value="0.05"  dimension="2" lower="0.0"/>
+		<popSizes spec='RealParameter' value="1.0" dimension="2"/>
+		</migrationModel>
+</tree>
 ]]>
         </subtemplate>
 
