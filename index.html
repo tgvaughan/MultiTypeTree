@@ -18,18 +18,20 @@
 
       <header>
         <h1>MultiTypeTree</h1>
-        <p>Multi-type tree inference for BEAST 2</p>
+        <p>Structured population inference for BEAST 2</p>
       </header>
 
       <div id="banner">
         <span id="logo"></span>
 
-        <a href="https://github.com/CompEvol/MultiTypeTree" class="button fork"><strong>View On GitHub</strong></a>
+	<a href="https://github.com/CompEvol/MultiTypeTree/releases"
+	class="button"><strong>Latest Release</strong></a>
+
         <div class="downloads">
-          <span>Downloads:</span>
-          <ul>
-            <li><a href="https://github.com/CompEvol/MultiTypeTree/zipball/master" class="button">ZIP</a></li>
-            <li><a href="https://github.com/CompEvol/MultiTypeTree/tarball/master" class="button">TAR</a></li>
+	  <!--          <span>Downloads:</span>-->
+	  <ul>
+	    <!-- <li><a href="https://github.com/CompEvol/MultiTypeTree/zipball/master" class="button">Wiki</a></li>-->
+	    <li><a href="https://github.com/CompEvol/MultiTypeTree" class="button">Source code</a></li>
           </ul>
         </div>
       </div><!-- end banner -->
@@ -39,20 +41,44 @@
         <ul></ul>
       </nav>
       <section>
-        <p>This is a work in progress to implement a datatype to
-natively represent "multi-type trees" (phylogenetic trees on
-structured populations) in <a href="http://www.beast2.org/">BEAST
-2</a>, along with a complete set of MCMC operators for walking the
-multi-type tree space and calculators for a few common likelihood
-functions (e.g. structured coalescent).</p>
 
-<p>Work on this project is made possible by generous funding from the
-<a href="http://www.allanwilsoncentre.ac.nz/">Allan Wilson Centre for Molecular Ecology and
-Epidemiology</a>.</p>
+	<h2>Overview</h2>
+
+        <p>MultiTypeTree is a <a href="http://beast2.org/">BEAST 2</a>
+          package for performing phylogenetic inference under models
+          incorporating some form of population structure.  It
+          implements a "multi-type" tree object, representing a
+          phylogenetic tree with every time on each edge associated
+          with one of a finite number of discrete types.  These types
+          often represent locations, but can in principle represent
+          any well-defined sub-population.</p>
+
+	<p>In addition to the basic object, MultiTypeTree implements a
+	  full suite of proposal operators for these objects, as well
+	  as the structured coalescent probability density and a
+	  structured coalescent simulator.  Together, these components
+	  allow for inference of trees, migration rates and population
+	  sizes under the structured coalescent model.  However, we
+	  stress that the system can (and will) be easily extended to
+	  cope with other structured-population genealogical
+	  models.</p>
+
+	<h2>Installation</h2>
+	
+	<p>Being a BEAST 2 package, installation of MultiTypeTree is
+	quite straight-forward.</p>
+
+	<h2>Tutorial</h2>
+
+	<h2>Acknowledgements</h2>
+	<p>Work on this project is made possible by generous funding from the
+	  <a href="http://www.allanwilsoncentre.ac.nz/">Allan Wilson Centre for Molecular Ecology and
+	    Epidemiology</a>.</p>
       </section>
       <footer>
-        <p>Project maintained by <a href="https://github.com/CompEvol">CompEvol</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+        <p>Project maintained by members
+        of <a href="https://github.com/CompEvol">The University of
+        Auckland Computational Evolution Group </a></p>
       </footer>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
