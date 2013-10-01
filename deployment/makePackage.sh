@@ -25,7 +25,7 @@ popd
 mv ../$FULLNAME.src.jar $FULLNAME
 
 # Copy over examples
-cp ../examples/simulated_data/full_inference.xml $FULLNAME/examples
+cp ../examples/*.xml $FULLNAME/examples
 
 # Copy over binaries
 cp ../dist/MultiTypeTree.jar $FULLNAME/lib
