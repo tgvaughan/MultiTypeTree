@@ -13,6 +13,13 @@
     <![endif]-->
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
+
+    <style>
+      pre {
+      color: white;
+      }
+    </style>
+
   </head>
   <body>
 
@@ -66,7 +73,37 @@
 	<h2>Installation</h2>
 	
 	<p>Being a BEAST 2 package, installation of MultiTypeTree is
-	quite straight-forward.</p>
+	in general quite straight-forward.  One temporary
+	complication, however, is that the package currently depends
+	on BEAST 2 features which have not yet been incorporated into
+	the current BEAST 2 binary release (2.0.2). Thus, both of the
+	following files are required:
+	<ul>
+	  <li>The latest release
+	  of <a href="https://github.com/CompEvol/MultiTypeTree/releases">MultiTypeTree</a>.
+	  <li>A pre-release of <a href="binaries/BEAST2.0.3_pre.zip">BEAST 2.0.3</a>.
+	</ul>
+	</p>
+
+	<p>Once you have downloaded these files, you will need to
+	<ol>
+	  <li>Unzip <code>BEAST2.0.3_pre.zip</code>, which will result
+	  in a new folder <kbd>BEAST2.0.3_pre/</kbd></li>
+	  <li>Move the package
+	  file <code>MultiTypeTree-x.y.z.zip</code> into this new
+	  folder and unzip it.</li>
+	</ol>
+	</p>
+
+	<p>At this point, BEAST can be executed by opening the
+	folder <kbd>BEAST2.0.3_pre/</kbd> and double-clicking on the
+	file <code>beast2.jar</code>. This will bring up a dialog box
+	where a BEAST 2 XML file can be selected. OS X and Linux users
+	can alternatively use the command
+	<pre>java -jar beast2.jar filename.xml</pre> to execute BEAST
+	with the XML input file <code>filename.xml</code> from the
+	command line. <a href="http://www.java.com">Java</a> is required to run
+	BEAST.</p>
 
 	<h2>Tutorial</h2>
 
