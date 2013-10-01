@@ -31,7 +31,10 @@ cp ../examples/*.xml $FULLNAME/examples
 cp ../dist/MultiTypeTree.jar $FULLNAME/lib
 cp ../lib/*.jar $FULLNAME/lib
 
-# Copy over documentation
+# Copy over licenses
+cp ../lib/LICENSE.* $FULLNAME/
+cp ../COPYING $FULLNAME/
+cp ../README.md $FULLNAME/
 
 # Create version.xml
 cat <<EOF > $FULLNAME/version.xml
