@@ -541,8 +541,8 @@ t128=3">
  
    <!-- Migration model -->
    <migrationModel spec='MigrationModel' id='migModel'>
-     <rateMatrix spec='RealParameter' value="1.0 1.0" id="rateMatrix"/>
-     <popSizes spec='RealParameter' value="1.0 1.0" dimension="2" id="popSizes"/>
+     <rateMatrix spec='RealParameter' value="1.0" dimension="2" id="rateMatrix"/>
+     <popSizes spec='RealParameter' value="1.0" dimension="2" id="popSizes"/>
    </migrationModel>
  
    <!-- Parameter priors -->
@@ -581,8 +581,8 @@ t128=3">
      
      <init spec='StructuredCoalescentMultiTypeTree' id='tree' nTypes="2">
          <migrationModel spec='MigrationModel'>
-             <rateMatrix spec='RealParameter' value="1.0 1.0"/>
-             <popSizes spec='RealParameter' value="1.0 1.0"/>
+             <rateMatrix spec='RealParameter' value="1.0" dimension="2"/>
+             <popSizes spec='RealParameter' value="1.0" dimension="2"/>
          </migrationModel>
          <typeTraitSet idref='typeTraitSet'/>
          <timeTraitSet idref='timeTraitSet'/>
