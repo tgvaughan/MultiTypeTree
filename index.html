@@ -59,7 +59,7 @@
       </nav>
       <section>
 
-	<img align="right" src="SCtree.svg"/>
+	<img align="right" src="images/SCtree.svg"/>
 
 	<h2>Overview</h2>
 
@@ -120,18 +120,18 @@
 	  required to run BEAST.</p>
 
 	<h2>Tutorial: Structured coalescent analysis</h2>
-	<p>The MultiTypeTree package is not currently shipped with a
-	  BEAUTi graphical interface.  Therefore, analyses are set up
-	  by working directly on the BEAST 2 XML input file.  In
+	<p>The MultiTypeTree package is not yet equipped with a BEAUTi
+	  graphical interface.  Therefore, analyses are set up by
+	  working directly on the BEAST 2 XML input file.  In
 	  practice, the best way to do this is to modify the example
 	  XML <code>structuredCoalescent.xml</code> provided in
 	  the <kbd>examples/</kbd> subdirectory of the MultiTypeTree
 	  package archive.  We will give a brief overview of this
-	  procedure here, when the goal is to analyse a single
+	  procedure here, when the goal is to analyze a single
 	  serially-sampled sequence alignment under a structured
-	  coalescent with an HKY substitution model.  <i>We recommend
-	  that you have a copy of the example file open in a text
-	  editor when reading these instructions.</i></p>
+	  coalescent D locations and an HKY substitution model.  <i>We
+	  recommend that you have a copy of the example file open in a
+	  text editor when reading these instructions.</i></p>
 
 	<p>Firstly, incorporate the sequence data corresponding to the
 	  alignment using the <code>&lt;sequence&gt;</code> elements
@@ -159,7 +159,11 @@
 	  estimate must be defined by setting the
 	  respective <code>dimension="x"</code> attributes. The number
 	  of rates will be D*(D-1), while the number of population
-	  sizes will be D.</p>
+	  sizes will be D.  These same attributes must be set within
+	  the <code>&lt;migrationModel&gt;</code> element which occurs
+	  further along in the file, together with
+	  the <code>nTypes</code> attribute of the
+	  enclosing <code>&lt;init&gt;</code> element.</p>
 
 	<p>Fourthly, the priors on the parameters must be defined. In
 	  the example log-normal distributions with &mu;=0 and
@@ -188,10 +192,14 @@
 	  or <a href="http://tgvaughan.github.com/phylo.js/icytree.html">IcyTree</a>.</p>
 	
 
-	<h2>Acknowledgements</h2>
-	<p>Work on this project is made possible by generous funding from the
-	  <a href="http://www.allanwilsoncentre.ac.nz/">Allan Wilson Centre for Molecular Ecology and
-	    Epidemiology</a>.</p>
+	<center>
+	  <a href="http://www.allanwilsoncentre.ac.nz/"><img src="images/AWC_logo.png"/></a>
+	  <br/>
+	  <p>Work on this project is made possible by generous funding from the<br/>
+	    <a href="http://www.allanwilsoncentre.ac.nz/">Allan Wilson
+	      Centre for Molecular Ecology and Epidemiology</a>.</p>
+	</center>
+
       </section>
       <footer>
         <p>Project maintained by members
