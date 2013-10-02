@@ -152,7 +152,7 @@
             
             <plugin spec='beast.evolution.tree.MultiTypeTree' id='Tree.t:$(n)' taxonset='@TaxonSet.$(n)' nTypes="2"/>
 
-            <plugin spec='beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree' id='SCTree.t:$(n)' estimate='false' initial='@Tree.t:$(n)'>
+            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='SCTree.t:$(n)' estimate='false' initial='@Tree.t:$(n)'>
 	    <timeTrait idref="datetrait.t:$(n)"/>
 	    <typeTrait idref="typetrait.t:$(n)"/>
 		<migrationModel spec="MigrationModel">
@@ -262,9 +262,9 @@
 <!-- Tree initialisation -->
 <!-- Random tree -->
 
-        <subtemplate id='StructuredCoalescentMultiTypeTree' class='beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree' mainid='SCTree.t:$(n)'>
+        <subtemplate id='StructuredCoalescentMultiTypeTree' class='beast.evolution.tree.StructuredCoalescentMultiTypeTree' mainid='SCTree.t:$(n)'>
 <![CDATA[
-            <tree spec='beast.evolution.tree.coalescent.StructuredCoalescentMultiTypeTree' id='RandomTree.t:$(n)' estimate='false'>
+            <tree spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='RandomTree.t:$(n)' estimate='false'>
 	    <timeTrait idref="datetrait.t:$(n)"/>
 	    <typeTrait idref="typetrait.t:$(n)"/>
 		<migrationModel spec='MigrationModel'>
