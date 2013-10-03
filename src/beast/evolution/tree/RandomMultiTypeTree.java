@@ -75,11 +75,7 @@ public class RandomMultiTypeTree extends MultiTypeTree implements StateNodeIniti
     }
 
     @Override
-    public List<StateNode> getInitialisedStateNodes() {
-
-        List<StateNode> statenodes = new ArrayList<StateNode>();
-        statenodes.add(this);
-        
-        return statenodes;
+    public void getInitialisedStateNodes(List<StateNode> stateNodeList) {
+        stateNodeList.add(this);
     }
 }

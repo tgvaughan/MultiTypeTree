@@ -461,11 +461,8 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
     public void initStateNodes() throws Exception { }
 
     @Override
-    public List<StateNode> getInitialisedStateNodes() {
-        List<StateNode> list = new ArrayList<StateNode>();
-        list.add(this);
-        
-        return list;
+    public void getInitialisedStateNodes(List<StateNode> stateNodeList) {
+        stateNodeList.add(this);
     }
     
     /**

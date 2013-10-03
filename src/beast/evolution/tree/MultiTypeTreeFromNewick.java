@@ -41,10 +41,7 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
     public void initStateNodes() { }
 
     @Override
-    public List<StateNode> getInitialisedStateNodes() {
-        List<StateNode> stateNodeList = new ArrayList<StateNode>();
+    public void getInitialisedStateNodes(List<StateNode> stateNodeList) {
         stateNodeList.add(this);
-        
-        return stateNodeList;
     }
 }
