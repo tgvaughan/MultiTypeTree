@@ -76,9 +76,9 @@ public class TipLocationsInputEditor extends BEASTObjectInputEditor {
 	        tree = (StructuredCoalescentMultiTypeTree) input.get();			
 		}
         if (tree != null) {
-            m_input = tree.typeTraitSetInput;
+            //m_input = tree.typeTraitSetInput;
             m_plugin = tree;
-            traitSet = tree.typeTraitSetInput.get();
+            //traitSet = tree.typeTraitSetInput.get();
 
             Box box = Box.createVerticalBox();
 

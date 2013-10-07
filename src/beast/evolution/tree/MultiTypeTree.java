@@ -48,13 +48,14 @@ public class MultiTypeTree extends Tree {
     
     public Input<String> typeLabelInput = new Input<String>(
             "typeLabel",
-            "Label for type traits (e.g. deme)", "deme");
+            "Label for type traits (default 'type')", "type");
     
     /*
      * Non-input fields:
      */
     protected String typeLabel;
     protected int nTypes;
+    protected TraitSet typeTraitSet;
 
     public MultiTypeTree() { };
     
@@ -124,9 +125,6 @@ public class MultiTypeTree extends Tree {
                 leafNodeCount = 1;
             }
         }
-        if (m_trait.get() != null) {
-            adjustTreeToNodeHeights(root, m_trait.get());
-        }
 
         if (nodeCount >= 0) {
             initArrays();
@@ -134,8 +132,47 @@ public class MultiTypeTree extends Tree {
         
         typeLabel = typeLabelInput.get();
         nTypes = nTypesInput.get();
+        
+        processTraits(m_traitList.get());
+
+        // Ensure tree is compatible with traits.
+        if (hasDateTrait())
+            adjustTreeNodeHeights(root);
     }
 
+    @Override
+    protected void processTraits(List<TraitSet> traitList) {
+        super.processTraits(traitList);
+        
+        // Record trait set associated with leaf types.
+        for (TraitSet traitSet : traitList) {
+            if (traitSet.getTraitName().equals(typeLabel)) {
+                typeTraitSet = traitSet;
+                break;
+            }
+        }
+    }
+    
+    /**
+     * @return TraitSet with same name as typeLabel.
+     */
+    public TraitSet getTypeTrait() {
+        if (!traitsProcessed)
+            processTraits(m_traitList.get());
+        
+        return typeTraitSet;
+    }
+    
+    /**
+     * @return true if TraitSet with same name as typeLabel exists.
+     */
+    public boolean hasTypeTrait() {
+        if (getTypeTrait() != null)
+            return true;
+        else
+            return false;
+    }
+    
     @Override
     protected final void initArrays() {
         // initialise tree-as-array representation + its stored variant

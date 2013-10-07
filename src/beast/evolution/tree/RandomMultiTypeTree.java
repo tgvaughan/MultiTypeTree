@@ -19,10 +19,14 @@ public class RandomMultiTypeTree extends MultiTypeTree implements StateNodeIniti
     @Override
     public void initAndValidate() throws Exception {
         super.initAndValidate();
-                
-        /* fill leaf colour array */
+        
+        if (!hasTypeTrait())
+            throw new Exception("No trait set with name '" + typeLabel + "' "
+                    + "identified.  Needed to specify taxon locations.");
+        
+        // Fill leaf colour array:
         for (int i = 0; i<getLeafNodeCount(); i++)
-            ((MultiTypeNode)getNode(i)).setNodeType((int)m_trait.get().getValue(i));
+            ((MultiTypeNode)getNode(i)).setNodeType((int)typeTraitSet.getValue(i));
 
         generateTyping(getRoot());
         

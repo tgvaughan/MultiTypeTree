@@ -263,7 +263,7 @@
 
  
    <typeTraitSet spec='TraitSet' id='typeTraitSet'
- 	  traitname="discrete"
+ 	  traitname="type"
  	  value="t1=1,
 t2=0,
 t3=1,
@@ -396,7 +396,7 @@ t128=0">
    </typeTraitSet>
 
    <traitSet spec='TraitSet' id='timeTraitSet'
- 	    traitname="time"
+ 	    traitname="date-backward"
  	    value="t1=0,
 t2=0,
 t3=0,
@@ -584,8 +584,8 @@ t128=3">
              <rateMatrix spec='RealParameter' value="1.0" dimension="2"/>
              <popSizes spec='RealParameter' value="1.0" dimension="2"/>
          </migrationModel>
-         <typeTraitSet idref='typeTraitSet'/>
-         <timeTraitSet idref='timeTraitSet'/>
+         <trait idref='typeTraitSet'/>
+         <trait idref='timeTraitSet'/>
      </init>
  
      <state>

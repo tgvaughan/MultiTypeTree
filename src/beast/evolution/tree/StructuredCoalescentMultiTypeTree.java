@@ -23,10 +23,6 @@ import beast.core.StateNode;
 import beast.core.StateNodeInitialiser;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.Node;
-import beast.evolution.tree.TraitSet;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
@@ -57,14 +53,6 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
     public Input<IntegerParameter> leafTypesInput = new Input<IntegerParameter>(
             "leafTypes",
             "Types of leaf nodes.");
-    
-    public Input<TraitSet> typeTraitSetInput = new Input<TraitSet>(
-            "typeTraitSet",
-            "Trait set specifying types of leaf nodes.");
-    
-    public Input<TraitSet> timeTraitSetInput = new Input<TraitSet>(
-            "timeTraitSet",
-            "Trait set specifying ages of leaf nodes.");
 
     /*
      * Non-input fields:
@@ -131,14 +119,14 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                 leafNames.add(String.valueOf(i));
             }
         } else {
-            if (typeTraitSetInput.get() == null)
+            if (!hasTypeTrait())
                 throw new IllegalArgumentException("Either leafColours or "
                         + "trait set must be provided.");
 
             // Fill leaf colour array:
-            for (int i = 0; i<typeTraitSetInput.get().taxaInput.get().asStringList().size(); i++) {
-                leafTypes.add((int)typeTraitSetInput.get().getValue(i));
-                leafNames.add(typeTraitSetInput.get().taxaInput.get().asStringList().get(i));
+            for (int i = 0; i<typeTraitSet.taxaInput.get().asStringList().size(); i++) {
+                leafTypes.add((int)typeTraitSet.getValue(i));
+                leafNames.add(typeTraitSet.taxaInput.get().asStringList().get(i));
             }
         }
         
@@ -146,16 +134,16 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         
         // Set leaf times if specified:
         leafTimes = Lists.newArrayList();
-        if (timeTraitSetInput.get() == null) {
+        if (timeTraitSet == null) {
             for (int i=0; i<nLeaves; i++)
                 leafTimes.add(0.0);
         } else {
-            if (timeTraitSetInput.get().taxaInput.get().asStringList().size() != nLeaves)
+            if (timeTraitSet.taxaInput.get().asStringList().size() != nLeaves)
                 throw new IllegalArgumentException("Number of time traits "
                         + "doesn't match number of leaf colours supplied.");
             
             for (int i=0; i<nLeaves; i++)
-                leafTimes.add(timeTraitSetInput.get().getValue(i));
+                leafTimes.add(timeTraitSet.getValue(i));
         }
         
 
