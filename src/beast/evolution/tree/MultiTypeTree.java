@@ -23,9 +23,12 @@ import beast.core.StateNode;
 import beast.core.StateNodeInitialiser;
 import beast.util.TreeParser;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +59,8 @@ public class MultiTypeTree extends Tree {
     protected String typeLabel;
     protected int nTypes;
     protected TraitSet typeTraitSet;
+    
+    protected List <String> typeList;
 
     public MultiTypeTree() { };
     
@@ -151,6 +156,22 @@ public class MultiTypeTree extends Tree {
                 break;
             }
         }
+
+        // Construct type list.
+        if (typeTraitSet != null) {
+            Set<String> typeSet = Sets.newHashSet();
+                
+            int nTaxa = typeTraitSet.taxaInput.get().asStringList().size();
+            for (int i=0; i<nTaxa; i++)
+                typeSet.add(typeTraitSet.getStringValue(i));
+                
+            typeList = Lists.newArrayList(typeSet);
+            Collections.sort(typeList);
+            
+            System.out.println("Type trait with the following types detected:");
+            for (int i=0; i<typeList.size(); i++)
+                System.out.println(typeList.get(i) + " (" + i + ")");
+        }
     }
     
     /**
@@ -171,6 +192,17 @@ public class MultiTypeTree extends Tree {
             return true;
         else
             return false;
+    }
+    
+    /**
+     * Retrieve the list of unique types identified by the type trait.
+     * @return List of unique type trait value strings.
+     */
+    public List<String> getTypeList() {
+        if (!traitsProcessed)
+            processTraits(m_traitList.get());
+        
+        return typeList;
     }
     
     @Override
