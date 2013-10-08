@@ -121,7 +121,8 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         } else {
             if (!hasTypeTrait())
                 throw new IllegalArgumentException("Either leafColours or "
-                        + "trait set must be provided.");
+                        + "trait set (with name '" + typeLabel
+                        + "') must be provided.");
 
             // Fill leaf colour array:
             for (int i = 0; i<typeTraitSet.taxaInput.get().asStringList().size(); i++) {
