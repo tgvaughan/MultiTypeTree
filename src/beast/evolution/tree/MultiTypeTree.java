@@ -480,6 +480,7 @@ public class MultiTypeTree extends Tree {
      *
      * @param flatTree
      * @param takeNrsFromFlatTree 
+     * @throws java.lang.Exception 
      */
     public void initFromFlatTree(Tree flatTree, boolean takeNrsFromFlatTree) throws Exception {
 
@@ -758,6 +759,7 @@ public class MultiTypeTree extends Tree {
     
     /**
      * reconstruct tree from XML fragment in the form of a DOM node *
+     * @param node
      */
     @Override
     public void fromXML(org.w3c.dom.Node node) {
