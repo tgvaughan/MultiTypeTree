@@ -39,7 +39,7 @@ cp ../README.md $FULLNAME/
 # Create version.xml
 cat <<EOF > $FULLNAME/version.xml
 <addon name="$PKGNAME" version="$VERSION">
-    <depends on="beast2" atleast="2.0.3"/>
+    <depends on="beast2" atleast="2.1.0"/>
 </addon>
 EOF
 
