@@ -37,7 +37,7 @@ import java.util.Map;
  * @author Tim Vaughan
  */
 @Description("Likelihood of ColouredTree under structured coalescent.")
-public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
+public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
 
     public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
             "migrationModel", "Model of migration between demes.",
@@ -66,7 +66,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
     private List<Integer[]> lineageCountList;
 
     // Empty constructor as required:
-    public StructuredCoalescentLikelihood() { };
+    public StructuredCoalescentTreeDensity() { };
 
     @Override
     public void initAndValidate() {
@@ -276,7 +276,7 @@ public class StructuredCoalescentLikelihood extends MultiTypeTreeDistribution {
                 "popSizes", popSizes);
 
         // Set up likelihood instance:
-        StructuredCoalescentLikelihood likelihood = new StructuredCoalescentLikelihood();
+        StructuredCoalescentTreeDensity likelihood = new StructuredCoalescentTreeDensity();
         likelihood.initByName(
                 "migrationModel", migrationModel,
                 "multiTypeTree", mtTree);

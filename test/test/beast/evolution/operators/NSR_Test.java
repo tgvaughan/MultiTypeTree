@@ -20,7 +20,7 @@ import beast.core.MCMC;
 import beast.core.Operator;
 import beast.core.State;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.coalescent.StructuredCoalescentLikelihood;
+import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
 import beast.evolution.operators.NodeShiftRetype;
 import beast.evolution.tree.MultiTypeTree;
@@ -64,8 +64,8 @@ public class NSR_Test {
         state.initByName("stateNode", mtTree);
         
         // Assemble distribution:
-        StructuredCoalescentLikelihood distribution =
-                new StructuredCoalescentLikelihood();
+        StructuredCoalescentTreeDensity distribution =
+                new StructuredCoalescentTreeDensity();
         distribution.initByName(
                 "migrationModel", migModel,
                 "multiTypeTree", mtTree);

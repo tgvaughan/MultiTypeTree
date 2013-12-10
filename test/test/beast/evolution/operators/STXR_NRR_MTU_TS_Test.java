@@ -20,7 +20,7 @@ import beast.core.MCMC;
 import beast.core.Operator;
 import beast.core.State;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.coalescent.StructuredCoalescentLikelihood;
+import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
 import beast.evolution.operators.MultiTypeTreeScale;
 import beast.evolution.operators.MultiTypeUniform;
@@ -67,8 +67,8 @@ public class STXR_NRR_MTU_TS_Test {
         state.initByName("stateNode", mtTree);
         
         // Assemble distribution:
-        StructuredCoalescentLikelihood distribution =
-                new StructuredCoalescentLikelihood();
+        StructuredCoalescentTreeDensity distribution =
+                new StructuredCoalescentTreeDensity();
         distribution.initByName(
                 "migrationModel", migModel,
                 "multiTypeTree", mtTree);
