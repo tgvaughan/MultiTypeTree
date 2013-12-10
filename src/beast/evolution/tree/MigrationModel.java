@@ -188,6 +188,8 @@ public class MigrationModel extends CalculationNode implements Loggable {
      * this method does not return 0 when the BSSVS indicator variable is
      * switched off.
      *
+     * @param i
+     * @param j
      * @return Rate matrix element.
      */
     public double getRateForLog(int i, int j) {
@@ -203,6 +205,8 @@ public class MigrationModel extends CalculationNode implements Loggable {
      * Obtain element of rate matrix for migration model for use in likelihood
      * calculation.  (May be switched to zero in BSSVS calculation.)
      *
+     * @param i
+     * @param j
      * @return Rate matrix element.
      */
     public double getRate(int i, int j) {
@@ -221,6 +225,8 @@ public class MigrationModel extends CalculationNode implements Loggable {
      * Obtain BSSVS flag corresponding to element of rate matrix for migration
      * model.  If flags are not being used, returns true.
      *
+     * @param i
+     * @param j
      * @return Rate matrix element BSVS flag.
      */
     public boolean getRateFlag(int i, int j) {
@@ -430,9 +436,10 @@ public class MigrationModel extends CalculationNode implements Loggable {
         }
     }
 
-    /**
-     * CalculationNode implementations *
+    /*
+     * CalculationNode implementations.
      */
+    
     @Override
     protected boolean requiresRecalculation() {
         // we only get here if something is dirty
