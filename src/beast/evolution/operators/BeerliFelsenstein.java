@@ -43,7 +43,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
     
     protected MigrationModel migModel;
     
-    protected enum EventType {COALESCENCE, SAMPLE, MIGRATION};    
+    protected enum EventType {COALESCENCE, SAMPLE, MIGRATION};
     protected class TreeEvent {
         /**
          * Node associated with this event.
@@ -60,7 +60,20 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
          */
         double time;
         
-        int prevType, thisType;
+        /**
+         * Type during interval following event.
+         */
+        int thisType;
+        
+        /**
+         * Type during previous interval if migration event.
+         */
+        int prevType;
+        
+        /**
+         * Number of lineages possessing each type during this interval.
+         */
+        int [] k;
 
     }
     protected List<TreeEvent> eventList;
@@ -76,16 +89,73 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
     
     @Override
     public double proposal() {
-        assembleEventList();
+                
+        double logHR = 0.0;
         
         // Select non-root node at random:
-        MultiTypeNode mtNode;
+        MultiTypeNode node;
         do {
-            mtNode = (MultiTypeNode)mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
-        } while (mtNode.isRoot());
+            node = (MultiTypeNode)mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
+        } while (node.isRoot());
         
-        double logHR = getReverseMoveDensity(mtNode);
+        // Store original node (needed for reverse move density calculation)
+        Node originalNode = node.shallowCopy();
         
+        // Assemble list of events on partial tree
+        assemblePartialEventList(node);
+        
+        // Actually turn tree into partial tree.
+        node.clearChanges();
+        MultiTypeNode mtParent = (MultiTypeNode)node.getParent();
+        MultiTypeNode mtSister = (MultiTypeNode)getOtherChild(mtParent, node);
+        mtParent.removeChild(mtSister);
+        
+        if (!mtParent.isRoot()) {
+            for (int i=0; i<mtParent.getChangeCount(); i++) {
+                mtSister.addChange(mtParent.getChangeType(i), mtParent.getChangeTime(i));
+            }
+            mtParent.clearChanges();
+            MultiTypeNode mtGrandParent = (MultiTypeNode)mtParent.getParent();
+            mtGrandParent.removeChild(mtParent);
+            mtGrandParent.addChild(mtSister);
+        }
+        
+        // Simulate new edge(s)
+        
+        double t = node.getHeight();
+        int [] migPropTots = new int[migModel.getNDemes()];
+        for (int d=0; d<migModel.getNDemes(); d++) {
+            for (int dp=0; dp<migModel.getNDemes(); dp++) {
+                if (dp==d)
+                    continue;
+                migPropTots[d] += migModel.getRate(d, dp);
+            }
+        }
+        
+        for (int eidx=1; eidx<eventList.size(); eidx++) {
+            TreeEvent nextEvent = eventList.get(eidx);
+            if (nextEvent.time<t)
+                continue;
+            
+            TreeEvent event = eventList.get(eidx-1);
+
+            double a0 = migPropTots[node.getFinalType()]
+                    + event.k[node.getFinalType()]/migModel.getPopSize(node.getFinalType());
+            
+            t += Randomizer.nextExponential(a0);
+            
+            if (t>nextEvent.time) {
+                t = nextEvent.time;
+                continue;
+            }
+            
+            double u = Randomizer.nextDouble()*a0;
+            if (u<migPropTots[node.getFinalType()]) {
+                
+            } else
+                break;
+        }
+
         return logHR;
     }
     
@@ -152,13 +222,19 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
     }
     
     /**
-     * Assemble list of events in tree.
+     * Assemble list of events in tree, excluding those on the edge between
+     * nodeToExclude and its parent.
+     * 
+     * @param nodeToExclude node to exclude from partial event list.
      */
-    private void assembleEventList() {
+    private void assemblePartialEventList(Node nodeToExclude) {
         
         eventList.clear();
         
         for (Node node : mtTree.getNodesAsArray()) {
+            if (node == nodeToExclude)
+                continue;
+            
             MultiTypeNode mtNode = (MultiTypeNode)node;
             
             TreeEvent event = new TreeEvent();
@@ -204,6 +280,23 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             }
         });
         
+        // Calculate lineage counts:
+        int [] k = new int[mtTree.getNTypes()];
+        for (TreeEvent event : eventList) {
+            switch (event.eventType) {
+                case COALESCENCE:
+                    k[event.thisType] -= 1;
+                    break;
+                case MIGRATION:
+                    k[event.thisType] += 1;
+                    k[event.prevType] -= 1;
+                    break;
+                case SAMPLE:
+                    k[event.thisType] += 1;
+                    break;
+            }
+            event.k = k.clone();
+        }
     }
     
 }

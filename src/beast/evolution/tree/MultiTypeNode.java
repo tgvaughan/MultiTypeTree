@@ -205,7 +205,28 @@ public class MultiTypeNode extends Node {
         nTypeChanges -= 1;
 
     }
+    
+    /**
+     * @return shallow copy of node
+     */
+    public MultiTypeNode shallowCopy() {
+        MultiTypeNode node = new MultiTypeNode();
+        node.height = height;
+        node.parent = parent;        
+        node.children.addAll(children);
 
+        node.nTypeChanges = nTypeChanges;
+        node.changeTimes.addAll(changeTimes);
+        node.changeTypes.addAll(changeTypes);
+        node.nodeType = nodeType;
+                
+        node.labelNr = labelNr;
+        node.metaDataString = metaDataString;
+        node.ID = ID;
+
+        return node;
+    }
+    
     /**
      * **************************
      * Methods ported from Node *
@@ -241,6 +262,8 @@ public class MultiTypeNode extends Node {
 
     /**
      * assign values from a tree in array representation *
+     * @param nodes
+     * @param node
      */
     @Override
     public void assignFrom(Node[] nodes, Node node) {
