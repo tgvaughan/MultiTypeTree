@@ -571,13 +571,13 @@ t128=3">
    </input>
    
    <!-- Probability of tree given migration rates and population sizes -->
-   <input spec='StructuredCoalescentLikelihood' id='treePrior'>
+   <input spec='StructuredCoalescentTreeDensity' id='treePrior'>
      <multiTypeTree idref="tree"/>
      <migrationModel idref="migModel"/>
    </input>
 
 
-   <run spec="MCMC" id="mcmc" chainLength="100000000">
+   <run spec="MCMC" id="mcmc" chainLength="100000000" storeEvery="10000">
      
      <init spec='StructuredCoalescentMultiTypeTree' id='tree' nTypes="2">
          <migrationModel spec='MigrationModel'>
