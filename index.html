@@ -82,42 +82,24 @@
 	  cope with other structured-population genealogical
 	  models.</p>
 
-	<h2>Getting Started</h2>
+	<h2>Getting started</h2>
 	
-	<p>Being a BEAST 2 package, installation of MultiTypeTree is
-	in general quite straight-forward.  One temporary
-	complication, however, is that the package currently depends
-	on BEAST 2 features which have not yet been incorporated into
-	the current BEAST 2 binary release (2.0.2). Thus, both of the
-	following files are required:
-	<ul>
-	  <li>The latest release
-	  of <a href="https://github.com/CompEvol/MultiTypeTree/releases">MultiTypeTree</a>.
-	  <li>A pre-release of <a href="binaries/BEAST2.0.3_pre.zip">BEAST 2.0.3</a>.
-	</ul>
+	<p>Firstly, make sure you have downloaded and installed the
+	latest version of BEAST 2
+	from <a href="http://www.beast2.org/">www.beast2.org</a>. Then,
+	download the latest MultiTypeTree package
+	from <a href="https://github.com/CompEvol/MultiTypeTree/releases">here</a>
+	and extract it into one of the following locations, depending
+	on your operating system:
+	  <ul>
+	    <li>GNU/Linux: <code>~/.beast/MultiTypeTree</code></li>
+	    <li>Mac OS X: <code>/library/Application
+	    Support/BEAST/MultiTypeTree</code></li>
+	    <li>Windows: <code>#HOME#\BEAST\MultiTypetree</code>
+	     (#HOME# is your user home directory)</li>
+	  </ul>
+	  Congratulations! MultiTypeTree is now installed.
 	</p>
-
-	<p>Once you have downloaded these files, you will need to
-	<ol>
-	  <li>Unzip <code>BEAST2.0.3_pre.zip</code>, which will result
-	    in a new folder <kbd>BEAST2.0.3_pre/</kbd></li>
-	  <li>Move the package
-	    file <code>MultiTypeTree-x.y.z.zip</code> into this new
-	    folder and unzip it.</li>
-	</ol>
-	</p>
-
-	<p>At this point, BEAST can be executed by opening the
-	  folder <kbd>BEAST2.0.3_pre/</kbd> and double-clicking on the
-	  file <code>beast2.jar</code>. This will bring up a dialog
-	  box where a BEAST 2 XML file can be selected. Mac OS X and
-	  Linux users can alternatively use the command
-	  <pre>java -jar beast2.jar filename.xml</pre>
-	  to execute BEAST with the XML input
-	  file <code>filename.xml</code> from the command line.</p>
-
-	<p>Note that <a href="http://www.java.com">Java</a> is
-	  required to run BEAST.</p>
 
 	<h2>Tutorial: Structured coalescent analysis</h2>
 	<p>The MultiTypeTree package is not yet equipped with a BEAUTi
@@ -144,9 +126,9 @@
 	  replacements in the body of
 	  the <code>&lt;typeTraitSet&gt;</code>
 	  and <code>&lt;timeTraitSet&gt;</code> elements.  Note that
-	  the locations must be represented as integers between 0 and
-	  D-1, where "D" is the number of types in the model.  In the
-	  example file, the attribute <code>traitname="time"</code>
+	  the locations must be identified by no more than D unique
+	  strings or numbers, where "D" is the number of types in the model.  In the
+	  example file, the attribute <code>traitname="date-backward"</code>
 	  causes the times to represent <i>ages</i> of leaf nodes.  By
 	  using <code>traitname="date-forward"</code>, calendar years
 	  or other forward-time units can be used. Note that the taxon
