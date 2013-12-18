@@ -395,7 +395,7 @@ t128=0">
      <taxa spec='TaxonSet' alignment='@alignment'/>
    </typeTraitSet>
 
-   <traitSet spec='TraitSet' id='timeTraitSet'
+   <timeTraitSet spec='TraitSet' id='timeTraitSet'
  	    traitname="date-backward"
  	    value="t1=0,
 t2=0,
@@ -526,7 +526,7 @@ t126=3,
 t127=3,
 t128=3">
      <taxa spec='TaxonSet' alignment='@alignment'/>
-   </traitSet>
+   </timeTraitSet>
 
    <!-- Substitution model (HKY) -->
    <siteModel spec="SiteModel" id="siteModel">
