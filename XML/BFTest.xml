@@ -1,0 +1,61 @@
+<beast version='2.0'
+       namespace='beast.core:beast.core.util:beast.evolution.operators:beast.evolution.likelihood:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent'>
+
+    <model spec='MigrationModel' id="migmodel">
+        <rateMatrix spec='RealParameter' value="0.1 0.1"/>
+        <popSizes spec="RealParameter" value="7.0 7.0"/>
+    </model>
+
+    <run spec="MCMC" id="mcmc" chainLength="10000000"> 
+
+        <init spec='StructuredCoalescentMultiTypeTree'
+                      id="tree" 
+                      typeLabel="state" nTypes="2"
+		      leafTypes="0 0 0" migrationModel="@migmodel">
+        </init>
+      
+        <state>
+            <stateNode idref="tree"/>
+        </state>
+        
+        <distribution spec="CompoundDistribution" id="P">
+            <distribution id='scLikelihood' spec="StructuredCoalescentTreeDensity" checkValidity="true">
+                <migrationModel idref="migmodel"/>
+                <multiTypeTree idref="tree"/>
+            </distribution>
+        </distribution>
+
+	<!-- Tree operators -->
+	<operator spec="BeerliFelsenstein" id="BF"
+		  weight="1"
+                  multiTypeTree="@tree" migrationModel="@migmodel"/>
+		  
+        <logger logEvery="1000" fileName="BFTest.log">
+            <model idref='P'/>
+            <log idref="P"/>
+            <log spec='beast.evolution.tree.TreeHeightLogger'>
+                <tree idref="tree"/>
+            </log>
+            <log spec='beast.evolution.tree.TypeChangeCounts'>
+                <multiTypeTree idref="tree"/>
+            </log>
+        </logger>
+
+        <logger logEvery="100000">
+            <model idref='P'/>
+            <log idref="P"/>
+            <log spec='beast.evolution.tree.TreeHeightLogger' >
+                <tree idref="tree"/>
+            </log>
+            <log spec='beast.evolution.tree.TypeChangeCounts'>
+                <multiTypeTree idref="tree"/>
+            </log>
+        </logger>
+
+        <logger logEvery="10000" fileName="BFTest.trees" mode="tree">
+            <log idref="tree"/>
+        </logger>
+
+    </run>
+
+</beast>

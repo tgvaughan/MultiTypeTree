@@ -74,6 +74,11 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
          * Number of lineages possessing each type during this interval.
          */
         int [] k;
+        
+        /**
+         * Nodes with parent edges which overlap this interval.
+         */
+        List<Node> activeNodes;
 
     }
     protected List<TreeEvent> eventList;
@@ -122,7 +127,6 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         
         // Simulate new edge(s)
         
-        double t = node.getHeight();
         int [] migPropTots = new int[migModel.getNDemes()];
         for (int d=0; d<migModel.getNDemes(); d++) {
             for (int dp=0; dp<migModel.getNDemes(); dp++) {
@@ -130,8 +134,10 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                     continue;
                 migPropTots[d] += migModel.getRate(d, dp);
             }
+
         }
-        
+        double t = node.getHeight();        
+        int thisType = node.getFinalType();
         for (int eidx=1; eidx<eventList.size(); eidx++) {
             TreeEvent nextEvent = eventList.get(eidx);
             if (nextEvent.time<t)
@@ -140,7 +146,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             TreeEvent event = eventList.get(eidx-1);
 
             double a0 = migPropTots[node.getFinalType()]
-                    + event.k[node.getFinalType()]/migModel.getPopSize(node.getFinalType());
+                    + event.k[thisType]/migModel.getPopSize(thisType);
             
             t += Randomizer.nextExponential(a0);
             
@@ -150,10 +156,33 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             }
             
             double u = Randomizer.nextDouble()*a0;
-            if (u<migPropTots[node.getFinalType()]) {
+            if (u<migPropTots[thisType]) {
                 
-            } else
+                // New type change
+                int nextType;
+                for (nextType=0; nextType<migModel.getNDemes(); nextType++) {
+                    if (nextType==thisType)
+                        continue;
+                    
+                    u -= migModel.getRate(thisType, nextType);
+                    if (u<0)
+                        break;
+                }
+                
+                node.addChange(nextType, t);
+                thisType = nextType;
+                
+            } else {
+                
+                // Coalesce!
+                
+                int idx = Randomizer.nextInt(event.k[thisType]);
+                for (Node cNode : event.activeNodes) {
+
+                }
+                
                 break;
+            }
         }
 
         return logHR;
@@ -282,10 +311,14 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         
         // Calculate lineage counts:
         int [] k = new int[mtTree.getNTypes()];
+        List<Node> activeNodes = Lists.newArrayList();
         for (TreeEvent event : eventList) {
             switch (event.eventType) {
                 case COALESCENCE:
                     k[event.thisType] -= 1;
+                    activeNodes.remove(event.node.getLeft());
+                    activeNodes.remove(event.node.getRight());
+                    activeNodes.add(event.node);
                     break;
                 case MIGRATION:
                     k[event.thisType] += 1;
@@ -293,9 +326,11 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                     break;
                 case SAMPLE:
                     k[event.thisType] += 1;
+                    activeNodes.add(event.node);
                     break;
             }
             event.k = k.clone();
+            event.activeNodes = Lists.newArrayList(activeNodes);
         }
     }
     
