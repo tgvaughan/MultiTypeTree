@@ -69,7 +69,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         // Select non-root node at random
         Node node = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount())-1);
         MultiTypeNode mtNode = (MultiTypeNode)node;
-        
+
         // Assemble partial event list
         List<Event> eventList = getPartialEventList(node);
         
@@ -77,8 +77,13 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         for (int i=0; i<migModel.getNDemes(); i++)
             nodesOfType.add(new HashSet<Node>());
 
+        mtNode.clearChanges();
         int deme = mtNode.getNodeType();
-        for (Event event : eventList) {
+        double coalTime = Double.NaN;
+        for (int eidx=0; eidx<eventList.size()-1; eidx++) {
+            Event event = eventList.get(eidx);
+            Event nextEvent = eventList.get(eidx+1);
+            
             switch (event.type) {
                 case COALESCENCE:
                     nodesOfType.get(event.thisDeme).removeAll(event.node.getChildren());
@@ -97,9 +102,56 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             
             if (node.getHeight()<event.time)
                 continue;
-
+            
+            double t = Math.max(event.time,node.getHeight());
+            
+            // Early exit 
+            if (t == nextEvent.time)
+                continue;
+            
+            // Calculate propensities
+            double coalProp = nodesOfType.get(deme).size()/migModel.getPopSize(deme);
+            double migProp = 0.0;
+            for (int d=0; d<migModel.getNDemes(); d++) {
+                if (d != deme)
+                    migProp += migModel.getRate(deme, d);
+            }
+            
+            // Select event time
+            t += Randomizer.nextExponential(coalProp + migProp);
+            if (t > nextEvent.time)
+                continue;
+            
+            double u = Randomizer.nextDouble()*(coalProp + migProp);
+            if (u<coalProp) {
+                // Coalescence
+                
+                coalTime = t;
+                break;
+                
+            } else {
+                // Migration
+                
+                u -= coalProp;
+                int toDeme;
+                for (toDeme = 0; toDeme<migModel.getNDemes(); toDeme++) {
+                    if (toDeme == deme)
+                        continue;
+                    
+                    u -= migModel.getRate(deme, toDeme);
+                    if (u<0)
+                        break;
+                }
+                
+                mtNode.addChange(toDeme, t);
+            }
+            
         }
      
+        if (Double.isNaN(coalTime)) {
+
+        }
+        
         return logHR;
     }
 
