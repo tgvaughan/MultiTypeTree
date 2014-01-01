@@ -72,17 +72,42 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
 
         // Assemble partial event list
         List<Event> eventList = getPartialEventList(node);
+        double oldRootHeight = mtTree.getRoot().getHeight();
+        
+        // Topology changes to turn tree into partial tree
+        Node coalNode = node.getParent();
+        if (!coalNode.isRoot())
+            disconnectBranch(node);
+        else {
+            Node sister = getOtherChild(coalNode, node);
+            coalNode.removeChild(sister);
+        }
+        
+        // Pre-calculate total lineage migration propensities
+        double [] migProp = new double[migModel.getNDemes()];
+        for (int d=0; d<migModel.getNDemes(); d++) {
+            migProp[d] = 0.0;
+            for (int dp=0; dp<migModel.getNDemes(); dp++) {
+                if (d==dp)
+                    continue;
+                migProp[d] += migModel.getRate(d, dp);
+            }
+        }
         
         List<Set<Node>> nodesOfType = Lists.newArrayList();
         for (int i=0; i<migModel.getNDemes(); i++)
             nodesOfType.add(new HashSet<Node>());
 
         mtNode.clearChanges();
-        int deme = mtNode.getNodeType();
+
         double coalTime = Double.NaN;
-        for (int eidx=0; eidx<eventList.size()-1; eidx++) {
+        for (int eidx=0; eidx<eventList.size(); eidx++) {
             Event event = eventList.get(eidx);
-            Event nextEvent = eventList.get(eidx+1);
+            double intervalEndTime;
+            if (eidx<eventList.size()-1)
+                intervalEndTime = eventList.get(eidx+1).time;
+            else
+                intervalEndTime = oldRootHeight;
             
             switch (event.type) {
                 case COALESCENCE:
@@ -100,57 +125,125 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                     break;
             }
             
-            if (node.getHeight()<event.time)
-                continue;
-            
             double t = Math.max(event.time,node.getHeight());
             
             // Early exit 
-            if (t == nextEvent.time)
+            if (t >= intervalEndTime)
                 continue;
+
+            int deme = mtNode.getNodeType();
             
-            // Calculate propensities
+            // Calculate coalescent propensity
             double coalProp = nodesOfType.get(deme).size()/migModel.getPopSize(deme);
-            double migProp = 0.0;
-            for (int d=0; d<migModel.getNDemes(); d++) {
-                if (d != deme)
-                    migProp += migModel.getRate(deme, d);
-            }
+
+            while (true) {
+                
+                // Select event time
+                t += Randomizer.nextExponential(coalProp + migProp[deme]);
+                if (t > intervalEndTime)
+                    break;
             
-            // Select event time
-            t += Randomizer.nextExponential(coalProp + migProp);
-            if (t > nextEvent.time)
-                continue;
-            
-            double u = Randomizer.nextDouble()*(coalProp + migProp);
-            if (u<coalProp) {
-                // Coalescence
+                double u = Randomizer.nextDouble()*(coalProp + migProp[deme]);
+                if (u<coalProp) {
+                    // Coalescence
                 
-                coalTime = t;
-                break;
+                    coalTime = t;
+                    break;
                 
-            } else {
-                // Migration
+                } else {
+                    // Migration
                 
-                u -= coalProp;
-                int toDeme;
-                for (toDeme = 0; toDeme<migModel.getNDemes(); toDeme++) {
-                    if (toDeme == deme)
-                        continue;
+                    u -= coalProp;
+                    int toDeme;
+                    for (toDeme = 0; toDeme<migModel.getNDemes(); toDeme++) {
+                        if (toDeme == deme)
+                            continue;
                     
-                    u -= migModel.getRate(deme, toDeme);
-                    if (u<0)
-                        break;
-                }
+                        u -= migModel.getRate(deme, toDeme);
+                        if (u<0)
+                            break;
+                    }
                 
-                mtNode.addChange(toDeme, t);
+                    mtNode.addChange(toDeme, t);
+                    deme = toDeme;
+                }
             }
             
+            // Continue to next interval if no coalescence has occurred
+            if (!Double.isNaN(coalTime))
+                break;
         }
      
         if (Double.isNaN(coalTime)) {
-
+            
+            // Continue simulation beyond old root of tree
+            double t = oldRootHeight;
+            
+            int deme = mtNode.getFinalType();
+            MultiTypeNode mtNodeSis = (MultiTypeNode)eventList.get(eventList.size()-1).node;
+            int demeSis = mtNodeSis.getFinalType();
+            
+            while (true) {
+                
+                // Calculate coalescent propensity
+                double coalProp;
+                if (deme == demeSis)
+                    coalProp = 1.0/migModel.getPopSize(deme);
+                else
+                    coalProp = 0.0;
+                
+                double totalProp = coalProp + migProp[deme] + migProp[demeSis];
+                t += Randomizer.nextExponential(totalProp);
+                
+                double u = Randomizer.nextDouble()*totalProp;
+                
+                if (u <coalProp) {
+                    // Coalescence
+                    
+                    coalTime = t;
+                    break;
+                    
+                } else {
+                    // Migration
+                    
+                    u -= coalProp;
+                    
+                    if (u<migProp[deme]) {
+                        // Migration in main lineage
+                        
+                        int toDeme;
+                        for (toDeme=0; toDeme<migModel.getNDemes(); toDeme++) {
+                            if (toDeme == deme)
+                                continue;
+                            
+                            u -= migModel.getRate(deme, toDeme);
+                            if (u<0)
+                                break;
+                        }
+                        
+                        mtNode.addChange(toDeme, t);
+                        deme = toDeme;
+                    } else {
+                        // Migration in sister lineage
+                        
+                        int toDeme;
+                        for (toDeme=0; toDeme<migModel.getNDemes(); toDeme++) {
+                            if (toDeme == demeSis)
+                                continue;
+                            
+                            u -= migModel.getRate(demeSis, toDeme);
+                            if (u<0)
+                                break;
+                        }
+                        
+                        mtNodeSis.addChange(toDeme, t);
+                        demeSis = toDeme;
+                    }
+                }
+            }
         }
+        
+        // TODO: Implement coalescence
         
         return logHR;
     }
