@@ -75,12 +75,12 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         double oldRootHeight = mtTree.getRoot().getHeight();
         
         // Topology changes to turn tree into partial tree
-        Node coalNode = node.getParent();
-        if (!coalNode.isRoot())
+        Node nodeParent = node.getParent();
+        if (!nodeParent.isRoot())
             disconnectBranch(node);
         else {
-            Node sister = getOtherChild(coalNode, node);
-            coalNode.removeChild(sister);
+            Node sister = getOtherChild(nodeParent, node);
+            nodeParent.removeChild(sister);
         }
         
         // Pre-calculate total lineage migration propensities
@@ -146,8 +146,12 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 double u = Randomizer.nextDouble()*(coalProp + migProp[deme]);
                 if (u<coalProp) {
                     // Coalescence
-                
-                    coalTime = t;
+
+                    // Select edge to coalesce with
+                    Node coalNode = (Node)selectRandomElement(nodesOfType.get(deme));
+                    
+                    coalTime = t;                    
+                    connectBranch(node, coalNode, coalTime);
                     break;
                 
                 } else {
@@ -201,6 +205,9 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                     // Coalescence
                     
                     coalTime = t;
+                    nodeParent.addChild(mtNodeSis);
+                    mtTree.setRoot(nodeParent);
+                    
                     break;
                     
                 } else {
@@ -243,7 +250,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             }
         }
         
-        // TODO: Implement coalescence
+        // TODO: Calculate Hastings factor
         
         return logHR;
     }
@@ -312,5 +319,15 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         });
 
         return eventList;
+    }
+
+    /**
+     * Select element at random from set.
+     * 
+     * @param set
+     * @return Object
+     */
+    public Object selectRandomElement(Set set) {
+        return set.toArray()[Randomizer.nextInt(set.size())];
     }
 }
