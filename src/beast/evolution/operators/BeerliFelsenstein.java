@@ -354,41 +354,55 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
     /**
      * Calculate probability with which the current state is proposed from
      * the new state.
-     * @param eventList List of events on partial genealogy.
+     * @param eventList List of events on partial genealogy
      * @param migProp Pre-calculated Migration propensities
-     * @param node Node below edge which is modified during proposal.
+     * @param node Node below edge which is modified during proposal
+     * @param nodeSis Sister of node selected for proposal
+     * @param oldCoalTime Original coalescence time of selected edge
+     * @param newRootHeight Height of tree following proposal
      * @return log of proposal density
      */
     private double getReverseMoveProb(List<Event> eventList, double [] migProp,
-            Node node, double oldCoalTime, double newRootHeight) {
-        double logProp = 0.0;
+            MultiTypeNode node, MultiTypeNode nodeSis,
+            double oldCoalTime, double newRootHeight) {
+        double logP = 0.0;
         
         MultiTypeNode mtNode = (MultiTypeNode)node;
-        
-        List<Set<Node>> nodesOfType = Lists.newArrayList();
-        for (int i=0; i<migModel.getNDemes(); i++)
-            nodesOfType.add(new HashSet<Node>());
+
+        // Number of lineages in each deme - needed for coalescence propensity
+        int[] lineageCounts = new int[migModel.getNDemes()];
 
         // Next change index
         int changeIdx = 0;
         
-        for (int eidx=0; eidx<eventList.size()-1; eidx++) {
+        // Current deme
+        int deme = mtNode.getNodeType();
+        
+        // Flag to indicate this interval will terminate early due to
+        // the start of a two-lineage simulation proposal phase
+        boolean switchPhase = false;
+        
+        for (int eidx=0; (eidx<eventList.size()-1 && !switchPhase); eidx++) {
             Event event = eventList.get(eidx);
             double intervalEndTime = eventList.get(eidx+1).time;
             
+            if (intervalEndTime>newRootHeight) {
+                intervalEndTime = newRootHeight;
+                switchPhase = true;
+            }
+            
             switch (event.type) {
                 case COALESCENCE:
-                    nodesOfType.get(event.thisDeme).removeAll(event.node.getChildren());
-                    nodesOfType.get(event.thisDeme).add(event.node);
+                    lineageCounts[event.thisDeme] -= 1;
                     break;
                     
                 case SAMPLE:
-                    nodesOfType.get(event.thisDeme).add(event.node);
+                    lineageCounts[event.thisDeme] += 1;
                     break;
                     
                 case MIGRATION:
-                    nodesOfType.get(event.prevDeme).remove(event.node);
-                    nodesOfType.get(event.thisDeme).add(event.node);
+                    lineageCounts[event.prevDeme] -= 1;
+                    lineageCounts[event.thisDeme] += 1;
                     break;
             }
 
@@ -396,12 +410,13 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 continue;
             
             double t = Math.max(event.time, node.getHeight());
-            int deme = mtNode.getNodeType();
+
             
             // Loop over changes within this interval
             while (true) {
                 
                 // Calculate coalescence propensities
+                double coalProp = lineageCounts[deme]/migModel.getPopSize(deme);
                 
                 double nextTime;
                 if (changeIdx<mtNode.getChangeCount())
@@ -411,11 +426,45 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 
                 double dt = Math.min(nextTime, intervalEndTime) - t;
                 
+                logP += -(coalProp + migProp[deme])*dt;
+                
+                t += dt;
+                if (t>intervalEndTime)
+                    break;
+                
+                if (changeIdx<mtNode.getChangeCount()) {
+                    // Migration
+                    int toDeme = mtNode.getChangeType(changeIdx);
+                    logP += Math.log(migModel.getRate(deme, toDeme));
+                    deme = toDeme;
+                } else {
+                    // Coalescence
+                    logP += Math.log(1.0/migModel.getPopSize(deme));
+                    return logP;
+                }
             }
-            
         }
         
-        return 0.0;
+        double t = newRootHeight;
+        
+        int sisChangeIdx=0;
+        int demeSis = nodeSis.getNodeType();
+        while (sisChangeIdx<nodeSis.getChangeCount()
+                && nodeSis.getChangeTime(sisChangeIdx)<newRootHeight) {
+            demeSis = nodeSis.getChangeType(sisChangeIdx);
+            sisChangeIdx += 1;
+        }
+        
+        while (true) {
+            // Calculate propensities
+            double coalProp;
+            if (deme == demeSis)
+                coalProp = 1.0/migModel.getPopSize(deme);
+            else
+                coalProp = 0.0;
+        }
+        
+        return logP;
     }
 
     /**
