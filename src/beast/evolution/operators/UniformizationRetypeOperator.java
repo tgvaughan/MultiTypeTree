@@ -113,6 +113,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
      *
      * @param srcNode
      * @return Probability of new state.
+     * @throws beast.evolution.operators.UniformizationRetypeOperator.NoValidPathException
      */
     protected double retypeBranch(Node srcNode) throws NoValidPathException {
         
