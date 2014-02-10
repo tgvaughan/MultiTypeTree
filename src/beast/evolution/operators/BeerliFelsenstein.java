@@ -455,6 +455,8 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             sisChangeIdx += 1;
         }
         
+        // TODO: Finish calculation
+        
         while (true) {
             // Calculate propensities
             double coalProp;
@@ -464,7 +466,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 coalProp = 0.0;
         }
         
-        return logP;
+//        return logP;
     }
 
     /**
