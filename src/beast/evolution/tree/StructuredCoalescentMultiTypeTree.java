@@ -53,6 +53,10 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
     public Input<IntegerParameter> leafTypesInput = new Input<IntegerParameter>(
             "leafTypes",
             "Types of leaf nodes.");
+    
+    public Input<String> outputFileNameInput = new Input<String>(
+            "outputFileName", "Optional name of file to write simulated "
+                    + "tree to.");
 
     /*
      * Non-input fields:
@@ -151,9 +155,16 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         // Construct tree and assign to input plugin:
         assignFromWithoutID(new MultiTypeTree(simulateTree()));
 
-        // Ensure colouring is internally consistent:
-        //if (!isValid())
-        //    throw new Exception("Inconsistent colour assignment.");
+        // Write tree to disk if requested
+        if (outputFileNameInput.get() != null) {
+            PrintStream pstream = new PrintStream(outputFileNameInput.get());
+            
+            pstream.println("#nexus\nbegin trees;");
+            pstream.println("tree TREE_1 = " + toString() + ";");
+            pstream.println("end;");
+            
+            pstream.close();
+        }
     }
 
     /**
