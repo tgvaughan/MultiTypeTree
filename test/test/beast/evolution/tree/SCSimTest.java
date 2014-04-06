@@ -40,9 +40,8 @@ public class SCSimTest {
         // Set up migration model.
         RealParameter rateMatrix = new RealParameter();
         rateMatrix.initByName(
-                "dimension", 4,
-                "minordimension", 2,
-                "value", "0.0 0.1 0.1 0.0");
+                "dimension", 2,
+                "value", "0.1 0.1");
         RealParameter popSizes = new RealParameter();
         popSizes.initByName(
                 "value", "7.0 7.0");

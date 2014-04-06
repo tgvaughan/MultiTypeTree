@@ -16,15 +16,18 @@
  */
 package test.beast.evolution.operators;
 
+import beast.util.unittesting.UtilMethods;
 import beast.core.MCMC;
 import beast.core.Operator;
 import beast.core.State;
+import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
 import beast.evolution.operators.MultiTypeTreeScale;
 import beast.evolution.operators.TypedWilsonBalding;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
+import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import beast.util.unittesting.MultiTypeTreeStatLogger;
 import org.junit.Assert;
@@ -35,13 +38,13 @@ import org.junit.Test;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 public class TWB_TS_Test {
- 
+    
     @Test
     public void test1() throws Exception {
         System.out.println("TWB_test 1");
         
         // Fix seed.
-        Randomizer.setSeed(53);
+        Randomizer.setSeed(42);
         
         // Assemble initial MultiTypeTree
         String newickStr =
@@ -112,10 +115,16 @@ public class TWB_TS_Test {
         System.out.format("height var = %s\n", logger.getHeightVar());
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
-        // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>500)
-                && (Math.abs(logger.getHeightMean()-19)<0.5)
-                && (Math.abs(logger.getHeightVar()-310)<30);
+        // Direct simulation:
+        double [] heights = UtilMethods.getSimulatedHeights(migModel,
+                new IntegerParameter("0 0 0"));
+        double simHeightMean = DiscreteStatistics.mean(heights);
+        double simHeightVar = DiscreteStatistics.variance(heights);
+        
+        // Compare results with simulation results:        
+        boolean withinTol = (logger.getHeightESS()>400)
+                && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
+                && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
         Assert.assertTrue(withinTol);
     }
@@ -195,10 +204,16 @@ public class TWB_TS_Test {
         System.out.format("height var = %s\n", logger.getHeightVar());
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
+        // Direct simulation:
+        double [] heights = UtilMethods.getSimulatedHeights(migModel,
+                new IntegerParameter("1 0 0"));
+        double simHeightMean = DiscreteStatistics.mean(heights);
+        double simHeightVar = DiscreteStatistics.variance(heights);
+        
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>700)
-                && (Math.abs(logger.getHeightMean()-23)<0.6)
-                && (Math.abs(logger.getHeightVar()-300)<30);
+        boolean withinTol = (logger.getHeightESS()>400)
+                && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
+                && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
         Assert.assertTrue(withinTol);
     }

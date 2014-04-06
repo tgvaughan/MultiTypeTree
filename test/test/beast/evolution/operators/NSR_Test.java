@@ -82,12 +82,12 @@ public class NSR_Test {
         logger.initByName(
                 "multiTypeTree", mtTree,
                 "burninFrac", 0.1,
-                "logEvery", 1000);
+                "logEvery", 100);
         
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "10000000",
+                "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
                 "operator", operatorNSR,
@@ -101,9 +101,9 @@ public class NSR_Test {
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>5000)
+        boolean withinTol = (logger.getHeightESS()>2000)
                 && (Math.abs(logger.getHeightMean()-19.0)<0.5)
-                && (Math.abs(logger.getHeightVar()-320)<30);
+                && (Math.abs(logger.getHeightVar()-291)<30);
         
         Assert.assertTrue(withinTol);
     }

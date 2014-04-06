@@ -16,9 +16,11 @@
  */
 package test.beast.evolution.operators;
 
+import beast.util.unittesting.UtilMethods;
 import beast.core.MCMC;
 import beast.core.Operator;
 import beast.core.State;
+import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
@@ -28,6 +30,7 @@ import beast.evolution.operators.NodeRetype;
 import beast.evolution.operators.TypedSubtreeExchange;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
+import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import beast.util.unittesting.MultiTypeTreeStatLogger;
 import org.junit.Assert;
@@ -109,7 +112,7 @@ public class STX_NR_MTU_TS_Test {
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "10000000",
+                "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
                 "operator", operatorSTX,
@@ -125,10 +128,16 @@ public class STX_NR_MTU_TS_Test {
         System.out.format("height var = %s\n", logger.getHeightVar());
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
+        // Direct simulation:
+        double [] heights = UtilMethods.getSimulatedHeights(migModel,
+                new IntegerParameter("1 1 0 0"));
+        double simHeightMean = DiscreteStatistics.mean(heights);
+        double simHeightVar = DiscreteStatistics.variance(heights);
+        
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>5000)
-                && (Math.abs(logger.getHeightMean()-25.8)<0.5)
-                && (Math.abs(logger.getHeightVar()-320)<30);
+        boolean withinTol = (logger.getHeightESS()>500)
+                && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
+                && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
         Assert.assertTrue(withinTol);
     }
