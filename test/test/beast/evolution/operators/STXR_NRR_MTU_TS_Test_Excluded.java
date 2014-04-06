@@ -22,7 +22,10 @@ import beast.core.State;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
-import beast.evolution.operators.NodeShiftRetype;
+import beast.evolution.operators.MultiTypeTreeScale;
+import beast.evolution.operators.MultiTypeUniform;
+import beast.evolution.operators.NodeRetypeRandom;
+import beast.evolution.operators.TypedSubtreeExchangeRandom;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
 import beast.util.Randomizer;
@@ -34,11 +37,11 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class NSR_Test {
+public class STXR_NRR_MTU_TS_Test_Excluded {
  
     @Test
     public void test() throws Exception {
-        System.out.println("NSR test");
+        System.out.println("STXR_NRR_MTU_TS test");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -57,7 +60,7 @@ public class NSR_Test {
                 "typeLabel", "deme",
                 "nTypes", 2,
                 "migrationModel", migModel,
-                "leafTypes","1 0");
+                "leafTypes","1 1 0 0");
 
         // Set up state:
         State state = new State();
@@ -70,27 +73,49 @@ public class NSR_Test {
                 "migrationModel", migModel,
                 "multiTypeTree", mtTree);
 
+        
         // Set up operators:
-        Operator operatorNSR = new NodeShiftRetype();
-        operatorNSR.initByName(
+        Operator operatorSTXR = new TypedSubtreeExchangeRandom();
+        operatorSTXR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "migrationModel", migModel);        
+                "mu", 0.2);
+        
+        Operator operatorNRR = new NodeRetypeRandom();
+        operatorNRR.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree,
+                "mu", 0.2);
+        
+        Operator operatorMTU = new MultiTypeUniform();
+        operatorMTU.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree);
+        
+        Operator operatorMTTS = new MultiTypeTreeScale();
+        operatorMTTS.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree,
+                "scaleFactor", 1.5,
+                "useOldTreeScaler", false);
         
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
         logger.initByName(
                 "multiTypeTree", mtTree,
                 "burninFrac", 0.1,
-                "logEvery", 100);
+                "logEvery", 1000);
         
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "1000000",
+                "chainLength", "10000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operatorNSR,
+                "operator", operatorSTXR,
+                "operator", operatorNRR,
+                "operator", operatorMTU,
+                "operator", operatorMTTS,
                 "logger", logger);
         
         // Run MCMC:
@@ -102,8 +127,8 @@ public class NSR_Test {
         
         // Compare analysis results with truth:        
         boolean withinTol = (logger.getHeightESS()>2000)
-                && (Math.abs(logger.getHeightMean()-19.0)<0.5)
-                && (Math.abs(logger.getHeightVar()-291)<30);
+                && (Math.abs(logger.getHeightMean()-25.8)<0.5)
+                && (Math.abs(logger.getHeightVar()-320)<30);
         
         Assert.assertTrue(withinTol);
     }

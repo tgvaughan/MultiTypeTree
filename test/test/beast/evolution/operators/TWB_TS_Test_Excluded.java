@@ -16,18 +16,18 @@
  */
 package test.beast.evolution.operators;
 
+import beast.util.unittesting.UtilMethods;
 import beast.core.MCMC;
+import beast.core.Operator;
 import beast.core.State;
+import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
 import beast.evolution.operators.MultiTypeTreeScale;
-import beast.evolution.operators.MultiTypeUniform;
-import beast.evolution.operators.TypeMergeSplit;
-import beast.evolution.operators.TypePairBirthDeath;
-import beast.evolution.operators.TypedSubtreeExchangeEasy;
-import beast.evolution.operators.TypedWilsonBaldingEasy;
+import beast.evolution.operators.TypedWilsonBalding;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
+import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import beast.util.unittesting.MultiTypeTreeStatLogger;
 import org.junit.Assert;
@@ -37,11 +37,11 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class Ewing_Test {
- 
+public class TWB_TS_Test_Excluded {
+    
     @Test
     public void test1() throws Exception {
-        System.out.println("Ewing_test1");
+        System.out.println("TWB_test 1");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -76,69 +76,36 @@ public class Ewing_Test {
         State state = new State();
         state.initByName("stateNode", mtTree);
         
-        // Set up operators:
-        TypedWilsonBaldingEasy twbOperator = new TypedWilsonBaldingEasy();
-        twbOperator.initByName(
-                "weight",1.0,
-                "multiTypeTree", mtTree);
-        
-        TypedSubtreeExchangeEasy tsxOperator = new TypedSubtreeExchangeEasy();
-        tsxOperator.initByName(
+        // Set up operator:
+        TypedWilsonBalding operatorTWB = new TypedWilsonBalding();
+        operatorTWB.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "isNarrow", true);
+                "migrationModel", migModel,
+                "alpha", 0.2);
         
-        MultiTypeUniform mtuOperator = new MultiTypeUniform();
-        mtuOperator.initByName(
+        Operator operatorMTTS = new MultiTypeTreeScale();
+        operatorMTTS.initByName(
                 "weight", 1.0,
-                "multiTypeTree", mtTree);
-        
-        MultiTypeTreeScale mttsOperator = new MultiTypeTreeScale();
-        mttsOperator.initByName(
-                "weight", 1.0,
+                "multiTypeTree", mtTree,
                 "scaleFactor", 0.8,
-                "useOldTreeScaler", true,
-                "multiTypeTree", mtTree);
-        
-        TypePairBirthDeath tpbdOperator = new TypePairBirthDeath();
-        tpbdOperator.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree);
-        
-        TypeMergeSplit tmsOperator = new TypeMergeSplit();
-        tmsOperator.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "includeRoot", true);
+                "useOldTreeScaler", false);
         
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
         logger.initByName(
                 "multiTypeTree", mtTree,
-                "burninFrac", 0.1,
+                "burninFrac", 0.2,
                 "logEvery", 1000);
-        
-//        Logger fileLogger = new Logger();
-//        TreeHeightLogger thLogger = new TreeHeightLogger();
-//        thLogger.initByName("tree", mtTree);
-//        fileLogger.initByName(
-//                "fileName", "test.log",
-//                "logEvery", 1000,
-//                "model", distribution,
-//                "log", thLogger);
         
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "10000000",
+                "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", twbOperator,
-                "operator", tsxOperator,
-                "operator", mtuOperator,
-                "operator", mttsOperator,
-                "operator", tpbdOperator,
-                "operator", tmsOperator,
+                "operator", operatorTWB,
+                "operator", operatorMTTS,
                 "logger", logger);
         
         // Run MCMC:
@@ -148,24 +115,30 @@ public class Ewing_Test {
         System.out.format("height var = %s\n", logger.getHeightVar());
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
-        // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>3000)
-                && (Math.abs(logger.getHeightMean()-19.15)<0.5)
-                && (Math.abs(logger.getHeightVar()-310)<20);
+        // Direct simulation:
+        double [] heights = UtilMethods.getSimulatedHeights(migModel,
+                new IntegerParameter("0 0 0"));
+        double simHeightMean = DiscreteStatistics.mean(heights);
+        double simHeightVar = DiscreteStatistics.variance(heights);
+        
+        // Compare results with simulation results:        
+        boolean withinTol = (logger.getHeightESS()>400)
+                && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
+                && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
         Assert.assertTrue(withinTol);
     }
     
     @Test
-    public void test2() throws Exception {
-        System.out.println("Ewing_test 2");
+    public void testTWB2() throws Exception {
+        System.out.println("TWB_test 2");
         
         // Fix seed.
         Randomizer.setSeed(42);
         
         // Assemble initial MultiTypeTree
         String newickStr =
-                "(((1[deme='1']:0.5)[deme='0']:0.5,2[deme='0']:1)[deme='0']:1,"
+                "((1[deme='1']:1,2[deme='0']:1)[deme='0']:1,"
                 + "3[deme='0']:2)[deme='0']:0;";
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
@@ -187,47 +160,26 @@ public class Ewing_Test {
                 new StructuredCoalescentTreeDensity();
         distribution.initByName(
                 "migrationModel", migModel,
-                "multiTypeTree", mtTree,
-                "checkValidity", true);
+                "multiTypeTree", mtTree);
         
         // Set up state:
         State state = new State();
         state.initByName("stateNode", mtTree);
         
-        // Set up operators:
-        TypedWilsonBaldingEasy twbOperator = new TypedWilsonBaldingEasy();
-        twbOperator.initByName(
-                "weight",1.0,
-                "multiTypeTree", mtTree);
-        
-        TypedSubtreeExchangeEasy tsxOperator = new TypedSubtreeExchangeEasy();
-        tsxOperator.initByName(
+        // Set up operator:
+        TypedWilsonBalding operatorTWB = new TypedWilsonBalding();
+        operatorTWB.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "isNarrow", true);
+                "migrationModel", migModel,
+                "alpha", 0.2);
         
-        MultiTypeUniform mtuOperator = new MultiTypeUniform();
-        mtuOperator.initByName(
+        Operator operatorMTTS = new MultiTypeTreeScale();
+        operatorMTTS.initByName(
                 "weight", 1.0,
-                "multiTypeTree", mtTree);
-        
-        MultiTypeTreeScale mttsOperator = new MultiTypeTreeScale();
-        mttsOperator.initByName(
-                "weight", 1.0,
+                "multiTypeTree", mtTree,
                 "scaleFactor", 0.8,
-                "useOldTreeScaler", true,
-                "multiTypeTree", mtTree);
-        
-        TypePairBirthDeath tpbdOperator = new TypePairBirthDeath();
-        tpbdOperator.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree);
-        
-        TypeMergeSplit tmsOperator = new TypeMergeSplit();
-        tmsOperator.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "includeRoot", true);
+                "useOldTreeScaler", false);
         
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
@@ -239,15 +191,10 @@ public class Ewing_Test {
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "10000000",
+                "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", twbOperator,
-                "operator", tsxOperator,
-                "operator", mtuOperator,
-                "operator", mttsOperator,
-                "operator", tpbdOperator,
-                "operator", tmsOperator,
+                "operator", operatorTWB,
                 "logger", logger);
         
         // Run MCMC:
@@ -257,10 +204,16 @@ public class Ewing_Test {
         System.out.format("height var = %s\n", logger.getHeightVar());
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
+        // Direct simulation:
+        double [] heights = UtilMethods.getSimulatedHeights(migModel,
+                new IntegerParameter("1 0 0"));
+        double simHeightMean = DiscreteStatistics.mean(heights);
+        double simHeightVar = DiscreteStatistics.variance(heights);
+        
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>1000)
-                && (Math.abs(logger.getHeightMean()-23)<0.5)
-                && (Math.abs(logger.getHeightVar()-300)<30.0);
+        boolean withinTol = (logger.getHeightESS()>400)
+                && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
+                && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
         Assert.assertTrue(withinTol);
     }

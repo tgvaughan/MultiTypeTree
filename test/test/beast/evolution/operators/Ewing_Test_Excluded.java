@@ -17,13 +17,16 @@
 package test.beast.evolution.operators;
 
 import beast.core.MCMC;
-import beast.core.Operator;
 import beast.core.State;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
 import beast.evolution.operators.MultiTypeTreeScale;
-import beast.evolution.operators.TypedWilsonBaldingRandom;
+import beast.evolution.operators.MultiTypeUniform;
+import beast.evolution.operators.TypeMergeSplit;
+import beast.evolution.operators.TypePairBirthDeath;
+import beast.evolution.operators.TypedSubtreeExchangeEasy;
+import beast.evolution.operators.TypedWilsonBaldingEasy;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
 import beast.util.Randomizer;
 import beast.util.unittesting.MultiTypeTreeStatLogger;
@@ -34,11 +37,11 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class TWBR_TS_Test {
+public class Ewing_Test_Excluded {
  
     @Test
     public void test1() throws Exception {
-        System.out.println("TWBR_test 1");
+        System.out.println("Ewing_test1");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -73,36 +76,69 @@ public class TWBR_TS_Test {
         State state = new State();
         state.initByName("stateNode", mtTree);
         
-        // Set up operator:
-        TypedWilsonBaldingRandom operatorTWBR = new TypedWilsonBaldingRandom();
-        operatorTWBR.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "mu", 0.2,
-                "alpha", 0.2);
+        // Set up operators:
+        TypedWilsonBaldingEasy twbOperator = new TypedWilsonBaldingEasy();
+        twbOperator.initByName(
+                "weight",1.0,
+                "multiTypeTree", mtTree);
         
-        Operator operatorMTTS = new MultiTypeTreeScale();
-        operatorMTTS.initByName(
+        TypedSubtreeExchangeEasy tsxOperator = new TypedSubtreeExchangeEasy();
+        tsxOperator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "isNarrow", true);
+        
+        MultiTypeUniform mtuOperator = new MultiTypeUniform();
+        mtuOperator.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree);
+        
+        MultiTypeTreeScale mttsOperator = new MultiTypeTreeScale();
+        mttsOperator.initByName(
+                "weight", 1.0,
                 "scaleFactor", 0.8,
-                "useOldTreeScaler", false);
+                "useOldTreeScaler", true,
+                "multiTypeTree", mtTree);
+        
+        TypePairBirthDeath tpbdOperator = new TypePairBirthDeath();
+        tpbdOperator.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree);
+        
+        TypeMergeSplit tmsOperator = new TypeMergeSplit();
+        tmsOperator.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree,
+                "includeRoot", true);
         
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
         logger.initByName(
                 "multiTypeTree", mtTree,
-                "burninFrac", 0.2,
+                "burninFrac", 0.1,
                 "logEvery", 1000);
+        
+//        Logger fileLogger = new Logger();
+//        TreeHeightLogger thLogger = new TreeHeightLogger();
+//        thLogger.initByName("tree", mtTree);
+//        fileLogger.initByName(
+//                "fileName", "test.log",
+//                "logEvery", 1000,
+//                "model", distribution,
+//                "log", thLogger);
         
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "1000000",
+                "chainLength", "10000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operatorTWBR,
-                "operator", operatorMTTS,
+                "operator", twbOperator,
+                "operator", tsxOperator,
+                "operator", mtuOperator,
+                "operator", mttsOperator,
+                "operator", tpbdOperator,
+                "operator", tmsOperator,
                 "logger", logger);
         
         // Run MCMC:
@@ -113,23 +149,23 @@ public class TWBR_TS_Test {
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>500)
-                && (Math.abs(logger.getHeightMean()-19)<0.5)
-                && (Math.abs(logger.getHeightVar()-300)<50);
+        boolean withinTol = (logger.getHeightESS()>3000)
+                && (Math.abs(logger.getHeightMean()-19.15)<0.5)
+                && (Math.abs(logger.getHeightVar()-310)<20);
         
         Assert.assertTrue(withinTol);
     }
     
     @Test
     public void test2() throws Exception {
-        System.out.println("TWBR_test 2");
+        System.out.println("Ewing_test 2");
         
         // Fix seed.
         Randomizer.setSeed(42);
         
         // Assemble initial MultiTypeTree
         String newickStr =
-                "((1[deme='1']:1,2[deme='0']:1)[deme='0']:1,"
+                "(((1[deme='1']:0.5)[deme='0']:0.5,2[deme='0']:1)[deme='0']:1,"
                 + "3[deme='0']:2)[deme='0']:0;";
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
@@ -151,26 +187,47 @@ public class TWBR_TS_Test {
                 new StructuredCoalescentTreeDensity();
         distribution.initByName(
                 "migrationModel", migModel,
-                "multiTypeTree", mtTree);
+                "multiTypeTree", mtTree,
+                "checkValidity", true);
         
         // Set up state:
         State state = new State();
         state.initByName("stateNode", mtTree);
         
-        // Set up operator:
-        TypedWilsonBaldingRandom operatorTWBR = new TypedWilsonBaldingRandom();
-        operatorTWBR.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "mu", 0.2,
-                "alpha", 0.2);
+        // Set up operators:
+        TypedWilsonBaldingEasy twbOperator = new TypedWilsonBaldingEasy();
+        twbOperator.initByName(
+                "weight",1.0,
+                "multiTypeTree", mtTree);
         
-        Operator operatorMTTS = new MultiTypeTreeScale();
-        operatorMTTS.initByName(
+        TypedSubtreeExchangeEasy tsxOperator = new TypedSubtreeExchangeEasy();
+        tsxOperator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "isNarrow", true);
+        
+        MultiTypeUniform mtuOperator = new MultiTypeUniform();
+        mtuOperator.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree);
+        
+        MultiTypeTreeScale mttsOperator = new MultiTypeTreeScale();
+        mttsOperator.initByName(
+                "weight", 1.0,
                 "scaleFactor", 0.8,
-                "useOldTreeScaler", false);
+                "useOldTreeScaler", true,
+                "multiTypeTree", mtTree);
+        
+        TypePairBirthDeath tpbdOperator = new TypePairBirthDeath();
+        tpbdOperator.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree);
+        
+        TypeMergeSplit tmsOperator = new TypeMergeSplit();
+        tmsOperator.initByName(
+                "weight", 1.0,
+                "multiTypeTree", mtTree,
+                "includeRoot", true);
         
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
@@ -182,11 +239,15 @@ public class TWBR_TS_Test {
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "1000000",
+                "chainLength", "10000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operatorTWBR,
-                "operator", operatorMTTS,
+                "operator", twbOperator,
+                "operator", tsxOperator,
+                "operator", mtuOperator,
+                "operator", mttsOperator,
+                "operator", tpbdOperator,
+                "operator", tmsOperator,
                 "logger", logger);
         
         // Run MCMC:
@@ -197,9 +258,9 @@ public class TWBR_TS_Test {
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>200)
-                && (Math.abs(logger.getHeightMean()-23)<1)
-                && (Math.abs(logger.getHeightVar()-300)<30);
+        boolean withinTol = (logger.getHeightESS()>1000)
+                && (Math.abs(logger.getHeightMean()-23)<0.5)
+                && (Math.abs(logger.getHeightVar()-300)<30.0);
         
         Assert.assertTrue(withinTol);
     }
