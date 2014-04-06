@@ -16,21 +16,15 @@
  */
 package test.beast.evolution.operators;
 
-import beast.util.unittesting.UtilMethods;
 import beast.core.MCMC;
 import beast.core.Operator;
 import beast.core.State;
-import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
-import beast.evolution.operators.MultiTypeTreeScale;
-import beast.evolution.operators.MultiTypeUniform;
-import beast.evolution.operators.NodeRetype;
-import beast.evolution.operators.TypedSubtreeExchange;
+import beast.evolution.operators.NodeShiftRetype;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
-import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import beast.util.unittesting.MultiTypeTreeStatLogger;
 import org.junit.Assert;
@@ -40,16 +34,14 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class STX_NR_MTU_TS_Test {
+public class NSR_Test {
  
     @Test
     public void test() throws Exception {
-        System.out.println("STX_NR_MTU_TS test");
-        
-        // Test passing locally, not on Travis.  WHY!?
+        System.out.println("NSR test");
         
         // Fix seed.
-        Randomizer.setSeed(53);
+        Randomizer.setSeed(42);
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
@@ -65,7 +57,7 @@ public class STX_NR_MTU_TS_Test {
                 "typeLabel", "deme",
                 "nTypes", 2,
                 "migrationModel", migModel,
-                "leafTypes","1 1 0 0");
+                "leafTypes","1 0");
 
         // Set up state:
         State state = new State();
@@ -78,38 +70,19 @@ public class STX_NR_MTU_TS_Test {
                 "migrationModel", migModel,
                 "multiTypeTree", mtTree);
 
-        
         // Set up operators:
-        Operator operatorSTX = new TypedSubtreeExchange();
-        operatorSTX.initByName(
+        Operator operatorNSR = new NodeShiftRetype();
+        operatorNSR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "migrationModel", migModel);
-        
-        Operator operatorNR = new NodeRetype();
-        operatorNR.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "migrationModel", migModel);
-        
-        Operator operatorMTU = new MultiTypeUniform();
-        operatorMTU.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree);
-        
-        Operator operatorMTTS = new MultiTypeTreeScale();
-        operatorMTTS.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "scaleFactor", 1.5,
-                "useOldTreeScaler", false);
+                "migrationModel", migModel);        
         
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
         logger.initByName(
                 "multiTypeTree", mtTree,
                 "burninFrac", 0.1,
-                "logEvery", 1000);
+                "logEvery", 100);
         
         // Set up MCMC:
         MCMC mcmc = new MCMC();
@@ -117,10 +90,7 @@ public class STX_NR_MTU_TS_Test {
                 "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operatorSTX,
-                "operator", operatorNR,
-                "operator", operatorMTU,
-                "operator", operatorMTTS,
+                "operator", operatorNSR,
                 "logger", logger);
         
         // Run MCMC:
@@ -130,16 +100,10 @@ public class STX_NR_MTU_TS_Test {
         System.out.format("height var = %s\n", logger.getHeightVar());
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
-        // Direct simulation:
-        double [] heights = UtilMethods.getSimulatedHeights(migModel,
-                new IntegerParameter("1 1 0 0"));
-        double simHeightMean = DiscreteStatistics.mean(heights);
-        double simHeightVar = DiscreteStatistics.variance(heights);
-        
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>500)
-                && (Math.abs(logger.getHeightMean()-simHeightMean)<2.0)
-                && (Math.abs(logger.getHeightVar()-simHeightVar)<50);
+        boolean withinTol = (logger.getHeightESS()>2000)
+                && (Math.abs(logger.getHeightMean()-19.0)<0.5)
+                && (Math.abs(logger.getHeightVar()-291)<30);
         
         Assert.assertTrue(withinTol);
     }

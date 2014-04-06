@@ -16,15 +16,18 @@
  */
 package test.beast.evolution.operators;
 
+import beast.util.unittesting.UtilMethods;
 import beast.core.MCMC;
 import beast.core.Operator;
 import beast.core.State;
+import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.coalescent.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
 import beast.evolution.operators.MultiTypeTreeScale;
-import beast.evolution.operators.TypedWilsonBaldingRandom;
+import beast.evolution.operators.TypedWilsonBalding;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
+import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import beast.util.unittesting.MultiTypeTreeStatLogger;
 import org.junit.Assert;
@@ -34,11 +37,11 @@ import org.junit.Test;
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class TWBR_TS_Test_Excluded {
- 
+public class TWB_TS_Test {
+    
     @Test
     public void test1() throws Exception {
-        System.out.println("TWBR_test 1");
+        System.out.println("TWB_test 1");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -74,11 +77,11 @@ public class TWBR_TS_Test_Excluded {
         state.initByName("stateNode", mtTree);
         
         // Set up operator:
-        TypedWilsonBaldingRandom operatorTWBR = new TypedWilsonBaldingRandom();
-        operatorTWBR.initByName(
+        TypedWilsonBalding operatorTWB = new TypedWilsonBalding();
+        operatorTWB.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "mu", 0.2,
+                "migrationModel", migModel,
                 "alpha", 0.2);
         
         Operator operatorMTTS = new MultiTypeTreeScale();
@@ -101,7 +104,7 @@ public class TWBR_TS_Test_Excluded {
                 "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operatorTWBR,
+                "operator", operatorTWB,
                 "operator", operatorMTTS,
                 "logger", logger);
         
@@ -112,17 +115,23 @@ public class TWBR_TS_Test_Excluded {
         System.out.format("height var = %s\n", logger.getHeightVar());
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
-        // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>500)
-                && (Math.abs(logger.getHeightMean()-19)<0.5)
-                && (Math.abs(logger.getHeightVar()-300)<50);
+        // Direct simulation:
+        double [] heights = UtilMethods.getSimulatedHeights(migModel,
+                new IntegerParameter("0 0 0"));
+        double simHeightMean = DiscreteStatistics.mean(heights);
+        double simHeightVar = DiscreteStatistics.variance(heights);
+        
+        // Compare results with simulation results:        
+        boolean withinTol = (logger.getHeightESS()>400)
+                && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
+                && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
         Assert.assertTrue(withinTol);
     }
     
     @Test
-    public void test2() throws Exception {
-        System.out.println("TWBR_test 2");
+    public void testTWB2() throws Exception {
+        System.out.println("TWB_test 2");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -158,11 +167,11 @@ public class TWBR_TS_Test_Excluded {
         state.initByName("stateNode", mtTree);
         
         // Set up operator:
-        TypedWilsonBaldingRandom operatorTWBR = new TypedWilsonBaldingRandom();
-        operatorTWBR.initByName(
+        TypedWilsonBalding operatorTWB = new TypedWilsonBalding();
+        operatorTWB.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "mu", 0.2,
+                "migrationModel", migModel,
                 "alpha", 0.2);
         
         Operator operatorMTTS = new MultiTypeTreeScale();
@@ -185,8 +194,7 @@ public class TWBR_TS_Test_Excluded {
                 "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operatorTWBR,
-                "operator", operatorMTTS,
+                "operator", operatorTWB,
                 "logger", logger);
         
         // Run MCMC:
@@ -196,10 +204,16 @@ public class TWBR_TS_Test_Excluded {
         System.out.format("height var = %s\n", logger.getHeightVar());
         System.out.format("height ESS = %s\n", logger.getHeightESS());
         
+        // Direct simulation:
+        double [] heights = UtilMethods.getSimulatedHeights(migModel,
+                new IntegerParameter("1 0 0"));
+        double simHeightMean = DiscreteStatistics.mean(heights);
+        double simHeightVar = DiscreteStatistics.variance(heights);
+        
         // Compare analysis results with truth:        
-        boolean withinTol = (logger.getHeightESS()>200)
-                && (Math.abs(logger.getHeightMean()-23)<1)
-                && (Math.abs(logger.getHeightVar()-300)<30);
+        boolean withinTol = (logger.getHeightESS()>400)
+                && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
+                && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
         Assert.assertTrue(withinTol);
     }

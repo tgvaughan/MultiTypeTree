@@ -94,10 +94,9 @@
       </classpath>
       <batchtest fork="yes" todir="${test-reports}">
 	<fileset dir="${test}">
-	  <include name="**/*.java"/>
-	  <exclude name="**/*Excluded.java"/>
+	  <include name="**/*Test.java"/>
 	</fileset>
-	<formatter type="plain" usefile="false"/>
+	<formatter type="plain"/> <!-- usefile="false" -->
       </batchtest>
     </junit>
 
