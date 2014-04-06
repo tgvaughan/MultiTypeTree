@@ -1,12 +1,12 @@
-# netbeans cruft
-build.xml
-manifest.mf
-nbproject
+# Build directories
+/dist
+/build
+/build-lib
 
-# svn rubbish
-.svn
-/dist/
-/build/
+# netbeans cruft
+/nbbuild.xml
+/manifest.mf
+/nbproject
 
 # Ignore BEAST logfiles
 *.log
@@ -15,5 +15,3 @@ nbproject
 
 # Ignore emacs backup files:
 *~
-
-MultiTypeTree.zip

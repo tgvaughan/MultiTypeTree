@@ -2,10 +2,12 @@ MultiTypeTree
 =============
 
 This is a BEAST 2 package which allows for the inference of multi-type
-phylogenetic trees.  It includes a full set of proposal operators and
-a structured coalescent model, allowing migration rates and
-sub-population sizes to be inferred from serially-sampled sequence
-data.
+or structured phylogenetic trees.  It includes a full set of proposal
+operators and currently the structured coalescent model, allowing
+migration rates and sub-population sizes to be inferred from
+serially-sampled sequence data.  The multi-type trees and the
+operators contained in this package can also be used as the basis for
+structured population inference under other models.
 
 For further information, please refer to the MultiTypeTree [web
 page](http://compevol.github.com/MultiTypeTree).
@@ -19,7 +21,6 @@ The following libraries are bundled with MultiTypeTree:
 
 * Google Guava (http://code.google.com/p/guava-libraries/)
 * jblas (http://mikiobraun.github.io/jblas/)
-* JUnit (http://junit.org)
 
 That software is distributed under the licences provided in the
 LICENCE.* files included in this archive.
