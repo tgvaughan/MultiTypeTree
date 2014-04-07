@@ -84,31 +84,38 @@
 
 	<h2>Getting started</h2>
 	
-	<p>Firstly, make sure you have downloaded and installed the
-	latest version of BEAST 2
-	from <a href="http://www.beast2.org/">www.beast2.org</a>. Then,
-	download the latest MultiTypeTree package
-	from <a href="https://github.com/CompEvol/MultiTypeTree/releases">here</a>
-	and extract it into one of the following locations, depending
-	on your operating system:
-	  <ul>
-	    <li>GNU/Linux: <code>~/.beast/MultiTypeTree</code></li>
-	    <li>Mac OS X: <code>/library/Application
-	    Support/BEAST/MultiTypeTree</code></li>
-	    <li>Windows: <code>#HOME#\BEAST\MultiTypetree</code>
-	     (#HOME# is your user home directory)</li>
-	  </ul>
-	  Congratulations! MultiTypeTree is now installed.
-	</p>
+	<p>To get the MultiTypeTree package running on your computer,
+	follow these steps:</p>
+
+	<ol>
+	  <li>Download and install the latest version of BEAST 2 from
+	    <a href="http://www.beast2.org/">www.beast2.org</a> if you
+	    haven't done so already.</li>
+	  <li>Run the BEAUti program that comes with BEAST and select
+	  "Manage Packages" from the "File" menu.</li>
+	  <li>Select "MultiTypeTree" from the list and press the
+	  "Install/Upgrade" button.</li>
+	  <li>Press the <kbd>?</kbd> button (lower right-hand corner)
+	  and take note of the directory reported here - this is where
+	  the package is installed on your disk and is where the
+	  example script used in the next section is located.</li>
+	</ol>
+
+	<p>Congratulations! MultiTypeTree is now installed.  You
+	should now be able to run MultiTypeTree analyses in BEAST.</p>
 
 	<h2>Tutorial: Structured coalescent analysis</h2>
 	<p>The MultiTypeTree package is not yet equipped with a BEAUTi
 	  graphical interface.  Therefore, analyses are set up by
 	  working directly on the BEAST 2 XML input file.  In
 	  practice, the best way to do this is to modify the example
-	  XML <code>structuredCoalescent.xml</code> provided in
-	  the <kbd>examples/</kbd> subdirectory of the MultiTypeTree
-	  package archive.  We will give a brief overview of this
+	  XML <code>structuredCoalescent.xml</code>.  (This file can be
+	  found in the <kbd>MultiTypeTree/examples</kbd> directory
+	  that is located in the folder described at the end of the
+	  previous section. It can also be downloaded directly from
+	  <a href="https://raw.githubusercontent.com/CompEvol/MultiTypeTree/master/examples/structuredCoalescent.xml">here</a>.)</p>
+
+	  <p>We will give a brief overview of the modification
 	  procedure here, when the goal is to analyze a single
 	  serially-sampled sequence alignment under a structured
 	  coalescent D locations and an HKY substitution model.  <i>We
