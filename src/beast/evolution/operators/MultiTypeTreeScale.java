@@ -184,7 +184,11 @@ public class MultiTypeTreeScale extends MultiTypeTreeOperator {
                 if (!indicatorsUsed ||
                         indicatorsInput.get().get(pidx).getValue(i)) {
                     double oldValue = param.getValue(i);
-                    param.setValue(i, oldValue*f);
+                    double newValue = oldValue*f;
+                    if (newValue < param.getLower() || newValue > param.getUpper())
+                        return Double.NEGATIVE_INFINITY;
+                    
+                    param.setValue(i, newValue);
                     logHR += logf;
                 }
             } 
@@ -197,7 +201,11 @@ public class MultiTypeTreeScale extends MultiTypeTreeOperator {
                 if (!indicatorsInverseUsed ||
                         indicatorsInverseInput.get().get(pidx).getValue(i)) {
                     double oldValue = param.getValue(i);
-                    param.setValue(i, oldValue/f);
+                    double newValue = oldValue/f;
+                    if (newValue < param.getLower() || newValue > param.getUpper())
+                        return Double.NEGATIVE_INFINITY;
+                    
+                    param.setValue(i, newValue);
                     logHR -= logf;
                 }
             }
