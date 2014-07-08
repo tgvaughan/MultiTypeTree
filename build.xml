@@ -7,6 +7,9 @@
 
   <property name="sourceVersion" value="1.8"/>
   <property name="targetVersion" value="1.8"/>
+
+  <property name="beastRev" value="master"/>
+  <property name="beastAr" value="beast2-master"/>
   <!--*******************************************************************-->
 
   <!-- Directories necessary for all BEAST 2 packages -->
@@ -52,20 +55,20 @@
     <property name="build-beast" location="build-beast"/>
     <mkdir dir="${build-beast}"/>
 
-    <get src="https://github.com/CompEvol/beast2/archive/master.zip" dest="${build-beast}/beast.zip"/>
+    <get src="https://github.com/CompEvol/beast2/archive/${beastRev}.zip" dest="${build-beast}/beast.zip"/>
     <unzip src="${build-beast}/beast.zip" dest="${build-beast}"/>
-    <mkdir dir="${build-beast}/beast2-master/build"/>
+    <mkdir dir="${build-beast}/${beastAr}/build"/>
     <javac target="${targetVersion}" source="${sourceVersion}"
-           srcdir="${build-beast}/beast2-master/src"
-           destdir="${build-beast}/beast2-master/build" includeantruntime="false">
+           srcdir="${build-beast}/${beastAr}/src"
+           destdir="${build-beast}/${beastAr}/build" includeantruntime="false">
       <classpath>
 	<pathelement path="${classpath}"/>
-	<fileset dir="${build-beast}/beast2-master/lib" includes="*.jar"/>
+	<fileset dir="${build-beast}/${beastAr}/lib" includes="*.jar"/>
       </classpath>
     </javac>
-    <jar jarfile="${build-lib}/beast2.jar" basedir="${build-beast}/beast2-master/build" />
+    <jar jarfile="${build-lib}/beast2.jar" basedir="${build-beast}/${beastAr}/build" />
     <copy todir="${build-lib}">
-      <fileset dir="${build-beast}/beast2-master/lib" includes="*.jar"/>
+      <fileset dir="${build-beast}/${beastAr}/lib" includes="*.jar"/>
     </copy>
 
     <delete dir="${build-beast}" />
