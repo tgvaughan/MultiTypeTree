@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <beast version='2.0' namespace='beast.evolution.alignment:beast.core:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.evolution.likelihood:beast.evolution.migrationmodel:beast.math.distributions:multitypetree.distributions:multitypetree.operators:multitypetree.util'>
 
    <alignment spec="beast.evolution.alignment.Alignment" id="alignment"
