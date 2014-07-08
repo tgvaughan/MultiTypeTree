@@ -104,13 +104,17 @@
 	<p>Congratulations! MultiTypeTree is now installed.  You
 	should now be able to run MultiTypeTree analyses in BEAST.</p>
 
-        <p><b>Note: MultiTypeTree is currently incompatible with the
-	    packages BEASTLabs and SubstBMA. To use MultiTypeTree,
-	    you'll need to uninstall these packages using the BEAUti
-	    package manager described above.</b></p>
+        <p><b>Note: BEAST 2 XML scripts written for versions of
+            MultiTypeTree earlier than 3.0.0 will not run without
+            modification on version 3 or later.  To get these scripts
+            to run, simply append the following to the value of
+            the <code>namespace</code> attribute of
+            the <code>&lt;beast&gt;</code> element at the top of the
+            file:</b>
+          <code>:multitypetree.distributions:multitypetree.operators:multitypetree.util</code></p>
 
 	<h2>Tutorial: Structured coalescent analysis</h2>
-	<p>The MultiTypeTree package is not yet equipped with a BEAUTi
+	<p>The MultiTypeTree package is not yet equipped with a BEAUti
 	  graphical interface.  Therefore, analyses are set up by
 	  working directly on the BEAST 2 XML input file.  In
 	  practice, the best way to do this is to modify the example
