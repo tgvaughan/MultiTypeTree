@@ -4,101 +4,14 @@
 
 <map name='connect' reserved='true'>beast.app.beauti.BeautiConnector</map>
 <map name='subtemplate' reserved='true'>beast.app.beauti.BeautiSubTemplate</map>
-<map name='Uniform'>beast.math.distributions.Uniform</map>
-<map name='Normal'>beast.math.distributions.Normal</map>
-<map name='OneOnX'>beast.math.distributions.OneOnX</map>
-<map name='LogNormal'>beast.math.distributions.LogNormalDistributionModel</map>
-<map name='Exponential'>beast.math.distributions.Exponential</map>
-<map name='Gamma'>beast.math.distributions.Gamma</map>
-<map name='Beta'>beast.math.distributions.Beta</map>
-<map name='LaplaceDistribution'>beast.math.distributions.LaplaceDistribution</map>
-<map name='InverseGamma'>beast.math.distributions.InverseGamma</map>
-<map name='prior'>beast.math.distributions.Prior</map>
 
     <beauticonfig spec='BeautiConfig'
-        inputLabelMap='beast.core.MCMC.operator=Operators,
-	        beast.core.MCMC.logger=Loggers,
-			beast.evolution.sitemodel.SiteModel.mutationRate =Substitution Rate'
-        inlinePlugins ='beast.core.MCMC.distribution,
-            beast.evolution.sitemodel.SiteModel.substModel,
-            beast.evolution.tree.coalescent.ExponentialGrowth,
-            beast.evolution.tree.coalescent.ConstantPopulation,
-            beast.evolution.tree.coalescent.Coalescent,
-            beast.core.State.stateNode'
-        collapsedPlugins ='beast.core.MCMC.logger'
-        suppressPlugins = 'beast.core.MCMC.operator,
-    		beast.core.MCMC.operatorschedule,
-	        beast.evolution.tree.coalescent.Coalescent.treeIntervals,
-	        beast.evolution.tree.coalescent.Coalescent.tree,
-	        beast.core.MCMC.state,
-	        beast.core.MCMC.distribution,
-	        beast.core.MCMC.init,
-	        beast.evolution.speciation.BirthDeathGernhard08Model.treeIntervals,
-	        beast.evolution.speciation.BirthDeathGernhard08Model.tree,
-	        beast.evolution.speciation.BirthDeathGernhard08Model.sampleProbability,
-			beast.evolution.speciation.YuleModel.treeIntervals,
-			beast.evolution.speciation.YuleModel.useTipDates,
-			beast.evolution.speciation.YuleModel.tree,
-	        beast.evolution.tree.Tree,
-	        beast.evolution.tree.Tree.trait,
-	        beast.evolution.tree.Tree.taxa,
-	        beast.evolution.tree.Tree.taxonset,
-	        beast.evolution.tree.RandomTree.trait,
-	        beast.evolution.tree.RandomTree.initial,
-	        beast.evolution.tree.RandomTree.taxa,
-	        beast.evolution.tree.RandomTree.taxonset,
-	        beast.evolution.tree.RandomTree.estimate,
-	        beast.util.TreeParser.initial,
-	        beast.util.TreeParser.taxa,
-	        beast.util.TreeParser.taxonset,
-	        beast.util.TreeParser.trait,
-	        beast.util.TreeParser.estimate,
-	        beast.util.ClusterTree.initial,
-	        beast.util.ClusterTree.taxa,
-	        beast.util.ClusterTree.taxonset,
-	        beast.util.ClusterTree.trait,
-	        beast.util.ClusterTree.estimate,
-	        beast.evolution.substitutionmodel.WAG.rates,
-	        beast.evolution.substitutionmodel.WAG.frequencies,
-	        beast.evolution.substitutionmodel.JTT.rates,
-	        beast.evolution.substitutionmodel.JTT.frequencies,
-	        beast.evolution.substitutionmodel.Blosum62.rates,
-	        beast.evolution.substitutionmodel.Blosum62.frequencies,
-	        beast.evolution.substitutionmodel.Dayhoff.rates,
-	        beast.evolution.substitutionmodel.Dayhoff.frequencies,
-	        beast.evolution.substitutionmodel.CPREV.rates,
-	        beast.evolution.substitutionmodel.CPREV.frequencies,
-	        beast.evolution.substitutionmodel.MTREV.rates,
-	        beast.evolution.substitutionmodel.MTREV.frequencies,
-	        beast.evolution.substitutionmodel.GTR.rates,
-	        beast.evolution.substitutionmodel.JukesCantor.frequencies,
-            beast.math.distributions.Prior.x,
-            beast.math.distributions.MRCAPrior.tree,
-            beast.math.distributions.MRCAPrior.monophyletic,
-            beast.math.distributions.MRCAPrior.taxonset,
-            beast.evolution.branchratemodel.UCRelaxedClockModel.tree,
-            beast.evolution.branchratemodel.UCRelaxedClockModel.rateCategories,
-			beast.evolution.branchratemodel.UCRelaxedClockModel.distr,
-            beast.evolution.branchratemodel.RandomLocalClockModel.tree,
-            beast.evolution.branchratemodel.RandomLocalClockModel.meanRate,
-            beast.evolution.branchratemodel.RandomLocalClockModel.indicators,
-            beast.evolution.operators.ScaleOperator.indicator,
-	        beast.core.Operator.weight,
-            beast.core.Logger.model,
-            beast.evolution.tree.coalescent.BayesianSkyline.treeIntervals,
-            beast.evolution.tree.coalescent.BayesianSkyline.groupSizes,
-            beast.evolution.tree.coalescent.BayesianSkyline.popSizes
-            '
-        buttonLabelMap='beast.app.beauti.BeautiInitDlg.&gt;&gt; details=Edit parameters'
-    >
-        <!--disableMenus='Mode'-->
 
         <panel spec='BeautiPanelConfig' panelname="Partitions" tiptext="Data Partitions"
             path='distribution/distribution[id="likelihood"]/distribution/data'
             hasPartitions="none" icon='2220.png.x' forceExpansion='FALSE'
             type='beast.evolution.alignment.Alignment'
         />
-		<mergepoint id='aux-partitions-panels'/>
 
 		<panel spec='BeautiPanelConfig' panelname="Tip Dates" tiptext="Allows to specify data that a taxon was sampled"
             path='tree'
@@ -112,25 +25,6 @@
             hasPartitions="SiteModel" icon='3.png.x' forceExpansion='TRUE'
         />
 		<mergepoint id='aux-sitemodel-panels'/>
-
-		<panel spec='BeautiPanelConfig' panelname="Clock Model" tiptext="Clock model"
-            path='branchRateModel'
-            hasPartitions="ClockModel" icon='4.png.x' forceExpansion='TRUE'
-        />
-		<mergepoint id='aux-clockmodel-panels'/>
-		<panel spec='BeautiPanelConfig' panelname="Initialization" tiptext="Initial state"
-            path='state/stateNode'
-            hasPartitions="none" icon='6.png.x' forceExpansion='TRUE_START_COLLAPSED'
-            isVisible='false'
-        />
-		<mergepoint id='aux-initilisation-panels'/>
-
-		<panel spec='BeautiPanelConfig' panelname="Priors" tiptext="Other priors"
-            path='distribution/distribution[id="prior"]/distribution'
-            hasPartitions="none" icon='7.png.x' forceExpansion='TRUE_START_COLLAPSED'
-            type='beast.core.Distribution'
-        />
-		<mergepoint id='aux-priors-panels'/>
 
 		<panel spec='BeautiPanelConfig' panelname="Operators" tiptext="MCMC Operator details"
             path='operator'
@@ -172,15 +66,14 @@
 
             <!-- tree and its properties -->
             <taxonset id='TaxonSet.$(n)' spec='beast.evolution.alignment.TaxonSet' alignment='@$(n)' />
-            <plugin spec='beast.evolution.tree.MultiTypeTree' nTypes="2" id='Tree.t:$(n)' taxonset='@TaxonSet.$(n)'/>
+            <plugin spec='beast.evolution.tree.Tree' id='Tree.t:$(n)' taxonset='@TaxonSet.$(n)'/>
 
             <!--plugin spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' trait='@datetrait.$(n)' initial='@Tree.t:$(n)'-->
-            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' nTypes="2" id='RandomTree.t:$(n)' estimate='false' initial='@Tree.t:$(n)'>
-                <!--taxonset spec='TaxonSet' idref='TaxonSet.$(n)'/>-->
-<migrationModel spec='beast.evolution.tree.MigrationModel'>
-<rateMatrix spec='beast.core.parameter.RealParameter' dimension="2" value="1"/>
-<popSizes spec='beast.core.parameter.RealParameter' dimension="2" value="1"/>
-</migrationModel>
+            <plugin spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' initial='@Tree.t:$(n)'>
+                <taxa spec='Alignment' idref='data'/>
+                <populationModel id='ConstantPopulation0.t:$(n)' spec='ConstantPopulation'>
+            		<popSize id='randomPopSize.t:$(n)' spec='parameter.RealParameter' value='1'/>
+	            </populationModel>
             </plugin>
 
             <!-- default tree prior -->
@@ -266,9 +159,9 @@
             <connect srcID='YuleModel.t:$(n)'                 targetID='tracelog' inputName='log' if='inposterior(YuleModel.t:$(n)) and inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='birthRate.t:$(n)'                 targetID='tracelog' inputName='log' if='inposterior(YuleModel.t:$(n)) and birthRate.t:$(n)/estimate=true'/>
 
-            <connect srcID='GammaShapePrior.s:$(n)'           targetID='prior' inputName='distribution' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'/>
-            <connect srcID='PropInvariantPrior.s:$(n)'        targetID='prior' inputName='distribution' if='inlikelihood(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'/>
-            <connect srcID='YuleBirthRatePrior.t:$(n)'        targetID='prior' inputName='distribution' if='inposterior(YuleModel.t:$(n)) and inposterior(Tree.t:$(n)) and birthRate.t:$(n)/estimate=true'/>
+            <connect srcID='GammaShapePrior.s:$(n)'           targetID='prior' inputName='distribution' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'>Prior on gamma shape for partition s:$(n)</connect>
+            <connect srcID='PropInvariantPrior.s:$(n)'        targetID='prior' inputName='distribution' if='inlikelihood(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'>Prior on proportion invariant for partition s:$(n)</connect>
+            <connect srcID='YuleBirthRatePrior.t:$(n)'        targetID='prior' inputName='distribution' if='inposterior(YuleModel.t:$(n)) and inposterior(Tree.t:$(n)) and birthRate.t:$(n)/estimate=true'>Prior on Yule birth rate for partition s:$(n)</connect>
 
 			<mergepoint id='aux-partitiontemplate'/>
         </partitiontemplate>
@@ -281,15 +174,29 @@
 <!-- Tree initialisation -->
 <!-- Random tree -->
 
-        <subtemplate id='RandomTree' class='beast.evolution.tree.StructuredCoalescentMultiTypeTree' mainid='RandomTree.t:$(n)'>
+        <subtemplate id='RandomTree' class='beast.evolution.tree.RandomTree' mainid='RandomTree.t:$(n)'>
 <![CDATA[
-            <tree spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' nTypes="2" id='RandomTree.t:$(n)' estimate='false' trait='@datetrait.$(n)'>
-                <!--<taxonset spec='TaxonSet' idref='TaxonSet.$(n)'/>-->
-                <migrationModel spec="beast.evolution.tree.MigrationModel">
-                <rateMatrix spec='beast.core.parameter.RealParameter' dimension="2" value="1"/>
-                <popSizes spec='beast.core.parameter.RealParameter' dimension="2" value="1"/>
-                </migrationModel>
+            <tree spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' trait='@datetrait.$(n)'>
+                <taxa spec='Alignment' idref='data'/>
+                <populationModel id='ConstantPopulation0.t:$(n)' spec='ConstantPopulation'>
+            		<popSize id='randomPopSize.t:$(n)' spec='parameter.RealParameter' value='1'/>
+	            </populationModel>
             </tree>
+]]>
+        </subtemplate>
+
+<!-- Cluster tree (for UPGMA) -->
+
+        <subtemplate id='UPGMATree' class='beast.util.ClusterTree' mainid='UPGMATree.t:$(n)'>
+<![CDATA[
+        <tree spec='beast.util.ClusterTree' id='UPGMATree.t:$(n)' clusterType='upgma' estimate='false'  trait='@datetrait.$(n)' taxa='@$(n)'/>
+]]>
+        </subtemplate>
+
+<!-- Newick tree -->
+        <subtemplate id='NewickTree' class='beast.util.ClusterTree' mainid='NewickTree.t:$(n)'>
+<![CDATA[
+        <tree spec='beast.util.TreeParser' id='NewickTree.t:$(n)' estimate='false'  trait='@datetrait.$(n)'  taxa='@$(n)' newick=""/>
 ]]>
         </subtemplate>
 
