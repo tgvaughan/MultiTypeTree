@@ -13,22 +13,9 @@
             type='beast.evolution.alignment.Alignment'
         />
 
-		<panel spec='BeautiPanelConfig' panelname="Tip Dates" tiptext="Allows to specify data that a taxon was sampled"
-            path='tree'
-            hasPartitions="Tree" icon='2.png.x' forceExpansion='TRUE'
-            isVisible='true'
-        />
-		<mergepoint id='aux-tipdates-panels'/>
-
-		<panel spec='BeautiPanelConfig' panelname="Site Model" tiptext="Site model and substitution model specifications"
-            path='siteModel'
-            hasPartitions="SiteModel" icon='3.png.x' forceExpansion='TRUE'
-        />
-		<mergepoint id='aux-sitemodel-panels'/>
-
 		<panel spec='BeautiPanelConfig' panelname="Operators" tiptext="MCMC Operator details"
             path='operator'
-            hasPartitions="none" icon='8.png.x' forceExpansion='TRUE_START_COLLAPSED'
+            hasPartitions="none" icon='8.png.x' forceExpansion='TRUE'
             isVisible='false' buttonStatus='ADD_ONLY'
         />
 		<mergepoint id='aux-operators-panels'/>
@@ -44,6 +31,7 @@
 
         <partitiontemplate id='StandardPartitionTemplate' spec='BeautiSubTemplate' class='beast.evolution.likelihood.TreeLikelihood' mainid='mcmc'>
 <![CDATA[
+
             <!-- site model                                                              -->
             <plugin spec='SiteModel' id="SiteModel.s:$(n)" gammaCategoryCount='0'>
                 <!--substModel will be automatically detected /-->
@@ -76,7 +64,27 @@
 	            </populationModel>
             </plugin>
 
+            <input spec='StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' nTypes="2">
+                <migrationModel spec='MigrationModel'>
+                    <rateMatrix spec='RealParameter' value="1.0" dimension="2"/>
+                    <popSizes spec='RealParameter' value="1.0" dimension="2"/>
+                </migrationModel>
+                <trait idref='typeTraitSet'/>
+                <trait idref='timeTraitSet'/>
+            </init>
+
+            <!-- Migration model -->
+            <migrationModel spec='MigrationModel' id='migModel.t:$(n)'>
+                <rateMatrix spec='RealParameter' value="1.0" dimension="2" id="rateMatrix.t:$(n)"/>
+                <popSizes spec='RealParameter' value="1.0" dimension="2" id="popSizes.t:$(n)"/>
+            </migrationModel>
+
             <!-- default tree prior -->
+            <input spec='StructuredCoalescentTreeDensity' id='StructuredCoalescent.t:$(n)'>
+                <multiTypeTree idref="Tree.t:$(n)"/>
+                <migrationModel idref="migModel.t:$(n)"/>
+            </input>
+
             <plugin spec='YuleModel' id="YuleModel.t:$(n)" tree='@Tree.t:$(n)'>
                 <parameter name='birthDiffRate' id="birthRate.t:$(n)" value='1.0' estimate='true'/>
             </plugin>
@@ -91,15 +99,8 @@
             <operator id='proportionInvariantScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@proportionInvariant.s:$(n)"/>
             <operator id='mutationRateScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@mutationRate.s:$(n)"/>
             <operator id='gammaShapeScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@gammaShape.s:$(n)"/>
-            <operator id='allTipDatesRandomWalker.t:$(n)' spec='TipDatesRandomWalker' windowSize="1" weight="0" tree="@Tree.t:$(n)"/>
 
             <operator id='treeScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="3" tree="@Tree.t:$(n)"/>
-            <operator id='treeRootScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="3" tree="@Tree.t:$(n)" rootOnly='true'/>
-            <operator id='UniformOperator.t:$(n)' spec='Uniform' weight="30" tree="@Tree.t:$(n)"/>
-            <operator id='SubtreeSlide.t:$(n)' spec='SubtreeSlide' weight="15" gaussian="true" size="1.0" tree="@Tree.t:$(n)"/>
-            <operator id='narrow.t:$(n)' spec='Exchange' isNarrow='true' weight="15" tree="@Tree.t:$(n)"/>
-            <operator id='wide.t:$(n)' spec='Exchange' isNarrow='false' weight="3" tree="@Tree.t:$(n)"/>
-            <operator id='WilsonBalding.t:$(n)' spec='WilsonBalding' weight="3" tree="@Tree.t:$(n)"/>
 
 
             <prior id='YuleBirthRatePrior.t:$(n)' x='@birthRate.t:$(n)'><distr spec="beast.math.distributions.Uniform" lower='0' upper='Infinity'/></prior>

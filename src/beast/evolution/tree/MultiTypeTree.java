@@ -188,10 +188,7 @@ public class MultiTypeTree extends Tree {
      * @return true if TraitSet with same name as typeLabel exists.
      */
     public boolean hasTypeTrait() {
-        if (getTypeTrait() != null)
-            return true;
-        else
-            return false;
+        return getTypeTrait() != null;
     }
     
     /**
