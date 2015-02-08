@@ -18,16 +18,13 @@
             hasPartitions="none" icon='8.png.x' forceExpansion='TRUE'
             isVisible='false' buttonStatus='ADD_ONLY'
         />
-		<mergepoint id='aux-operators-panels'/>
 
 		<panel spec='BeautiPanelConfig' panelname="MCMC" tiptext="MCMC parameters"
             path=''
             hasPartitions="none" icon='9.png.x' forceExpansion='TRUE'
         />
-		<mergepoint id='aux-panels'/>
 
 		<alignmentProvider id="Add Alignment" spec='BeautiAlignmentProvider' template='@StandardPartitionTemplate'/>
-
 
         <partitiontemplate id='StandardPartitionTemplate' spec='BeautiSubTemplate' class='beast.evolution.likelihood.TreeLikelihood' mainid='mcmc'>
 <![CDATA[

@@ -152,8 +152,13 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         }
         
 
-        // Construct tree and assign to input plugin:
-        assignFromWithoutID(new MultiTypeTree(simulateTree()));
+        // Construct tree
+        this.root = simulateTree();
+        this.root.parent = null;
+        this.nodeCount = this.root.getNodeCount();
+        this.internalNodeCount = this.root.getInternalNodeCount();
+        this.leafNodeCount = this.root.getLeafNodeCount();
+        initArrays();
 
         // Write tree to disk if requested
         if (outputFileNameInput.get() != null) {
