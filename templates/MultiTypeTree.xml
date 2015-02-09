@@ -12,9 +12,15 @@
             hasPartitions="none" icon='2220.png.x' forceExpansion='FALSE'
             type='beast.evolution.alignment.Alignment'
             />
+
         <panel spec='BeautiPanelConfig' panelname="Site Model" tiptext="Site model and substitution model specifications"
             path='siteModel'
             hasPartitions="SiteModel" icon='3.png.x' forceExpansion='TRUE'
+            />
+
+        <panel spec='BeautiPanelConfig' panelname="Migration Model" tiptext="Migration model specifications"
+            path='distribution/distribution[id="prior"]/distribution/migrationModel'
+            hasPartitions="none" icon='3.png.x' forceExpansion='TRUE'
             />
 
 		<panel spec='BeautiPanelConfig' panelname="MCMC" tiptext="MCMC parameters"
@@ -24,7 +30,7 @@
 
 		<alignmentProvider id="Add Alignment" spec='BeautiAlignmentProvider' template='@StandardPartitionTemplate'/>
 
-        <partitiontemplate id='StandardPartitionTemplate' spec='BeautiSubTemplate' class='beast.evolution.likelihood.TreeLikelihood' mainid='mcmc'>
+        <partitiontemplate id='StandardPartitionTemplate' spec='beast.app.beauti.BeautiSubTemplate' class='beast.evolution.likelihood.TreeLikelihood' mainid='mcmc'>
 <![CDATA[
 
             <!-- site model                                                              -->
@@ -45,28 +51,37 @@
                 </branchRateModel>
             </plugin>
 
+            <plugin spec='beast.evolution.tree.MigrationModel' id="migModel.$(n)">
+                <rateMatrix spec='parameter.RealParameter' value="1.0" dimension="2" id="rateMatrix.$(n)"/>
+                <popSizes spec='parameter.RealParameter' value="1.0" dimension="2" id="popSizes.$(n)"/>
+            </plugin>
+
+            <plugin spec='multitypetree.distributions.StructuredCoalescentTreeDensity' id="treePrior.$(n)">
+                <multiTypeTree idref="Tree.t:$(n)"/>
+                <migrationModel idref="migModel.$(n)"/>
+            </plugin>
+
             <!-- tree and its properties -->
-            <plugin spec='beast.evolution.tree.RandomTree' id='Tree.t:$(n)' estimate='true'>
-                <taxa spec='Alignment' idref='data'/>
-                <populationModel id='ConstantPopulation0.t:$(n)' spec='ConstantPopulation'>
-            		<popSize id='randomPopSize.t:$(n)' spec='parameter.RealParameter' value='1'/>
-	            </populationModel>
+            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' nTypes="2" estimate='true'>
+                <taxonset spec='beast.evolution.alignment.TaxonSet'>
+                    <alignment idref='data'/>
+                </taxonset>
+                <migrationModel spec='beast.evolution.tree.MigrationModel'>
+                    <rateMatrix spec='parameter.RealParameter' value="1.0" dimension="2"/>
+                    <popSizes spec='parameter.RealParameter' value="1.0" dimension="2"/>
+                </migrationModel>
             </plugin>
 
 ]]>
             <connect srcID='treeLikelihood.$(n)'            targetID='likelihood' inputName='distribution' if="isInitializing"/>
+            <connect srcID='treePrior.$(n)'            targetID='prior' inputName='distribution' if="isInitializing"/>
 			<connect method="beast.app.beauti.SiteModelInputEditor.customConnector"/>
             <connect srcID='Tree.t:$(n)'                targetID='mcmc' inputName='init'   if='inposterior(Tree.t:$(n))'/>
-
             <connect srcID='Tree.t:$(n)'                      targetID='state' inputName='stateNode' if='inposterior(Tree.t:$(n))'/>
         </partitiontemplate>
 
     </beauticonfig>
 
-
-<!--
-<operator spec='DeltaExchangeOperator' id='FixMeanRatesOperator' weight='2' delta='0.75'/>
--->
 
 <!-- framework for main model -->
 
