@@ -40,11 +40,6 @@ import java.util.Set;
 @Citation("Beerli and Felsenstein, Genetics 152:763 (1999).")
 public class BeerliFelsenstein extends MultiTypeTreeOperator {
     
-    public Input<MigrationModel> migModelInput = new Input<MigrationModel>(
-            "migrationModel", "Migration model.", Validate.REQUIRED);
-    
-    protected MigrationModel migModel;
-    
     private enum EventType {MIGRATION, COALESCENCE, SAMPLE};
     private class Event {
         EventType eventType;
@@ -56,12 +51,6 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
 
     public BeerliFelsenstein() { }
 
-    @Override
-    public void initAndValidate() throws Exception {
-        migModel = migModelInput.get();
-        mtTree = multiTypeTreeInput.get();
-    }
-    
     @Override
     public double proposal() {
         double logHR = 0.0;
@@ -88,10 +77,10 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         }
         
         // Pre-calculate total lineage migration propensities
-        double [] migProp = new double[migModel.getNDemes()];
-        for (int d=0; d<migModel.getNDemes(); d++) {
+        double [] migProp = new double[migModel.getNTypes()];
+        for (int d=0; d<migModel.getNTypes(); d++) {
             migProp[d] = 0.0;
-            for (int dp=0; dp<migModel.getNDemes(); dp++) {
+            for (int dp=0; dp<migModel.getNTypes(); dp++) {
                 if (d==dp)
                     continue;
                 migProp[d] += migModel.getRate(d, dp);
@@ -99,7 +88,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         }
         
         List<Set<Node>> nodesOfType = Lists.newArrayList();
-        for (int i=0; i<migModel.getNDemes(); i++)
+        for (int i=0; i<migModel.getNTypes(); i++)
             nodesOfType.add(new HashSet<Node>());
 
         mtNode.clearChanges();
@@ -172,7 +161,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 
                     u -= coalProp;
                     int toDeme;
-                    for (toDeme = 0; toDeme<migModel.getNDemes(); toDeme++) {
+                    for (toDeme = 0; toDeme<migModel.getNTypes(); toDeme++) {
                         if (toDeme == deme)
                             continue;
                     
@@ -243,7 +232,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                         // Migration in main lineage
                         
                         int toDeme;
-                        for (toDeme=0; toDeme<migModel.getNDemes(); toDeme++) {
+                        for (toDeme=0; toDeme<migModel.getNTypes(); toDeme++) {
                             if (toDeme == deme)
                                 continue;
                             
@@ -261,7 +250,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                         // Migration in sister lineage
                         
                         int toDeme;
-                        for (toDeme=0; toDeme<migModel.getNDemes(); toDeme++) {
+                        for (toDeme=0; toDeme<migModel.getNTypes(); toDeme++) {
                             if (toDeme == demeSis)
                                 continue;
                             
@@ -370,7 +359,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         MultiTypeNode mtNode = (MultiTypeNode)node;
 
         // Number of lineages in each deme - needed for coalescence propensity
-        int[] lineageCounts = new int[migModel.getNDemes()];
+        int[] lineageCounts = new int[migModel.getNTypes()];
 
         // Next change index
         int changeIdx = 0;

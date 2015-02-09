@@ -31,15 +31,11 @@ import beast.util.Randomizer;
         + " parent and children.")
 public class MultiTypeUniform extends MultiTypeTreeOperator {
 
-    public Input<Boolean> includeRootInput = new Input<Boolean>("includeRoot",
+    public Input<Boolean> includeRootInput = new Input<>("includeRoot",
             "Allow modification of root node.", false);
     
-    public Input<Double> rootScaleFactorInput = new Input<Double>("rootScaleFactor",
+    public Input<Double> rootScaleFactorInput = new Input<>("rootScaleFactor",
             "Root scale factor.", 0.9);
-    
-    @Override
-    public void initAndValidate() {
-    }
 
     /**
      * Change the node height and return the hastings ratio.
@@ -48,9 +44,6 @@ public class MultiTypeUniform extends MultiTypeTreeOperator {
      */
     @Override
     public double proposal() {
-
-        mtTree = multiTypeTreeInput.get();
-
         // Randomly select event on tree:
         int event = Randomizer.nextInt(mtTree.getInternalNodeCount() + mtTree.getTotalNumberOfChanges());
         

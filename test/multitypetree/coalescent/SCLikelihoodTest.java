@@ -45,8 +45,7 @@ public class SCLikelihoodTest {
 		MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
 		mtTree.initByName(
                         "newick", newickStr,
-                        "typeLabel", "state",
-                        "nTypes", 2);
+                        "typeLabel", "state");
 
 		// Assemble migration model:
 		RealParameter rateMatrix = new RealParameter();

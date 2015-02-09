@@ -29,9 +29,9 @@ import beast.util.Randomizer;
  */
 public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
 
-    public Input<Double> muInput = new Input<Double>("mu",
+    public Input<Double> muInput = new Input<>("mu",
             "Migration rate for proposal distribution", Input.Validate.REQUIRED);
-
+    
     /**
      * Retype branch between srcNode and its parent with rate fixed by the
      * tuning parameter mu.
@@ -62,7 +62,7 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
             if (t < t_srcNodeParent) {
 
                 // Select new colour:
-                int newType = Randomizer.nextInt(mtTree.getNTypes() - 1);
+                int newType = Randomizer.nextInt(migModel.getNTypes() - 1);
                 if (newType >= lastType)
                     newType += 1;
                 ((MultiTypeNode)srcNode).addChange(newType, t);
@@ -73,7 +73,7 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
 
         // Return log of branch type probability:
         return -mu*(t_srcNodeParent - t_srcNode)
-                + ((MultiTypeNode)srcNode).getChangeCount()*Math.log(mu/(mtTree.getNTypes()-1));
+                + ((MultiTypeNode)srcNode).getChangeCount()*Math.log(mu/(migModel.getNTypes()-1));
 
     }
 
@@ -90,7 +90,7 @@ public abstract class RandomRetypeOperator extends MultiTypeTreeOperator {
         double T = srcNode.getParent().getHeight()
                 - srcNode.getHeight();
         int n = ((MultiTypeNode)srcNode).getChangeCount();
-        int N = mtTree.getNTypes();
+        int N = migModel.getNTypes();
 
         if (N == 0)
             return 0.0;

@@ -34,16 +34,16 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
     private Set<Integer> illegalTypes;
     
     @Override
-    public void initAndValidate() {
-        illegalTypes = new HashSet<Integer>();
+    public void initAndValidate() throws Exception {
+        super.initAndValidate();
+
+        illegalTypes = new HashSet<>();
     }
     
     @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        
         // Immediate reject if <3 types in model
-        if (mtTree.getNTypes()<3)
+        if (migModel.getNTypes()<3)
             return Double.NEGATIVE_INFINITY;
         
         // Select event at random:
@@ -118,7 +118,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         }
         
         // Record number of legal change types in forward move for HR:
-        int Cbirth = mtTree.getNTypes() - illegalTypes.size();
+        int Cbirth = migModel.getNTypes() - illegalTypes.size();
         
         // No legal moves
         if (Cbirth == 0)
@@ -183,7 +183,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
         illegalTypes.add(changeTypeAbove);
         
         // Record number of legal change types for reverse move HR
-        int Cbirth = mtTree.getNTypes() - illegalTypes.size();
+        int Cbirth = migModel.getNTypes() - illegalTypes.size();
         
         double tmin = changeIdx<0
                 ? node.getHeight()
@@ -395,9 +395,9 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
      * @return chosen type
      */
     private int selectLegalChangeType() {
-        int n = Randomizer.nextInt(mtTree.getNTypes()- illegalTypes.size());
+        int n = Randomizer.nextInt(migModel.getNTypes()- illegalTypes.size());
         int changeType;
-        for (changeType=0; changeType<mtTree.getNTypes(); changeType++) {
+        for (changeType=0; changeType<migModel.getNTypes(); changeType++) {
             if (illegalTypes.contains(changeType))
                 continue;
             if (n==0)

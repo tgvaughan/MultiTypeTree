@@ -16,7 +16,6 @@
  */
 package multitypetree.distributions;
 
-import multitypetree.distributions.MultiTypeTreeDistribution;
 import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.RealParameter;
@@ -39,10 +38,10 @@ import java.util.Map;
 @Description("Likelihood of ColouredTree under structured coalescent.")
 public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
 
-    public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
+    public Input<MigrationModel> migrationModelInput = new Input<>(
             "migrationModel", "Model of migration between demes.",
             Validate.REQUIRED);
-    public Input<Boolean> checkValidityInput = new Input<Boolean>(
+    public Input<Boolean> checkValidityInput = new Input<>(
             "checkValidity", "Explicitly check validity of colouring.  "
             +"(Default false.)  "
             +"Useful if operators are in danger of proposing invalid trees.",
@@ -74,8 +73,8 @@ public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
         mtTree = mtTreeInput.get();
         checkValidity = checkValidityInput.get();
 
-        eventList = new ArrayList<SCEvent>();
-        lineageCountList = new ArrayList<Integer[]>();
+        eventList = new ArrayList<>();
+        lineageCountList = new ArrayList<>();
     }
 
     @Override
@@ -153,12 +152,12 @@ public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
         Node rootNode = mtTree.getRoot();
 
         // Initialise map of active nodes to active change indices:
-        Map<Node, Integer> changeIdx = new HashMap<Node, Integer>();
+        Map<Node, Integer> changeIdx = new HashMap<>();
         changeIdx.put(rootNode, -1);
 
         // Initialise lineage count per colour array:
-        Integer[] lineageCount = new Integer[mtTree.getNTypes()];
-        for (int c = 0; c<mtTree.getNTypes(); c++)
+        Integer[] lineageCount = new Integer[migrationModel.getNTypes()];
+        for (int c = 0; c<migrationModel.getNTypes(); c++)
             if (c==((MultiTypeNode)rootNode).getNodeType())
                 lineageCount[c] = 1;
             else
@@ -251,6 +250,7 @@ public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
      * Test likelihood result. Duplicate of JUnit test for debugging purposes.
      *
      * @param argv
+     * @throws java.lang.Exception
      */
     public static void main(String[] argv) throws Exception {
 

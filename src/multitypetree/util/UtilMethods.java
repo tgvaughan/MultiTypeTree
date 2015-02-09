@@ -38,8 +38,7 @@ public class UtilMethods {
             sctree = new beast.evolution.tree.StructuredCoalescentMultiTypeTree();
             sctree.initByName(
                     "migrationModel", migrationModel,
-                    "leafTypes", leafTypes,
-                    "nTypes", 2);
+                    "leafTypes", leafTypes);
 
             heights[i] = sctree.getRoot().getHeight();
         }

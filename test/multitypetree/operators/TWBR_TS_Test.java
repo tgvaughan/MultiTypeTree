@@ -51,8 +51,7 @@ public class TWBR_TS_Test {
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
                 "newick", newickStr,
-                "typeLabel", "deme",
-                "nTypes", 2);
+                "typeLabel", "deme");
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
@@ -78,6 +77,7 @@ public class TWBR_TS_Test {
         operatorTWBR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "mu", 0.2,
                 "alpha", 0.2);
         
@@ -85,6 +85,7 @@ public class TWBR_TS_Test {
         operatorMTTS.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "scaleFactor", 0.8,
                 "useOldTreeScaler", false);
         
@@ -135,8 +136,7 @@ public class TWBR_TS_Test {
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
                 "newick", newickStr,
-                "typeLabel", "deme",
-                "nTypes", 2);
+                "typeLabel", "deme");
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
@@ -162,6 +162,7 @@ public class TWBR_TS_Test {
         operatorTWBR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "mu", 0.2,
                 "alpha", 0.2);
         
@@ -169,6 +170,7 @@ public class TWBR_TS_Test {
         operatorMTTS.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "scaleFactor", 0.8,
                 "useOldTreeScaler", false);
         

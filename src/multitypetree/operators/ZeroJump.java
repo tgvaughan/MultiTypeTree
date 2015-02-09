@@ -30,7 +30,7 @@ import beast.util.Randomizer;
         + " variable selection.")
 public class ZeroJump extends Operator {
 
-    public Input<RealParameter> parameterInput = new Input<RealParameter>(
+    public Input<RealParameter> parameterInput = new Input<>(
             "parameter", "RealParameter to operate on.", Validate.REQUIRED);
     
     public Input<Double> alphaInput = new Input<Double>("mean",
@@ -41,7 +41,7 @@ public class ZeroJump extends Operator {
     private double alpha;
     
     @Override
-    public void initAndValidate() {
+    public void initAndValidate() throws Exception {
         parameter = parameterInput.get();
         alpha = alphaInput.get();
     }

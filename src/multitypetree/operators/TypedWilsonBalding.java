@@ -39,19 +39,19 @@ import beast.util.Randomizer;
 +" branch ends.")
 public class TypedWilsonBalding extends UniformizationRetypeOperator {
 
-    public Input<Double> alphaInput = new Input<Double>("alpha",
+    public Input<Double> alphaInput = new Input<>("alpha",
             "Root height proposal parameter", Validate.REQUIRED);
     private double alpha;
 
     @Override
-    public void initAndValidate() {
+    public void initAndValidate() throws Exception {
+        super.initAndValidate();
+
+        alpha = alphaInput.get();
     }
 
     @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        alpha = alphaInput.get();
-
         // Check that operator can be applied to tree:
         if (mtTree.getLeafNodeCount()<3)
             throw new IllegalStateException("Tree too small for"
@@ -251,10 +251,10 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
         Node srcNodeS = getOtherChild(srcNodeP, srcNode);
 
         // Select new root colour:
-        ((MultiTypeNode)srcNodeP).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
+        ((MultiTypeNode)srcNodeP).setNodeType(Randomizer.nextInt(migModel.getNTypes()));
         
         // Incorporate probability of new root colour:
-        logProb += Math.log(1.0/mtTree.getNTypes());
+        logProb += Math.log(1.0/migModel.getNTypes());
 
         // Recolour branches conditional on root type:
         logProb += retypeBranch(srcNode);
@@ -282,7 +282,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
         Node srcNodeS = getOtherChild(srcNodeP, srcNode);
         
         // Probability of node type:
-        logProb += Math.log(1.0/mtTree.getNTypes());
+        logProb += Math.log(1.0/migModel.getNTypes());
 
         // Probability of branch types conditional on node types:
         logProb += getBranchTypeProb(srcNode);

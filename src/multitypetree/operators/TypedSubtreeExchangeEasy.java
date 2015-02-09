@@ -30,16 +30,11 @@ import beast.util.Randomizer;
         + " testing Ewing et al.'s sampler moves.")
 public class TypedSubtreeExchangeEasy extends MultiTypeTreeOperator {
     
-    public Input<Boolean> isNarrowInput = new Input<Boolean>("isNarrow",
+    public Input<Boolean> isNarrowInput = new Input<>("isNarrow",
             "Whether or not to use narrow exchange. (Default true.)", true);
 
     @Override
-    public void initAndValidate() { }
-    
-    @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        
         // Select source and destination nodes:
         
         Node srcNode, srcNodeParent, destNode, destNodeParent;

@@ -34,12 +34,7 @@ public class TypedSubtreeExchange extends UniformizationRetypeOperator {
             "Whether or not to use narrow exchange. (Default true.)", true);
 
     @Override
-    public void initAndValidate() { }
-    
-    @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        
         double logHR = 0.0;
 
         // Select source and destination nodes:

@@ -35,16 +35,16 @@ import org.jblas.MatrixFunctions;
 @Description("Basic plugin describing a simple Markovian migration model.")
 public class MigrationModel extends CalculationNode implements Loggable {
 
-    public Input<RealParameter> rateMatrixInput = new Input<RealParameter>(
+    public Input<RealParameter> rateMatrixInput = new Input<>(
             "rateMatrix",
             "Migration rate matrix",
             Validate.REQUIRED);
-    public Input<RealParameter> popSizesInput = new Input<RealParameter>(
+    public Input<RealParameter> popSizesInput = new Input<>(
             "popSizes",
             "Deme population sizes.",
             Validate.REQUIRED);
     
-    public Input<BooleanParameter> rateMatrixFlagsInput = new Input<BooleanParameter>(
+    public Input<BooleanParameter> rateMatrixFlagsInput = new Input<>(
             "rateMatrixFlags",
             "Optional boolean parameter specifying which rates to use."
             + " (Default is to use all rates.)");
@@ -105,8 +105,8 @@ public class MigrationModel extends CalculationNode implements Loggable {
         
         // Initialise caching array for powers of uniformized
         // transition matrix:
-        RpowN = new ArrayList<DoubleMatrix>();
-        RsymPowN = new ArrayList<DoubleMatrix>();
+        RpowN = new ArrayList<>();
+        RsymPowN = new ArrayList<>();
         
         dirty = true;
         updateMatrices();
@@ -179,7 +179,7 @@ public class MigrationModel extends CalculationNode implements Loggable {
     /**
      * @return number of demes in the migration model.
      */
-    public int getNDemes() {
+    public int getNTypes() {
         return nTypes;
     }
     

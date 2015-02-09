@@ -31,21 +31,14 @@ import beast.util.Randomizer;
 public class TypeSwap extends UniformizationRetypeOperator {
     
     @Override
-    public void initAndValidate() { }
-    
-    @Override
     public double proposal() {
-        
-        mtTree = multiTypeTreeInput.get();
-        MigrationModel migModel = migrationModelInput.get();
-
         double logHR = 0.0;
         
         // Select types to swap:
-        int typeA = Randomizer.nextInt(mtTree.getNTypes());
+        int typeA = Randomizer.nextInt(migModel.getNTypes());
         int typeB;
         do {
-            typeB = Randomizer.nextInt(mtTree.getNTypes());
+            typeB = Randomizer.nextInt(migModel.getNTypes());
         } while (typeB == typeA);
         
         // Calculate probability of selecting leaf branch typings:
@@ -56,7 +49,7 @@ public class TypeSwap extends UniformizationRetypeOperator {
         }
 
         // Swap involved rows and columns of the migration matrix:
-        for (int i=0; i<mtTree.getNTypes(); i++) {
+        for (int i=0; i<migModel.getNTypes(); i++) {
             if (i == typeA || i == typeB)
                 continue;
 

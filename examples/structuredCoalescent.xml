@@ -578,8 +578,8 @@ t128=3">
 
 
    <run spec="MCMC" id="mcmc" chainLength="100000000" storeEvery="10000">
-     
-     <init spec='StructuredCoalescentMultiTypeTree' id='tree' nTypes="2">
+
+     <init spec='StructuredCoalescentMultiTypeTree' id='tree'>
          <migrationModel spec='MigrationModel'>
              <rateMatrix spec='RealParameter' value="1.0" dimension="2"/>
              <popSizes spec='RealParameter' value="1.0" dimension="2"/>
@@ -587,7 +587,7 @@ t128=3">
          <trait idref='typeTraitSet'/>
          <trait idref='timeTraitSet'/>
      </init>
- 
+
      <state>
        <stateNode idref="tree"/>
        <stateNode idref="rateMatrix"/>
@@ -663,11 +663,11 @@ t128=3">
 
      <operator spec="MultiTypeUniform" id="MTU"
 	       weight="10" multiTypeTree="@tree"
-	       includeRoot="true"
+	       migrationModel="@migModel" includeRoot="true"
 	       rootScaleFactor="0.9"/>
           
      <operator spec="MultiTypeTreeScale" id="MTTS1"
- 	      weight="10" multiTypeTree="@tree"
+ 	      weight="10" multiTypeTree="@tree" migrationModel="@migModel"
  	      scaleFactor="0.98" useOldTreeScaler="true">
          <parameter idref="popSizes"/>         
          <parameterInverse idref="rateMatrix"/>
@@ -675,7 +675,7 @@ t128=3">
      </operator>
 
      <operator spec="MultiTypeTreeScale" id="MTTS2"
- 	      weight="10" multiTypeTree="@tree"
+ 	      weight="10" multiTypeTree="@tree" migrationModel="@migModel"
  	      scaleFactor="0.98" useOldTreeScaler="true">
      </operator>
 
@@ -693,7 +693,8 @@ t128=3">
        <log idref="hky.freq"/>
        <log spec='TreeHeightLogger' tree='@tree'/>
        <log spec='TreeLengthLogger' tree='@tree'/>
-       <log spec='TypeChangeCounts' multiTypeTree="@tree" id="typeChangeCounts" />
+       <log spec='TypeChangeCounts' multiTypeTree="@tree"
+            migrationModel="@migModel" id="typeChangeCounts" />
        <log spec='Sum' arg="@typeChangeCounts" id="totalTypeChanges" />
        <log spec='TreeRootTypeLogger' multiTypeTree="@tree"/>
      </logger>

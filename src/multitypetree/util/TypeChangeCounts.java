@@ -22,6 +22,7 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Loggable;
 import beast.core.Function;
+import beast.evolution.tree.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.Node;
@@ -34,12 +35,17 @@ import java.io.PrintStream;
         + " type changes on a multi-type tree.")
 public class TypeChangeCounts extends CalculationNode implements Function, Loggable {
 
-    public Input<MultiTypeTree> multiTypeTreeInput = new Input<MultiTypeTree>(
+    public Input<MultiTypeTree> multiTypeTreeInput = new Input<>(
             "multiTypeTree",
             "Multi-type tree whose changes will be counted.",
             Validate.REQUIRED);
+
+    public Input<MigrationModel> migrationModelInput = new Input<>(
+        "migrationModel",
+        "Migration model needed to specify number of demes.",
+        Validate.REQUIRED);
     
-    public Input<Boolean> useCacheInput = new Input<Boolean>(
+    public Input<Boolean> useCacheInput = new Input<>(
             "useCache", "Cache counts, updating only when tree changes. "
             + "Warning: this will cause problems if this TypeChangeCounts "
             + "is not used in the target distribution.", false);
@@ -56,7 +62,7 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
     @Override
     public void initAndValidate() {
         mtTree = multiTypeTreeInput.get();
-        nTypes = mtTree.getNTypes();
+        nTypes = migrationModelInput.get().getNTypes();
         
         typeChanges = new int[nTypes*(nTypes-1)];
         

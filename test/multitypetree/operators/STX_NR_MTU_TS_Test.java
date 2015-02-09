@@ -63,7 +63,6 @@ public class STX_NR_MTU_TS_Test {
         MultiTypeTree mtTree = new StructuredCoalescentMultiTypeTree();
         mtTree.initByName(
                 "typeLabel", "deme",
-                "nTypes", 2,
                 "migrationModel", migModel,
                 "leafTypes","1 1 0 0");
 
@@ -95,12 +94,14 @@ public class STX_NR_MTU_TS_Test {
         Operator operatorMTU = new MultiTypeUniform();
         operatorMTU.initByName(
                 "weight", 1.0,
+                "migrationModel", migModel,
                 "multiTypeTree", mtTree);
         
         Operator operatorMTTS = new MultiTypeTreeScale();
         operatorMTTS.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "scaleFactor", 1.5,
                 "useOldTreeScaler", false);
         

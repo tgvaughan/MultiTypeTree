@@ -21,12 +21,6 @@ import beast.core.State;
 import beast.core.parameter.RealParameter;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
-import multitypetree.operators.MultiTypeTreeScale;
-import multitypetree.operators.MultiTypeUniform;
-import multitypetree.operators.TypeMergeSplit;
-import multitypetree.operators.TypePairBirthDeath;
-import multitypetree.operators.TypedSubtreeExchangeEasy;
-import multitypetree.operators.TypedWilsonBaldingEasy;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
 import beast.util.Randomizer;
 import multitypetree.util.MultiTypeTreeStatLogger;
@@ -54,8 +48,7 @@ public class Ewing_Test {
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
                 "newick", newickStr,
-                "typeLabel", "deme",
-                "nTypes", 2);
+                "typeLabel", "deme");
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
@@ -80,35 +73,41 @@ public class Ewing_Test {
         TypedWilsonBaldingEasy twbOperator = new TypedWilsonBaldingEasy();
         twbOperator.initByName(
                 "weight",1.0,
-                "multiTypeTree", mtTree);
+                "multiTypeTree", mtTree,
+                "migrationModel", migModel);
         
         TypedSubtreeExchangeEasy tsxOperator = new TypedSubtreeExchangeEasy();
         tsxOperator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "isNarrow", true);
         
         MultiTypeUniform mtuOperator = new MultiTypeUniform();
         mtuOperator.initByName(
                 "weight", 1.0,
-                "multiTypeTree", mtTree);
+                "multiTypeTree", mtTree,
+                "migrationModel", migModel);
         
         MultiTypeTreeScale mttsOperator = new MultiTypeTreeScale();
         mttsOperator.initByName(
                 "weight", 1.0,
                 "scaleFactor", 0.8,
                 "useOldTreeScaler", true,
-                "multiTypeTree", mtTree);
+                "multiTypeTree", mtTree,
+                "migrationModel", migModel);
         
         TypePairBirthDeath tpbdOperator = new TypePairBirthDeath();
         tpbdOperator.initByName(
                 "weight", 1.0,
-                "multiTypeTree", mtTree);
+                "multiTypeTree", mtTree,
+                "migrationModel", migModel);
         
         TypeMergeSplit tmsOperator = new TypeMergeSplit();
         tmsOperator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "includeRoot", true);
         
         // Set up stat analysis logger:
@@ -171,8 +170,7 @@ public class Ewing_Test {
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
                 "newick", newickStr,
-                "typeLabel", "deme",
-                "nTypes", 2);
+                "typeLabel", "deme");
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
@@ -198,17 +196,20 @@ public class Ewing_Test {
         TypedWilsonBaldingEasy twbOperator = new TypedWilsonBaldingEasy();
         twbOperator.initByName(
                 "weight",1.0,
+                "migrationModel", migModel,
                 "multiTypeTree", mtTree);
         
         TypedSubtreeExchangeEasy tsxOperator = new TypedSubtreeExchangeEasy();
         tsxOperator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "isNarrow", true);
         
         MultiTypeUniform mtuOperator = new MultiTypeUniform();
         mtuOperator.initByName(
                 "weight", 1.0,
+                "migrationModel", migModel,
                 "multiTypeTree", mtTree);
         
         MultiTypeTreeScale mttsOperator = new MultiTypeTreeScale();
@@ -216,17 +217,20 @@ public class Ewing_Test {
                 "weight", 1.0,
                 "scaleFactor", 0.8,
                 "useOldTreeScaler", true,
+                "migrationModel", migModel,
                 "multiTypeTree", mtTree);
         
         TypePairBirthDeath tpbdOperator = new TypePairBirthDeath();
         tpbdOperator.initByName(
                 "weight", 1.0,
+                "migrationModel", migModel,
                 "multiTypeTree", mtTree);
         
         TypeMergeSplit tmsOperator = new TypeMergeSplit();
         tmsOperator.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "includeRoot", true);
         
         // Set up stat analysis logger:

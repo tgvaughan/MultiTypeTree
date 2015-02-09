@@ -35,30 +35,30 @@ import java.util.List;
 public class MultiTypeTreeScale extends MultiTypeTreeOperator {
     
     public Input<List<RealParameter>> parametersInput =
-            new Input<List<RealParameter>>("parameter",
+            new Input<>("parameter",
             "Scale this scalar parameter by the same amount as tree.",
             new ArrayList<RealParameter>());
     
     public Input<List<BooleanParameter>> indicatorsInput =
-            new Input<List<BooleanParameter>>("indicator",
+            new Input<>("indicator",
             "If provided, used to specify a subset of parameter elements to scale.",
             new ArrayList<BooleanParameter>());
     
     public Input<List<RealParameter>> parametersInverseInput =
-            new Input<List<RealParameter>>("parameterInverse",
+            new Input<>("parameterInverse",
             "Scale this scalar parameter inversely.",
             new ArrayList<RealParameter>());
     
     public Input<List<BooleanParameter>> indicatorsInverseInput =
-            new Input<List<BooleanParameter>>("indicatorInverse",
+            new Input<>("indicatorInverse",
             "If provided, used to specify a subset of parameter elements to scale "
             + "inversely.",
             new ArrayList<BooleanParameter>());
 
-    public Input<Double> scaleFactorInput = new Input<Double>("scaleFactor",
+    public Input<Double> scaleFactorInput = new Input<>("scaleFactor",
             "Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
     
-    public Input<Boolean> useOldTreeScalerInput = new Input<Boolean>(
+    public Input<Boolean> useOldTreeScalerInput = new Input<>(
             "useOldTreeScaler",
             "Use original coloured tree scaling algorithm. (Default false.)",
             false);
@@ -66,7 +66,9 @@ public class MultiTypeTreeScale extends MultiTypeTreeOperator {
     boolean indicatorsUsed, indicatorsInverseUsed;
     
     @Override
-    public void initAndValidate() {
+    public void initAndValidate() throws Exception {
+
+        super.initAndValidate();
 
         if (indicatorsInput.get().size()>0) {
             if (indicatorsInput.get().size() != parametersInput.get().size())
@@ -111,8 +113,6 @@ public class MultiTypeTreeScale extends MultiTypeTreeOperator {
 
     @Override
     public double proposal() {
-
-        mtTree = multiTypeTreeInput.get();
 
         // Choose scale factor:
         double u = Randomizer.nextDouble();

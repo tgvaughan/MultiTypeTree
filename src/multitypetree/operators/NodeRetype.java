@@ -29,12 +29,7 @@ import beast.util.Randomizer;
 public class NodeRetype extends UniformizationRetypeOperator {
     
     @Override
-    public void initAndValidate() { }
-
-    @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        
         double logHR = 0.0;
         
         // Select node:
@@ -49,7 +44,8 @@ public class NodeRetype extends UniformizationRetypeOperator {
                 + getBranchTypeProb(node.getRight());
         
         // Select new node type:
-        ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
+        ((MultiTypeNode)node).setNodeType(
+            Randomizer.nextInt(migModel.getNTypes()));
         
         // Retype attached branches:
         try {

@@ -29,7 +29,6 @@ import com.google.common.collect.Lists;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -45,23 +44,23 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
     /*
      * Plugin inputs:
      */
-    public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
+    public Input<MigrationModel> migrationModelInput = new Input<>(
             "migrationModel",
             "Migration model to use in simulator.",
             Validate.REQUIRED);
     
-    public Input<IntegerParameter> leafTypesInput = new Input<IntegerParameter>(
+    public Input<IntegerParameter> leafTypesInput = new Input<>(
             "leafTypes",
             "Types of leaf nodes.");
     
-    public Input<String> outputFileNameInput = new Input<String>(
+    public Input<String> outputFileNameInput = new Input<>(
             "outputFileName", "Optional name of file to write simulated "
                     + "tree to.");
 
     /*
      * Non-input fields:
      */
-    protected MigrationModel migrationModel;
+    protected MigrationModel migModel;
     
     private List<Integer> leafTypes;
     private List<String> leafNames;
@@ -112,7 +111,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         super.initAndValidate();
 
         // Obtain required parameters from inputs:
-        migrationModel = migrationModelInput.get();
+        migModel = migrationModelInput.get();
 
         // Obtain leaf colours from explicit input or alignment:
         leafTypes = Lists.newArrayList();
@@ -170,13 +169,11 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
 
         // Write tree to disk if requested
         if (outputFileNameInput.get() != null) {
-            PrintStream pstream = new PrintStream(outputFileNameInput.get());
-            
-            pstream.println("#nexus\nbegin trees;");
-            pstream.println("tree TREE_1 = " + toString() + ";");
-            pstream.println("end;");
-            
-            pstream.close();
+            try (PrintStream pstream = new PrintStream(outputFileNameInput.get())) {
+                pstream.println("#nexus\nbegin trees;");
+                pstream.println("tree TREE_1 = " + toString() + ";");
+                pstream.println("end;");
+            }
         }
     }
 
@@ -195,9 +192,9 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         // Initialise node lists:
         List<List<MultiTypeNode>> activeNodes = Lists.newArrayList();
         List<List<MultiTypeNode>> inactiveNodes = Lists.newArrayList();
-        for (int i = 0; i < nTypes; i++) {
-            activeNodes.add(new ArrayList<MultiTypeNode>());
-            inactiveNodes.add(new ArrayList<MultiTypeNode>());
+        for (int i = 0; i < migModel.getNTypes(); i++) {
+            activeNodes.add(new ArrayList<>());
+            inactiveNodes.add(new ArrayList<>());
         }
 
         // Add nodes to inactive nodes list:
@@ -213,10 +210,9 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         }
         
         // Sort nodes in inactive nodes lists in order of increasing age:
-        for (int i=0; i<nTypes; i++) {
-            Collections.sort(inactiveNodes.get(i), new Comparator<MultiTypeNode>() {
-                @Override
-                public int compare(MultiTypeNode node1, MultiTypeNode node2) {
+        for (int i=0; i<migModel.getNTypes(); i++) {
+            Collections.sort(inactiveNodes.get(i),
+                (MultiTypeNode node1, MultiTypeNode node2) -> {
                     double dt = node1.getHeight()-node2.getHeight();
                     if (dt<0)
                         return -1;
@@ -224,17 +220,16 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                         return 1;
                     
                     return 0;
-                }
-            });
+                });
         }
 
         // Allocate propensity lists:
-        List<List<Double>> migrationProp = new ArrayList<List<Double>>();
-        List<Double> coalesceProp = new ArrayList<Double>();
-        for (int i = 0; i < migrationModel.getNDemes(); i++) {
+        List<List<Double>> migrationProp = new ArrayList<>();
+        List<Double> coalesceProp = new ArrayList<>();
+        for (int i = 0; i < migModel.getNTypes(); i++) {
             coalesceProp.add(0.0);
-            migrationProp.add(new ArrayList<Double>());
-            for (int j = 0; j < migrationModel.getNDemes(); j++)
+            migrationProp.add(new ArrayList<>());
+            for (int j = 0; j < migModel.getNTypes(); j++)
                 migrationProp.get(i).add(0.0);
         }
 
@@ -255,7 +250,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             MultiTypeNode nextNode = null;
             int nextNodeType = -1;
             double nextTime = Double.POSITIVE_INFINITY;
-            for (int i=0; i<nTypes; i++) {
+            for (int i=0; i<migModel.getNTypes(); i++) {
                 if (inactiveNodes.get(i).isEmpty())
                     continue;
                 
@@ -305,7 +300,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
 
         for (int i = 0; i < migrationProp.size(); i++) {
 
-            double N = migrationModel.getPopSize(i);
+            double N = migModel.getPopSize(i);
             int k = activeNodes.get(i).size();
 
             coalesceProp.set(i, k * (k - 1) / (2.0 * N));
@@ -316,7 +311,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                 if (j == i)
                     continue;
 
-                double m = migrationModel.getRate(i, j);
+                double m = migModel.getRate(i, j);
 
                 migrationProp.get(i).set(j, k * m);
                 totalProp += migrationProp.get(i).get(j);
@@ -483,6 +478,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
      * coloured tree-space samplers.
      *
      * @param argv
+     * @throws java.lang.Exception
      */
     public static void main(String[] argv) throws Exception {
         
@@ -539,11 +535,11 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
 
         System.out.printf("Took %1.2f seconds\n", time / 1000.0);
 
-        PrintStream outStream = new PrintStream("heights.txt");
-        outStream.println("h c");
-        for (int i = 0; i < reps; i++)
-            outStream.format("%g %g\n", heights[i], changes[i]);
-        outStream.close();
+        try (PrintStream outStream = new PrintStream("heights.txt")) {
+            outStream.println("h c");
+            for (int i = 0; i < reps; i++)
+                outStream.format("%g %g\n", heights[i], changes[i]);
+        }
     }
 
 }

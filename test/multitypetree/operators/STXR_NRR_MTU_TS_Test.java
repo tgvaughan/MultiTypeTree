@@ -22,10 +22,6 @@ import beast.core.State;
 import beast.core.parameter.RealParameter;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
-import multitypetree.operators.MultiTypeTreeScale;
-import multitypetree.operators.MultiTypeUniform;
-import multitypetree.operators.NodeRetypeRandom;
-import multitypetree.operators.TypedSubtreeExchangeRandom;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
 import beast.util.Randomizer;
@@ -58,7 +54,6 @@ public class STXR_NRR_MTU_TS_Test {
         MultiTypeTree mtTree = new StructuredCoalescentMultiTypeTree();
         mtTree.initByName(
                 "typeLabel", "deme",
-                "nTypes", 2,
                 "migrationModel", migModel,
                 "leafTypes","1 1 0 0");
 
@@ -79,23 +74,27 @@ public class STXR_NRR_MTU_TS_Test {
         operatorSTXR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "mu", 0.2);
         
         Operator operatorNRR = new NodeRetypeRandom();
         operatorNRR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "mu", 0.2);
         
         Operator operatorMTU = new MultiTypeUniform();
         operatorMTU.initByName(
                 "weight", 1.0,
-                "multiTypeTree", mtTree);
+                "multiTypeTree", mtTree,
+                "migrationModel", migModel);
         
         Operator operatorMTTS = new MultiTypeTreeScale();
         operatorMTTS.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "scaleFactor", 1.5,
                 "useOldTreeScaler", false);
         

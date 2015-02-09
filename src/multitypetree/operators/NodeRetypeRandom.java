@@ -28,14 +28,9 @@ import beast.util.Randomizer;
 @Description("Retypes a randomly chosen node and its attached branches. "
         + "This variant uses an unconditioned random walk for branch retyping.")
 public class NodeRetypeRandom extends RandomRetypeOperator {
-    
-    @Override
-    public void initAndValidate() { }
 
     @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        
         double logHR = 0.0;
         
         // Select node:
@@ -52,7 +47,7 @@ public class NodeRetypeRandom extends RandomRetypeOperator {
                 + getBranchTypeProb(node.getRight());
         
         // Select new node type:
-        ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
+        ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(migModel.getNTypes()));
         
         // Retype attached branches, forcing reject if inconsistent:
         if (!node.isRoot()) {

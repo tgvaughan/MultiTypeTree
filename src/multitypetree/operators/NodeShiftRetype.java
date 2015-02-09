@@ -32,17 +32,18 @@ import beast.util.Randomizer;
         + " can act on the root node.")
 public class NodeShiftRetype extends UniformizationRetypeOperator {
     
-    public Input<Boolean> rootOnlyInput = new Input<Boolean>("rootOnly",
+    public Input<Boolean> rootOnlyInput = new Input<>("rootOnly",
             "Always select root node for height adjustment.", false);
     
-    public Input<Boolean> noRootInput = new Input<Boolean>("noRoot",
+    public Input<Boolean> noRootInput = new Input<>("noRoot",
             "Never select root node for height adjustment.", false);
     
-    public Input<Double> rootScaleFactorInput = new Input<Double>("rootScaleFactor",
+    public Input<Double> rootScaleFactorInput = new Input<>("rootScaleFactor",
             "Scale factor used in root height proposals. (Default 0.8)", 0.8);
     
     @Override
-    public void initAndValidate() {
+    public void initAndValidate() throws Exception {
+        super.initAndValidate();
         
         if (rootOnlyInput.get() && noRootInput.get())
             throw new IllegalArgumentException("rootOnly and noRoot inputs "
@@ -51,9 +52,6 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
     
     @Override
     public double proposal() {
-        
-        mtTree = multiTypeTreeInput.get();
-        
         // Select internal node to adjust:
         Node node;
         if (rootOnlyInput.get())
@@ -95,7 +93,7 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
         logHR -= Math.log(f);
         
         // Select new root node type:
-        ((MultiTypeNode)root).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
+        ((MultiTypeNode)root).setNodeType(Randomizer.nextInt(migModel.getNTypes()));
         
         // Recolour branches below root:
         try {
@@ -130,7 +128,7 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
         node.setHeight(lowerBound+(upperBound-lowerBound)*Randomizer.nextDouble());
         
         // Select new node colour:
-        ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(mtTree.getNTypes()));
+        ((MultiTypeNode)node).setNodeType(Randomizer.nextInt(migModel.getNTypes()));
         
         // Recolour branches connected to node:
         try {

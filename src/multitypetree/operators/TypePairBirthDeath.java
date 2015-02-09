@@ -27,14 +27,9 @@ import beast.util.Randomizer;
 @Description("Implements type change (migration) pair birth/death move "
         + "described by Ewing et al., Genetics (2004).")
 public class TypePairBirthDeath extends MultiTypeTreeOperator {
-
-    @Override
-    public void initAndValidate() { }
     
     @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        
         int n = mtTree.getLeafNodeCount();
         int m = mtTree.getTotalNumberOfChanges();
         
@@ -95,7 +90,7 @@ public class TypePairBirthDeath extends MultiTypeTreeOperator {
 
         int newEdgeType;
         do {
-            newEdgeType = Randomizer.nextInt(mtTree.getNTypes());
+            newEdgeType = Randomizer.nextInt(migModel.getNTypes());
         } while (newEdgeType == oldEdgeType);
         
         double tau1 = Randomizer.nextDouble()*(tr-ts) + ts;
@@ -106,7 +101,7 @@ public class TypePairBirthDeath extends MultiTypeTreeOperator {
         mtNode.insertChange(edgeNum, oldEdgeType, tauMax);
         mtNode.insertChange(edgeNum, newEdgeType, tauMin);
         
-        return Math.log((mtTree.getNTypes()-1)*(m + 2*n - 2)*(tr-ts)*(tr-ts))
+        return Math.log((migModel.getNTypes()-1)*(m + 2*n - 2)*(tr-ts)*(tr-ts))
                 - Math.log(2*(m + 2*n));
     }
     
@@ -153,7 +148,7 @@ public class TypePairBirthDeath extends MultiTypeTreeOperator {
         mtNode.removeChange(idx);
         
         return Math.log(2*(m + 2*n - 2))
-                - Math.log((mtTree.getNTypes()-1)*(m+2*n-4)*(tr-ts)*(tr-ts));
+                - Math.log((migModel.getNTypes()-1)*(m+2*n-4)*(tr-ts)*(tr-ts));
     }
     
 }

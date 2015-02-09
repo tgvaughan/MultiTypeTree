@@ -54,8 +54,7 @@ public class TWB_TS_Test {
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
                 "newick", newickStr,
-                "typeLabel", "deme",
-                "nTypes", 2);
+                "typeLabel", "deme");
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
@@ -88,6 +87,7 @@ public class TWB_TS_Test {
         operatorMTTS.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "scaleFactor", 0.8,
                 "useOldTreeScaler", false);
         
@@ -144,8 +144,7 @@ public class TWB_TS_Test {
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
                 "newick", newickStr,
-                "typeLabel", "deme",
-                "nTypes", 2);
+                "typeLabel", "deme");
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
@@ -178,6 +177,7 @@ public class TWB_TS_Test {
         operatorMTTS.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
+                "migrationModel", migModel,
                 "scaleFactor", 0.8,
                 "useOldTreeScaler", false);
         

@@ -22,7 +22,6 @@ import beast.core.State;
 import beast.core.parameter.RealParameter;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.MigrationModel;
-import multitypetree.operators.NodeShiftRetype;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
 import beast.util.Randomizer;
@@ -55,7 +54,6 @@ public class NSR_Test {
         MultiTypeTree mtTree = new StructuredCoalescentMultiTypeTree();
         mtTree.initByName(
                 "typeLabel", "deme",
-                "nTypes", 2,
                 "migrationModel", migModel,
                 "leafTypes","1 0");
 

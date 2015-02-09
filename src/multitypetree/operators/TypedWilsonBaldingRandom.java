@@ -37,19 +37,19 @@ import beast.util.Randomizer;
 +"the operator.")
 public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
 
-    public Input<Double> alphaInput = new Input<Double>("alpha",
+    public Input<Double> alphaInput = new Input<>("alpha",
             "Root height proposal parameter", .1);
     private double alpha;
 
     @Override
-    public void initAndValidate() {
+    public void initAndValidate() throws Exception {
+        super.initAndValidate();
+
+        alpha = alphaInput.get();
     }
 
     @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        alpha = alphaInput.get();
-
         // Check that operator can be applied to tree:
         if (mtTree.getLeafNodeCount()<3)
             throw new IllegalStateException("Tree too small for"
@@ -276,7 +276,7 @@ public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
                 - srcNodeS.getHeight();
         int n = ((MultiTypeNode)srcNode).getChangeCount()
                 + ((MultiTypeNode)srcNodeS).getChangeCount();
-        int N = mtTree.getNTypes();
+        int N = migModel.getNTypes();
 
         if (N == 0)
             return 0.0;

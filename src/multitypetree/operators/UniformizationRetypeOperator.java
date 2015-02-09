@@ -35,12 +35,8 @@ import org.jblas.MatrixFunctions;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator {
-    
-    public Input<MigrationModel> migrationModelInput = new Input<MigrationModel>(
-            "migrationModel",
-            "Migration model for proposal distribution", Input.Validate.REQUIRED);
-    
-    public Input<Boolean> useSymmetrizedRatesInput = new Input<Boolean>(
+
+    public Input<Boolean> useSymmetrizedRatesInput = new Input<>(
             "useSymmetrizedRates",
             "Use symmetrized rate matrix to propose migration paths.", false);
     
@@ -113,14 +109,12 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
      *
      * @param srcNode
      * @return Probability of new state.
-     * @throws beast.evolution.operators.UniformizationRetypeOperator.NoValidPathException
+     * @throws multitypetree.operators.UniformizationRetypeOperator.NoValidPathException
      */
     protected double retypeBranch(Node srcNode) throws NoValidPathException {
         
         boolean sym = useSymmetrizedRatesInput.get();
         
-        MigrationModel migrationModel = migrationModelInput.get();
-
         Node srcNodeP = srcNode.getParent();
         double t_srcNode = srcNode.getHeight();
         double t_srcNodeP = srcNodeP.getHeight();
@@ -131,10 +125,10 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         int type_srcNodeP = ((MultiTypeNode)srcNodeP).getNodeType();
 
         // Pre-calculate some stuff:
-        double muL = migrationModel.getMu(sym)*L;
+        double muL = migModel.getMu(sym)*L;
         
         double Pba = MatrixFunctions.expm(
-                migrationModel.getQ(sym)
+                migModel.getQ(sym)
                 .mul(L)).get(type_srcNode,type_srcNodeP);
 
         // Abort if transition is impossible.
@@ -149,7 +143,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         
         // Select number of virtual events:
         int nVirt = drawEventCount(type_srcNode, type_srcNodeP, muL, Pba,
-                migrationModel, sym);
+                migModel, sym);
         
         if (nVirt<0)
             return Double.NEGATIVE_INFINITY;
@@ -167,12 +161,12 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         for (int i = 1; i<=nVirt; i++) {
             
             double u2 = Randomizer.nextDouble()
-                    *migrationModel.getRpowN(nVirt-i+1, sym).get(prevType, type_srcNodeP);
+                    *migModel.getRpowN(nVirt-i+1, sym).get(prevType, type_srcNodeP);
             int c;
             boolean fellThrough = true;
-            for (c = 0; c<mtTree.getNTypes(); c++) {
-                u2 -= migrationModel.getR(sym).get(prevType,c)
-                        *migrationModel.getRpowN(nVirt-i, sym).get(c,type_srcNodeP);
+            for (c = 0; c<migModel.getNTypes(); c++) {
+                u2 -= migModel.getR(sym).get(prevType,c)
+                        *migModel.getRpowN(nVirt-i, sym).get(c,type_srcNodeP);
                 if (u2<0.0) {
                     fellThrough = false;
                     break;
@@ -182,11 +176,11 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
             // Check for FB algorithm error:
             if (fellThrough) {
                 
-                double sum1 = migrationModel.getRpowN(nVirt-i+1, sym).get(prevType, type_srcNodeP);
+                double sum1 = migModel.getRpowN(nVirt-i+1, sym).get(prevType, type_srcNodeP);
                 double sum2 = 0;
-                for (c = 0; c<mtTree.getNTypes(); c++) {
-                    sum2 += migrationModel.getR(sym).get(prevType,c)
-                            *migrationModel.getRpowN(nVirt-i, sym).get(c,type_srcNodeP);
+                for (c = 0; c<migModel.getNTypes(); c++) {
+                    sum2 += migModel.getR(sym).get(prevType,c)
+                            *migModel.getRpowN(nVirt-i, sym).get(c,type_srcNodeP);
                 }
                 
                 System.err.println("Warning: FB algorithm failure.  Aborting move.");
@@ -212,14 +206,14 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
                 ((MultiTypeNode)srcNode).addChange(types[i], times[i]);
 
                 // Add probability contribution:
-                logProb += migrationModel.getQ(sym).get(prevType, prevType)*(times[i]-prevTime)
-                        +Math.log(migrationModel.getQ(sym).get(prevType, types[i]));
+                logProb += migModel.getQ(sym).get(prevType, prevType)*(times[i]-prevTime)
+                        +Math.log(migModel.getQ(sym).get(prevType, types[i]));
 
                 prevType = types[i];
                 prevTime = times[i];
             }
         }
-        logProb += migrationModel.getQ(sym).get(prevType, prevType)*(t_srcNodeP-prevTime);
+        logProb += migModel.getQ(sym).get(prevType, prevType)*(t_srcNodeP-prevTime);
 
         // Adjust probability to account for end condition:
         logProb -= Math.log(Pba);
@@ -283,6 +277,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
      * Main method for debugging.
      * 
      * @param args 
+     * @throws java.lang.Exception 
      */
     public static void main(String[] args) throws Exception {
        
@@ -331,29 +326,28 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
         
         migModel.getQ(false).print();
         
-        PrintStream outfile = new PrintStream("counts.txt");
-        outfile.print("totalCounts");
-        for (int c=0; c<mtTree.getNTypes(); c++)
-            outfile.print(" counts" + c);
-        outfile.println();
-        
-        for (int i=0; i<10000; i++) {
-            MultiTypeNode srcNode = (MultiTypeNode)mtTree.getRoot().getLeft();
-            op.retypeBranch(srcNode);
-            outfile.print(srcNode.getChangeCount());
-            
-            int[] counts = new int[4];
-            for (int j=0; j<srcNode.getChangeCount(); j++) {
-                counts[srcNode.getChangeType(j)] += 1;
-            }
-            
-            for (int c=0; c<mtTree.getNTypes(); c++)
-                outfile.print(" " + counts[c]);
-            
+        try (PrintStream outfile = new PrintStream("counts.txt")) {
+            outfile.print("totalCounts");
+            for (int c=0; c<migModel.getNTypes(); c++)
+                outfile.print(" counts" + c);
             outfile.println();
+            
+            for (int i=0; i<10000; i++) {
+                MultiTypeNode srcNode = (MultiTypeNode)mtTree.getRoot().getLeft();
+                op.retypeBranch(srcNode);
+                outfile.print(srcNode.getChangeCount());
+                
+                int[] counts = new int[4];
+                for (int j=0; j<srcNode.getChangeCount(); j++) {
+                    counts[srcNode.getChangeType(j)] += 1;
+                }
+                
+                for (int c=0; c<migModel.getNTypes(); c++)
+                    outfile.print(" " + counts[c]);
+                
+                outfile.println();
+            }
         }
-        
-        outfile.close();
     }
 
 }

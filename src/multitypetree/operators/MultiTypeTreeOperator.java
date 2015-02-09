@@ -20,6 +20,7 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Operator;
+import beast.evolution.tree.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.Node;
@@ -33,12 +34,25 @@ import beast.evolution.tree.Tree;
 @Description("This operator generates proposals for a coloured beast tree.")
 public abstract class MultiTypeTreeOperator extends Operator {
 
-    public Input<MultiTypeTree> multiTypeTreeInput = new Input<MultiTypeTree>(
-            "multiTypeTree", "Multi-type tree on which to operate.",
-            Validate.REQUIRED);
+    public Input<MultiTypeTree> multiTypeTreeInput = new Input<>(
+        "multiTypeTree", "Multi-type tree on which to operate.",
+        Validate.REQUIRED);
+
+        
+    public Input<MigrationModel> migrationModelInput = new Input<>(
+        "migrationModel",
+        "Migration model for proposal distribution",
+        Input.Validate.REQUIRED);
     
     protected MultiTypeTree mtTree;
-    
+    protected MigrationModel migModel;
+
+    @Override
+    public void initAndValidate() throws Exception {
+        mtTree = multiTypeTreeInput.get();
+        migModel = migrationModelInput.get();
+    }
+
     /* ***********************************************************************
      * The following two methods are copied verbatim from TreeOperator.
      */

@@ -39,14 +39,14 @@ public class TypedWilsonBaldingEasy extends MultiTypeTreeOperator {
     private double alpha;
 
     @Override
-    public void initAndValidate() {
+    public void initAndValidate() throws Exception {
+        super.initAndValidate();
+
+        alpha = alphaInput.get();
     }
 
     @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        alpha = alphaInput.get();
-
         // Check that operator can be applied to tree:
         if (mtTree.getLeafNodeCount()<3)
             throw new IllegalStateException("Tree too small for"

@@ -28,14 +28,9 @@ import java.util.Set;
  */
 @Description("Special move specific to two taxon trees for debugging only.")
 public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
-    
-    @Override
-    public void initAndValidate() { };
 
     @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-                
         if (mtTree.getLeafNodeCount() != 2)
             throw new IllegalArgumentException("SpecialTypeBirthDeath only valid for 2 taxon trees.");
         
@@ -137,7 +132,7 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
         logHR += Math.log(1.0/(mtTree.getTotalNumberOfChanges()+1));
         
         // Forward move probability:
-        int Cbirth = mtTree.getNTypes() - illegalTypesBirth.size();
+        int Cbirth = migModel.getNTypes() - illegalTypesBirth.size();
         logHR -= Math.log(1.0/(Cbirth*mtTree.getTotalNumberOfChanges()*(tmax-tmin)));
 
         // Add new event:
@@ -148,7 +143,7 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
         // Select and apply new type:
         int n = Randomizer.nextInt(Cbirth);
         int changeType;
-        for (changeType = 0; changeType<mtTree.getNTypes(); changeType++) {
+        for (changeType = 0; changeType<migModel.getNTypes(); changeType++) {
             if (illegalTypesBirth.contains(changeType))
                 continue;
             if (n==0)
@@ -188,7 +183,7 @@ public class SpecialTypeBirthDeath extends MultiTypeTreeOperator {
             tmax = node.getChangeTime(changeIdx+2);
 
         // Backward move probability:
-        int Cbirth = mtTree.getNTypes() - illegalTypesBirth.size();
+        int Cbirth = migModel.getNTypes() - illegalTypesBirth.size();
         logHR += Math.log(1.0/(Cbirth*(mtTree.getTotalNumberOfChanges()-1)*(tmax-tmin)));
         
         // Forward move probability:

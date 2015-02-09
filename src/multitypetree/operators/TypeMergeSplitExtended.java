@@ -26,14 +26,9 @@ import beast.util.Randomizer;
 @Description("Implementation of generalized merge-split operator described"
         + "by Ewing et al., 2004.")
 public class TypeMergeSplitExtended extends MultiTypeTreeOperator {
-    
-    @Override
-    public void initAndValidate() { }
 
     @Override
     public double proposal() {
-        mtTree = multiTypeTreeInput.get();
-        
         // Select internal node to operate around:
         int nodeID = mtTree.getLeafNodeCount() + Randomizer.nextInt(mtTree.getInternalNodeCount());
         MultiTypeNode node = (MultiTypeNode)mtTree.getNode(nodeID);

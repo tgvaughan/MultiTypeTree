@@ -43,13 +43,9 @@ import java.util.logging.Logger;
 public class MultiTypeTree extends Tree {
 
     /*
-     * Plugin inputs:
+     * Inputs:
      */
-    public Input<Integer> nTypesInput = new Input<Integer>(
-            "nTypes",
-            "Number of distinct types to consider.", Input.Validate.REQUIRED);
-    
-    public Input<String> typeLabelInput = new Input<String>(
+    public Input<String> typeLabelInput = new Input<>(
             "typeLabel",
             "Label for type traits (default 'type')", "type");
     
@@ -57,7 +53,6 @@ public class MultiTypeTree extends Tree {
      * Non-input fields:
      */
     protected String typeLabel;
-    protected int nTypes;
     protected TraitSet typeTraitSet;
     
     protected List <String> typeList;
@@ -136,7 +131,6 @@ public class MultiTypeTree extends Tree {
         }
         
         typeLabel = typeLabelInput.get();
-        nTypes = nTypesInput.get();
         
         processTraits(m_traitList.get());
 
@@ -242,7 +236,6 @@ public class MultiTypeTree extends Tree {
         tree.nodeCount = nodeCount;
         tree.internalNodeCount = internalNodeCount;
         tree.leafNodeCount = leafNodeCount;
-        tree.nTypes = nTypes;
         tree.typeLabel = typeLabel;
         return tree;
     }
@@ -336,15 +329,6 @@ public class MultiTypeTree extends Tree {
         }
     }
 
-    /**
-     * Retrieve total number of allowed types on tree.
-     *
-     * @return total type/deme count.
-     */
-    public int getNTypes() {
-        return nTypes;
-    }
-    
     /**
      * Check whether typing and timing of tree are sensible.
      * 
@@ -483,10 +467,10 @@ public class MultiTypeTree extends Tree {
 
         // Build new coloured tree:
 
-        List<Node> activeFlatTreeNodes = new ArrayList<Node>();
-        List<Node> nextActiveFlatTreeNodes = new ArrayList<Node>();
-        List<MultiTypeNode> activeTreeNodes = new ArrayList<MultiTypeNode>();
-        List<MultiTypeNode> nextActiveTreeNodes = new ArrayList<MultiTypeNode>();
+        List<Node> activeFlatTreeNodes = new ArrayList<>();
+        List<Node> nextActiveFlatTreeNodes = new ArrayList<>();
+        List<MultiTypeNode> activeTreeNodes = new ArrayList<>();
+        List<MultiTypeNode> nextActiveTreeNodes = new ArrayList<>();
 
         // Populate active node lists with root:
         activeFlatTreeNodes.add(flatTree.getRoot());
@@ -506,8 +490,8 @@ public class MultiTypeTree extends Tree {
                 Node flatTreeNode = activeFlatTreeNodes.get(idx);
                 MultiTypeNode treeNode = activeTreeNodes.get(idx);
 
-                List<Integer> colours = new ArrayList<Integer>();
-                List<Double> times = new ArrayList<Double>();
+                List<Integer> colours = new ArrayList<>();
+                List<Double> times = new ArrayList<>();
 
                 while (flatTreeNode.getChildCount()==1) {
                     int col = (int) Math.round(

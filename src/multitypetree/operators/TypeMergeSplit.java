@@ -31,15 +31,9 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
     
     public Input<Boolean> includeRootInput = new Input<Boolean>("includeRoot",
             "Include Tim's root merge/split moves.  Default false.", false);
-
-    @Override
-    public void initAndValidate() { }
     
     @Override
     public double proposal() {
-        
-        mtTree = multiTypeTreeInput.get();
-        
         Node node;
         do {
             node = mtTree.getNode(mtTree.getLeafNodeCount()
@@ -115,7 +109,7 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
         int oldType = ((MultiTypeNode)root).getNodeType();
         int type;
         do {
-            type = Randomizer.nextInt(mtTree.getNTypes());
+            type = Randomizer.nextInt(migModel.getNTypes());
         } while (type == oldType);
         
         // Update node type:
@@ -136,7 +130,7 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
         ((MultiTypeNode)root.getRight()).addChange(type, tnewRight);
         
         return Math.log((root.getHeight()-tminRight)*(root.getHeight()-tminLeft)
-                *(mtTree.getNTypes()-1));
+                *(migModel.getNTypes()-1));
 
     }
     
@@ -255,7 +249,7 @@ public class TypeMergeSplit extends MultiTypeTreeOperator {
         root.setNodeType(leftTypeUnder);
         
         return -Math.log((root.getHeight()-tminRight)*(root.getHeight()-tminLeft)
-                *(mtTree.getNTypes()-1));
+                *(migModel.getNTypes()-1));
     }
     
 }
