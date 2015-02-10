@@ -23,6 +23,8 @@ import beast.core.Input;
 import beast.evolution.tree.MigrationModel;
 import java.awt.Color;
 import java.awt.Component;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -44,6 +46,7 @@ import javax.swing.table.TableCellRenderer;
 public class MigrationModelInputEditor extends InputEditor.Base {
 
     DefaultTableModel popSizeModel, rateMatrixModel;
+    SpinnerNumberModel nTypesModel;
     MigrationModel migModel;
 
     public MigrationModelInputEditor(BeautiDoc doc) {
@@ -66,15 +69,18 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         addInputLabel();
 
         migModel = (MigrationModel) input.get();
+        popSizeModel = new DefaultTableModel();
+        rateMatrixModel = new DefaultTableModel();
+        nTypesModel = new SpinnerNumberModel(2, 2, Short.MAX_VALUE, 1);
+        loadFromMigrationModel();
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         JPanel rowPanel;
 
         rowPanel = new JPanel();
         rowPanel.add(new JLabel("Number of demes: "));
-        JSpinner dimSpinner = new JSpinner(new SpinnerNumberModel(2, 2, Integer.MAX_VALUE, 1));
+        JSpinner dimSpinner = new JSpinner(nTypesModel);
         dimSpinner.addChangeListener((ChangeEvent e) -> {
             JSpinner spinner = (JSpinner)e.getSource();
             int newDim = (int)spinner.getValue();
@@ -99,7 +105,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             saveToMigrationModel();
         });
         rowPanel.add(dimSpinner);
-        panel.add(rowPanel);
+        add(rowPanel);
 
         popSizeModel = new DefaultTableModel(1, migModel.getNTypes());
         rateMatrixModel = new DefaultTableModel(migModel.getNTypes(), migModel.getNTypes()) {
@@ -130,7 +136,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         popSizeTable.setCellSelectionEnabled(true);
         popSizeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         rowPanel.add(popSizeTable);
-        panel.add(rowPanel);
+        add(rowPanel);
 
         rowPanel = new JPanel();
         rowPanel.add(new JLabel("Migration rates: "));
@@ -155,14 +161,16 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixTable.setCellSelectionEnabled(true);
         rateMatrixTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         rowPanel.add(rateMatrixTable);
-        panel.add(rowPanel);
-
-        loadFromMigrationModel();
-
-        add(panel);
+        add(rowPanel);
     }
 
     public void loadFromMigrationModel() {
+        nTypesModel.setValue(migModel.getNTypes());
+        popSizeModel.setRowCount(1);
+        popSizeModel.setColumnCount(migModel.getNTypes());
+        rateMatrixModel.setRowCount(migModel.getNTypes());
+        rateMatrixModel.setColumnCount(migModel.getNTypes());
+
         for (int i=0; i<migModel.getNTypes(); i++) {
             popSizeModel.setValueAt(migModel.getPopSize(i), 0, i);
             for (int j=0; j<migModel.getNTypes(); j++) {
@@ -212,5 +220,13 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         migModel.rateMatrixInput.get().valuesInput.setValue(
             sbRateMatrix.toString(),
             migModel.rateMatrixInput.get());
+
+        try {
+            migModel.rateMatrixInput.get().initAndValidate();
+            migModel.popSizesInput.get().initAndValidate();
+            migModel.initAndValidate();
+        } catch (Exception ex) {
+            System.err.println("Error updating migration model state.");
+        }
   }
 }
