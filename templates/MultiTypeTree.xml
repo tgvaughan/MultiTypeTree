@@ -13,6 +13,12 @@
             type='beast.evolution.alignment.Alignment'
             />
 
+		<panel spec='BeautiPanelConfig' panelname="Tip Dates" tiptext="Allows to specify data that a taxon was sampled"
+            path='tree'
+            hasPartitions="Tree" icon='2.png.x' forceExpansion='TRUE'
+            isVisible='true'
+        />
+
         <panel spec='BeautiPanelConfig' panelname="Site Model" tiptext="Site model and substitution model specifications"
             path='siteModel'
             hasPartitions="SiteModel" icon='3.png.x' forceExpansion='TRUE'

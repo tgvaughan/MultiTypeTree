@@ -23,8 +23,6 @@ import beast.core.Input;
 import beast.evolution.tree.MigrationModel;
 import java.awt.Color;
 import java.awt.Component;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,7 +32,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -62,13 +59,15 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     @Override
     public void init(Input<?> input, BEASTInterface plugin, int itemNr,
         ExpandOption bExpandOption, boolean bAddButtons) {
+
+        // I have no idea what this stuff does:
         m_bAddButtons = bAddButtons;
         m_input = input;
         m_plugin = plugin;
 		this.itemNr = itemNr;
-
         addInputLabel();
 
+        // Create component models and fill them with data from input
         migModel = (MigrationModel) input.get();
         nTypesModel = new SpinnerNumberModel(2, 2, Short.MAX_VALUE, 1);
         popSizeModel = new DefaultTableModel();
@@ -80,52 +79,19 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         };
         loadFromMigrationModel();
 
+        // This layout sucks - need to fix.
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         JPanel rowPanel;
 
+        // Deme count spinner:
         rowPanel = new JPanel();
         rowPanel.add(new JLabel("Number of demes: "));
         JSpinner dimSpinner = new JSpinner(nTypesModel);
-        dimSpinner.addChangeListener((ChangeEvent e) -> {
-            JSpinner spinner = (JSpinner)e.getSource();
-            int newDim = (int)spinner.getValue();
-
-            popSizeModel.setColumnCount(newDim);
-            migModel.popSizesInput.get().setDimension(newDim);
-            rateMatrixModel.setColumnCount(newDim);
-            rateMatrixModel.setRowCount(newDim);
-            migModel.rateMatrixInput.get().setDimension(newDim*newDim);
-            for (int i=0; i<newDim; i++) {
-                if (popSizeModel.getValueAt(0, i) == null) {
-                    popSizeModel.setValueAt(1.0, 0, i);
-                }
-                for (int j=0; j<newDim; j++) {
-                    if (i==j)
-                        continue;
-                    if (rateMatrixModel.getValueAt(j, i) == null) {
-                        rateMatrixModel.setValueAt(1.0, j, i);
-                    }
-                }
-            }
-            saveToMigrationModel();
-        });
         rowPanel.add(dimSpinner);
         add(rowPanel);
 
-        popSizeModel.addTableModelListener((TableModelEvent e) -> {
-            if (e.getType() != TableModelEvent.UPDATE)
-                return;
-            
-            saveToMigrationModel();
-        });
-        rateMatrixModel.addTableModelListener((TableModelEvent e) -> {
-            if (e.getType() != TableModelEvent.UPDATE)
-                return;
-
-            saveToMigrationModel();
-        });
-
+        // Population size table
         rowPanel = new JPanel();
         rowPanel.add(new JLabel("Population sizes: "));
         JTable popSizeTable = new JTable(popSizeModel);
@@ -135,6 +101,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rowPanel.add(popSizeTable);
         add(rowPanel);
 
+        // Migration rate table
+        // (Uses custom cell renderer to grey out diagonal elements.)
         rowPanel = new JPanel();
         rowPanel.add(new JLabel("Migration rates: "));
         JTable rateMatrixTable = new JTable(rateMatrixModel) {
@@ -161,6 +129,46 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         rowPanel.add(rateMatrixTable);
         add(rowPanel);
+
+        // Event handlers
+
+        dimSpinner.addChangeListener((ChangeEvent e) -> {
+            JSpinner spinner = (JSpinner)e.getSource();
+            int newDim = (int)spinner.getValue();
+
+            popSizeModel.setColumnCount(newDim);
+            migModel.popSizesInput.get().setDimension(newDim);
+            rateMatrixModel.setColumnCount(newDim);
+            rateMatrixModel.setRowCount(newDim);
+            migModel.rateMatrixInput.get().setDimension(newDim*newDim);
+            for (int i=0; i<newDim; i++) {
+                if (popSizeModel.getValueAt(0, i) == null) {
+                    popSizeModel.setValueAt(1.0, 0, i);
+                }
+                for (int j=0; j<newDim; j++) {
+                    if (i==j)
+                        continue;
+                    if (rateMatrixModel.getValueAt(j, i) == null) {
+                        rateMatrixModel.setValueAt(1.0, j, i);
+                    }
+                }
+            }
+            saveToMigrationModel();
+        });
+
+        popSizeModel.addTableModelListener((TableModelEvent e) -> {
+            if (e.getType() != TableModelEvent.UPDATE)
+                return;
+            
+            saveToMigrationModel();
+        });
+
+        rateMatrixModel.addTableModelListener((TableModelEvent e) -> {
+            if (e.getType() != TableModelEvent.UPDATE)
+                return;
+
+            saveToMigrationModel();
+        });
     }
 
     public void loadFromMigrationModel() {
