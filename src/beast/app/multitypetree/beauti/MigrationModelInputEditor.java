@@ -40,6 +40,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
 /**
+ * A BEAUti input editor for MigrationModels.
  *
  * @author Tim Vaughan (tgvaughan@gmail.com)
  */
@@ -69,9 +70,14 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         addInputLabel();
 
         migModel = (MigrationModel) input.get();
-        popSizeModel = new DefaultTableModel();
-        rateMatrixModel = new DefaultTableModel();
         nTypesModel = new SpinnerNumberModel(2, 2, Short.MAX_VALUE, 1);
+        popSizeModel = new DefaultTableModel();
+        rateMatrixModel = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return row != column;
+            }
+        };
         loadFromMigrationModel();
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -107,15 +113,6 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rowPanel.add(dimSpinner);
         add(rowPanel);
 
-        popSizeModel = new DefaultTableModel(1, migModel.getNTypes());
-        rateMatrixModel = new DefaultTableModel(migModel.getNTypes(), migModel.getNTypes()) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return row != column;
-            }
-        };
-        loadFromMigrationModel();
-
         popSizeModel.addTableModelListener((TableModelEvent e) -> {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
@@ -148,7 +145,9 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                 else
                     return new DefaultTableCellRenderer() {
                         @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                        public Component getTableCellRendererComponent(
+                            JTable table, Object value, boolean isSelected,
+                            boolean hasFocus, int row, int column) {
                             JLabel label = new JLabel();
                             label.setOpaque(true);
                             label.setBackground(Color.GRAY);
