@@ -17,7 +17,8 @@
 
        <beauticonfig spec='BeautiConfig'
            collapsedPlugins = 'beast.core.MCMC.logger'
-           inlinePlugins = 'beast.evolution.sitemodel.SiteModel.substModel'
+           inlinePlugins = 'beast.evolution.sitemodel.SiteModel.substModel,
+                            beast.evolution.tree.MultiTypeTree.migrationModel'
            suppressPlugins = 'beast.core.MCMC.operator,
            beast.core.MCMC.operatorschedule,
            beast.core.MCMC.state,
@@ -177,6 +178,9 @@
             <log idref="migModel"/>
         </logger>
 
+        <operator id='popSizeScaler' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@popSizes"/>
+        <operator id='rateMatrixScaler' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@rateMatrix"/>
+
         <logger id='screenlog' logEvery="1000">
 	        <!--model idref='posterior'/-->
             <log idref="posterior"/>
@@ -186,8 +190,8 @@
             <log idref="migModel"/>
 
             <log  spec='beast.evolution.tree.MigrationModel' id="migModel">
-                <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix" estimate="false"/>
-                <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes" estimate="false"/>
+                <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix" estimate="true"/>
+                <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes" estimate="true"/>
             </log>
         </logger>
     </run>
