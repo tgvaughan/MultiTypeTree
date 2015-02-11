@@ -156,11 +156,6 @@
 
 <!-- framework for main model -->
 
-    <migrationModel spec='beast.evolution.tree.MigrationModel' id="migModel">
-        <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix" estimate="false"/>
-        <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes" estimate="false"/>
-    </migrationModel>
-
     <run spec="MCMC" id="mcmc" chainLength="10000000">
 
         <state storeEvery='5000' id='state'>
@@ -189,6 +184,11 @@
             <log idref="likelihood"/>
             <log idref="prior"/>
             <log idref="migModel"/>
+
+            <log  spec='beast.evolution.tree.MigrationModel' id="migModel">
+                <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix" estimate="false"/>
+                <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes" estimate="false"/>
+            </log>
         </logger>
     </run>
 
