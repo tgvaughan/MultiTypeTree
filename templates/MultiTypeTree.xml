@@ -5,7 +5,13 @@
        <map name='connect' reserved='true'>beast.app.beauti.BeautiConnector</map>
        <map name='subtemplate' reserved='true'>beast.app.beauti.BeautiSubTemplate</map>
 
-       <beauticonfig spec='BeautiConfig'>
+       <beauticonfig spec='BeautiConfig'
+           collapsedPlugins = 'beast.core.MCMC.logger'
+           suppressPlugins = 'beast.core.MCMC.operator,
+           beast.core.MCMC.operatorschedule,
+           beast.core.MCMC.state,
+           beast.core.MCMC.init,
+           beast.core.MCMC.distribution'>
 
         <panel spec='BeautiPanelConfig' panelname="Partitions" tiptext="Data Partitions"
             path='distribution/distribution[id="likelihood"]/distribution/data'
@@ -26,7 +32,7 @@
 
         <panel spec='BeautiPanelConfig' panelname="Migration Model" tiptext="Migration model specifications"
             path='distribution/distribution[id="prior"]/distribution/migrationModel'
-            hasPartitions="none" icon='3.png.x' forceExpansion='FALSE'
+            hasPartitions="none" icon='3.png.x' forceExpansion='TRUE'
             />
 
 		<panel spec='BeautiPanelConfig' panelname="MCMC" tiptext="MCMC parameters"
@@ -58,8 +64,8 @@
             </plugin>
 
             <plugin spec='beast.evolution.tree.MigrationModel' id="migModel.$(n)">
-                <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix.$(n)"/>
-                <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes.$(n)"/>
+                <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix.$(n)" estimate="false"/>
+                <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes.$(n)" estimate="false"/>
             </plugin>
 
             <plugin spec='multitypetree.distributions.StructuredCoalescentTreeDensity' id="treePrior.$(n)">
@@ -84,6 +90,7 @@
 			<connect method="beast.app.beauti.SiteModelInputEditor.customConnector"/>
             <connect srcID='Tree.t:$(n)'                targetID='mcmc' inputName='init'   if='inposterior(Tree.t:$(n))'/>
             <connect srcID='Tree.t:$(n)'                      targetID='state' inputName='stateNode' if='inposterior(Tree.t:$(n))'/>
+            <connect srcID='migModel.$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.$(n))'/>
         </partitiontemplate>
 
     </beauticonfig>
