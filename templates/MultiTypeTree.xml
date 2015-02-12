@@ -62,7 +62,7 @@
         />
 
         <panel spec='BeautiPanelConfig' panelname="Migration Model" tiptext="Migration model specifications"
-            path='logger[id="tracelog"]/log[id="migModel"]'
+            path='distribution/distribution[id="prior"]/distribution[id="treeprior"]/migrationModel'
             hasPartitions="none" icon='3.png.x' forceExpansion='TRUE'
             />
 
@@ -107,7 +107,11 @@
 
             <plugin spec='multitypetree.distributions.StructuredCoalescentTreeDensity' id="treePrior.$(n)">
                 <multiTypeTree idref="Tree.t:$(n)"/>
-                <migrationModel idref="migModel"/>
+                <migrationModel spec='beast.evolution.tree.MigrationModel' id="migModel.s:$(n)">
+                    <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix.s:$(n)" estimate="true"/>
+                    <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes.s:$(n)" estimate="true"/>
+                </migrationModel>
+
             </plugin>
 
             <!-- tree and its properties -->
@@ -124,10 +128,14 @@
 	        <prior id='MutationRatePrior.s:$(n)' x='@mutationRate.s:$(n)'><distr spec="beast.math.distributions.OneOnX"/></prior>
             <prior id='GammaShapePrior.s:$(n)' x='@gammaShape.s:$(n)'><distr spec="beast.math.distributions.Exponential" mean='1'/></prior>
             <prior id='PropInvariantPrior.t:$(n)' x='@proportionInvariant.s:$(n)'><distr spec="beast.math.distributions.Uniform" lower='0' upper='1'/></prior>
+            <prior id='popSizesPrior.s:$(n)' x='@popSizes.s:$(n)'><distr spec="beast.math.distributions.OneOnX"/></prior>
+            <prior id='rateMatrixPrior.s:$(n)' x='@rateMatrix.s:$(n)'><distr spec="beast.math.distributions.OneOnX"/></prior>
             
             <operator id='proportionInvariantScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@proportionInvariant.s:$(n)"/>
             <operator id='mutationRateScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@mutationRate.s:$(n)"/>
             <operator id='gammaShapeScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@gammaShape.s:$(n)"/>
+            <operator id='popSizesScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@popSizes.s:$(n)"/>
+            <operator id='rateMatrixScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@rateMatrix.s:$(n)"/>
 
 ]]>
             <connect srcID='treeLikelihood.$(n)' targetID='likelihood' inputName='distribution' if="isInitializing"/>
@@ -147,6 +155,17 @@
             <connect srcID='MutationRatePrior.s:$(n)'         targetID='prior' inputName='distribution' if='nooperator(FixMeanMutationRatesOperator) and inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'/>
             <connect srcID='GammaShapePrior.s:$(n)'           targetID='prior' inputName='distribution' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'>Prior on gamma shape for partition s:$(n)</connect>
             <connect srcID='PropInvariantPrior.s:$(n)'        targetID='prior' inputName='distribution' if='inlikelihood(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'>Prior on proportion invariant for partition s:$(n)</connect>
+
+
+            <connect srcID='rateMatrix.s:$(n)' targetID='state' inputName='stateNode' if='inlikelihood(rateMatrix.s:$(n)) and rateMatrix.s:$(n)/estimate=true'/>
+            <connect srcID='popSizes.s:$(n)' targetID='state' inputName='stateNode' if='inlikelihood(popSizes.s:$(n)) and popSizes.s:$(n)/estimate=true'/>
+            <connect srcID='rateMatrixPrior.s:$(n)' targetID='prior' inputName='distribution' if='inlikelihood(rateMatrix.s:$(n)) and rateMatrix.s:$(n)/estimate=true'/>
+            <connect srcID='popSizesPrior.s:$(n)' targetID='prior' inputName='distribution' if='inlikelihood(popSizes.s:$(n)) and popSizes.s:$(n)/estimate=true'/>
+            <connect srcID='rateMatrixScaler.s:$(n)' targetID='mcmc' inputName='operator' if='inlikelihood(rateMatrix.s:$(n)) and rateMatrix.s:$(n)/estimate=true'/>
+            <connect srcID='popSizesScaler.s:$(n)' targetID='mcmc' inputName='operator' if='inlikelihood(popSizes.s:$(n)) and popSizes.s:$(n)/estimate=true'/>
+
+            <connect srcID='migModel.s:$(n)' targetID='tracelog' inputName='log' if='inlikelihood(migModel.s:$(n))'/>
+
         </partitiontemplate>
 
         <mergepoint id='substModelTemplates'/>
@@ -159,27 +178,19 @@
 
     <run spec="MCMC" id="mcmc" chainLength="10000000">
 
-        <state storeEvery='5000' id='state'>
-            <stateNode idref="rateMatrix"/>
-            <stateNode idref="popSizes"/>
-        </state>
+        <state storeEvery='5000' id='state'></state>
 
         <distribution spec="CompoundDistribution" id="posterior">
-            <distribution spec="CompoundDistribution" id="prior">
-            </distribution>
-            <distribution spec="CompoundDistribution" id="likelihood">
-            </distribution>
+            <distribution spec="CompoundDistribution" id="prior"/>
+            <distribution spec="CompoundDistribution" id="likelihood"/>
         </distribution>
 
         <logger id='tracelog' logEvery="1000" fileName="$(filebase).log">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
-            <log idref="migModel"/>
         </logger>
 
-        <operator id='popSizeScaler' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@popSizes"/>
-        <operator id='rateMatrixScaler' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@rateMatrix"/>
 
         <logger id='screenlog' logEvery="1000">
 	        <!--model idref='posterior'/-->
@@ -187,12 +198,6 @@
       	    <ESS spec='ESS' name='log' arg="@posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
-            <log idref="migModel"/>
-
-            <log  spec='beast.evolution.tree.MigrationModel' id="migModel">
-                <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix" estimate="true"/>
-                <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes" estimate="true"/>
-            </log>
         </logger>
     </run>
 
