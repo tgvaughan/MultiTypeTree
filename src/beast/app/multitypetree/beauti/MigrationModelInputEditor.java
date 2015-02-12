@@ -23,13 +23,14 @@ import beast.core.Input;
 import beast.evolution.tree.MigrationModel;
 import java.awt.Color;
 import java.awt.Component;
-import javax.swing.BoxLayout;
+import java.awt.Dimension;
+import javax.swing.Box;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -79,32 +80,40 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         };
         loadFromMigrationModel();
 
-        // This layout sucks - need to fix.
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        Box boxVert = Box.createVerticalBox();
+        boxVert.setBorder(new EtchedBorder());
 
-        JPanel rowPanel;
+        Box boxHoriz;
 
         // Deme count spinner:
-        rowPanel = new JPanel();
-        rowPanel.add(new JLabel("Number of demes: "));
+        boxHoriz = Box.createHorizontalBox();
+        boxHoriz.add(new JLabel("Number of demes: "));
         JSpinner dimSpinner = new JSpinner(nTypesModel);
-        rowPanel.add(dimSpinner);
-        add(rowPanel);
+        dimSpinner.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
+        boxHoriz.add(dimSpinner);
+        boxHoriz.add(Box.createGlue());
+        boxVert.add(boxHoriz);
+
+        boxVert.add(Box.createRigidArea(new Dimension(0, 5)));
 
         // Population size table
-        rowPanel = new JPanel();
-        rowPanel.add(new JLabel("Population sizes: "));
+        boxHoriz = Box.createHorizontalBox();
+        boxHoriz.add(new JLabel("Population sizes: "));
         JTable popSizeTable = new JTable(popSizeModel);
         popSizeTable.setShowGrid(true);
         popSizeTable.setCellSelectionEnabled(true);
         popSizeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        rowPanel.add(popSizeTable);
-        add(rowPanel);
+        popSizeTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
+        boxHoriz.add(popSizeTable);
+        boxHoriz.add(Box.createGlue());
+        boxVert.add(boxHoriz);
+
+        boxVert.add(Box.createRigidArea(new Dimension(0, 5)));
 
         // Migration rate table
         // (Uses custom cell renderer to grey out diagonal elements.)
-        rowPanel = new JPanel();
-        rowPanel.add(new JLabel("Migration rates: "));
+        boxHoriz = Box.createHorizontalBox();
+        boxHoriz.add(new JLabel("Migration rates: "));
         JTable rateMatrixTable = new JTable(rateMatrixModel) {
             @Override
             public TableCellRenderer getCellRenderer(int row, int column) {
@@ -127,8 +136,12 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixTable.setShowGrid(true);
         rateMatrixTable.setCellSelectionEnabled(true);
         rateMatrixTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        rowPanel.add(rateMatrixTable);
-        add(rowPanel);
+        rateMatrixTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
+        boxHoriz.add(rateMatrixTable);
+        boxHoriz.add(Box.createGlue());
+        boxVert.add(boxHoriz);
+
+        add(boxVert);
 
         // Event handlers
 

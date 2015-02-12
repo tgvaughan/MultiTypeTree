@@ -61,11 +61,6 @@
             hasPartitions="ClockModel" icon='4.png.x' forceExpansion='TRUE'
         />
 
-        <!--panel spec='BeautiPanelConfig' panelname="Migration Model" tiptext="Migration model specifications"
-            path='distribution/distribution[id="prior"]/distribution/migrationModel'
-            hasPartitions="none" icon='3.png.x' forceExpansion='TRUE'
-            /-->
-
         <panel spec='BeautiPanelConfig' panelname="Priors" tiptext="Other priors"
             path='distribution/distribution[id="prior"]/distribution'
             hasPartitions="none" icon='7.png.x' forceExpansion='TRUE_START_COLLAPSED'
@@ -181,7 +176,7 @@
         </partitiontemplate>
 
         <mergepoint id='substModelTemplates'/>
-		<mergepoint id='clockModelTemplates'/>
+		<mergepoint id='mttClockModelTemplates'/>
         <mergepoint id='parametricDistributions'/>
     </beauticonfig>
 
