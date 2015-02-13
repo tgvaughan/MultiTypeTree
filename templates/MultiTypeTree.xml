@@ -51,7 +51,8 @@
            beast.evolution.substitutionmodel.MTREV.rates,
            beast.evolution.substitutionmodel.MTREV.frequencies,
            beast.evolution.substitutionmodel.GTR.rates,
-           beast.evolution.substitutionmodel.JukesCantor.frequencies'>
+           beast.evolution.substitutionmodel.JukesCantor.frequencies,
+           beast.core.Logger.model'>
 
         <panel spec='BeautiPanelConfig' panelname="Partitions" tiptext="Data Partitions"
             path='distribution/distribution[id="likelihood"]/distribution/data'
@@ -177,6 +178,19 @@
             <operator spec="multitypetree.operators.NodeShiftRetype" id="NSR1.t:$(n)" weight="10" multiTypeTree="@Tree.t:$(n)" rootScaleFactor="0.8" migrationModel="@migModel.t:$(n)" rootOnly="true"/>
             <operator spec="multitypetree.operators.NodeShiftRetype" id="NSR2.t:$(n)" weight="10" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)" noRoot="true"/>
             <operator spec="multitypetree.operators.MultiTypeUniform" id="MTU.t:$(n)" weight="10" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)" includeRoot="true" rootScaleFactor="0.9"/>
+
+            <operator spec="multitypetree.operators.MultiTypeTreeScale" id="MTTS.t:$(n)"
+                weight="10" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)"
+                scaleFactor="0.98" useOldTreeScaler="true">
+            </operator>
+
+            <operator spec="multitypetree.operators.MultiTypeTreeScale" id="MTTUpDown.t:$(n)"
+                weight="10" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)"
+                scaleFactor="0.98" useOldTreeScaler="true">
+            </operator>
+
+            <!-- Tree log -->
+            <logger id="treelog.t:$(n)" logEvery="10000" fileName="$(filebase).$(tree).trees" mode="tree" log="@Tree.t:$(n)"/>
 ]]>
 
 			<connect method="beast.app.beauti.SiteModelInputEditor.customConnector"/>
@@ -209,9 +223,13 @@
             <connect srcID='NSR1.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='NSR2.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='MTU.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
-
+            <connect srcID='MTTS.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
+            <connect srcID='MTTUpDown.t:$(n)' targetID='mcmc' inputName='operator' if='Tree.t:$(n)/estimate=true'/>
+            <connect srcID='popSizes.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameterInverse' if='Tree.t:$(n)/estimate=true and popSizes.t:$(n)/estimate=true'/>
+            <connect srcID='rateMatrix.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameterInverse' if='Tree.t:$(n)/estimate=true and rateMatrix.t:$(n)/estimate=true'/>
 
             <connect srcID='migModel.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.t:$(n))'/>
+            <connect srcID='treelog.t:$(n)' targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
 
         </partitiontemplate>
 
