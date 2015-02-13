@@ -164,12 +164,12 @@
             <connect srcID='PropInvariantPrior.s:$(n)'        targetID='prior' inputName='distribution' if='inlikelihood(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'>Prior on proportion invariant for partition s:$(n)</connect>
 
 
-            <connect srcID='rateMatrix.t:$(n)' targetID='state' inputName='stateNode' if='inlikelihood(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
-            <connect srcID='popSizes.t:$(n)' targetID='state' inputName='stateNode' if='inlikelihood(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
-            <connect srcID='rateMatrixPrior.t:$(n)' targetID='prior' inputName='distribution' if='inlikelihood(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
-            <connect srcID='popSizesPrior.t:$(n)' targetID='prior' inputName='distribution' if='inlikelihood(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
-            <connect srcID='rateMatrixScaler.t:$(n)' targetID='mcmc' inputName='operator' if='inlikelihood(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
-            <connect srcID='popSizesScaler.t:$(n)' targetID='mcmc' inputName='operator' if='inlikelihood(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
+            <connect srcID='rateMatrix.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
+            <connect srcID='popSizes.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
+            <connect srcID='rateMatrixPrior.t:$(n)' targetID='prior' inputName='distribution' if='inposterior(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
+            <connect srcID='popSizesPrior.t:$(n)' targetID='prior' inputName='distribution' if='inposterior(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
+            <connect srcID='rateMatrixScaler.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
+            <connect srcID='popSizesScaler.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
 
             <connect srcID='migModel.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.t:$(n))'/>
 

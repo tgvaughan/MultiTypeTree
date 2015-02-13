@@ -24,7 +24,9 @@ import beast.evolution.tree.MigrationModel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ItemEvent;
 import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
@@ -100,12 +102,15 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         boxHoriz = Box.createHorizontalBox();
         boxHoriz.add(new JLabel("Population sizes: "));
         JTable popSizeTable = new JTable(popSizeModel);
-        popSizeTable.setShowGrid(true);
+        popSizeTable.setShowVerticalLines(true);
         popSizeTable.setCellSelectionEnabled(true);
         popSizeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         popSizeTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
         boxHoriz.add(popSizeTable);
         boxHoriz.add(Box.createGlue());
+        JCheckBox popSizeEstCheckBox = new JCheckBox("estimate");
+        popSizeEstCheckBox.setSelected(migModel.popSizesInput.get().isEstimatedInput.get());
+        boxHoriz.add(popSizeEstCheckBox);
         boxVert.add(boxHoriz);
 
         boxVert.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -139,6 +144,9 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
         boxHoriz.add(rateMatrixTable);
         boxHoriz.add(Box.createGlue());
+        JCheckBox rateMatrixEstCheckBox = new JCheckBox("estimate");
+        rateMatrixEstCheckBox.setSelected(migModel.rateMatrixInput.get().isEstimatedInput.get());
+        boxHoriz.add(rateMatrixEstCheckBox);
         boxVert.add(boxHoriz);
 
         add(boxVert);
@@ -176,11 +184,41 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             saveToMigrationModel();
         });
 
+        popSizeEstCheckBox.addItemListener((ItemEvent e) -> {
+            switch(e.getStateChange()) {
+                case ItemEvent.SELECTED:
+                    migModel.popSizesInput.get().isEstimatedInput.setValue("true",
+                        migModel.popSizesInput.get());
+                    break;
+                case ItemEvent.DESELECTED:
+                    migModel.popSizesInput.get().isEstimatedInput.setValue("false",
+                        migModel.popSizesInput.get());
+                    break;
+                default:
+            }
+            refreshPanel();
+        });
+
         rateMatrixModel.addTableModelListener((TableModelEvent e) -> {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
 
             saveToMigrationModel();
+        });
+
+        rateMatrixEstCheckBox.addItemListener((ItemEvent e) -> {
+            switch(e.getStateChange()) {
+                case ItemEvent.SELECTED:
+                    migModel.rateMatrixInput.get().isEstimatedInput.setValue("true",
+                        migModel.rateMatrixInput.get());
+                    break;
+                case ItemEvent.DESELECTED:
+                    migModel.rateMatrixInput.get().isEstimatedInput.setValue("false",
+                        migModel.rateMatrixInput.get());
+                    break;
+                default:
+            }
+            refreshPanel();
         });
     }
 
@@ -244,7 +282,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         try {
             migModel.rateMatrixInput.get().initAndValidate();
             migModel.popSizesInput.get().initAndValidate();
-            migModel.initAndValidate();
+            //migModel.initAndValidate();
         } catch (Exception ex) {
             System.err.println("Error updating migration model state.");
         }
