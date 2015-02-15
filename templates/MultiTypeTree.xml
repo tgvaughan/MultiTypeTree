@@ -225,7 +225,7 @@
             <connect srcID='MTU.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='MTTS.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='MTTUpDown.t:$(n)' targetID='mcmc' inputName='operator' if='Tree.t:$(n)/estimate=true'/>
-            <connect srcID='popSizes.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameterInverse' if='Tree.t:$(n)/estimate=true and popSizes.t:$(n)/estimate=true'/>
+            <connect srcID='popSizes.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameter' if='Tree.t:$(n)/estimate=true and popSizes.t:$(n)/estimate=true'/>
             <connect srcID='rateMatrix.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameterInverse' if='Tree.t:$(n)/estimate=true and rateMatrix.t:$(n)/estimate=true'/>
 
             <connect srcID='migModel.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.t:$(n))'/>
@@ -255,7 +255,6 @@
             <log idref="likelihood"/>
             <log idref="prior"/>
         </logger>
-
 
         <logger id='screenlog' logEvery="1000">
 	        <!--model idref='posterior'/-->
