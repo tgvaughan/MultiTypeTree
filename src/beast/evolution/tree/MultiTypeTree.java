@@ -49,9 +49,9 @@ public class MultiTypeTree extends Tree {
         "typeLabel",
         "Label for type traits (default 'type')", "type");
 
-    public Input<Boolean> makeDummyTypeTraitInput = new Input<>(
-        "makeDummyTypeTrait",
-        "If true, construct a default type trait. Used by BEAUti template.",
+    public Input<Boolean> fillEmptyTypeTraitInput = new Input<>(
+        "fillEmptyTypeTrait",
+        "If true, populate an empty type trait with dummy values.",
         false);
     
     /*
@@ -155,38 +155,25 @@ public class MultiTypeTree extends Tree {
             }
         }
 
-        if (typeTraitSet == null && makeDummyTypeTraitInput.get()) {
-            // Construct dummy type trait.
-            
-            if (getTaxonset() == null)
-                throw new IllegalArgumentException(
-                    "Taxon set must be provided for dummy"
-                        + "type trait creation.");
-            
-            typeTraitSet = new TraitSet();
-            StringBuilder traitSB = new StringBuilder();
-            for (int i=0; i<getTaxonset().getTaxonCount(); i++) {
-                if (i>0)
-                    traitSB.append(",\n");
-                traitSB.append(getTaxonset().asStringList().get(i));
-                traitSB.append("=0");
-            }
-            
-            try {
-                typeTraitSet.initByName(
-                    "traitname", typeLabel,
-                    "taxa", getTaxonset(),
-                    "value", traitSB.toString());
-                typeTraitSet.setID("typeTrait.t:"
-                    + getTaxonset().alignmentInput.get().getID());
-                m_traitList.setValue(typeTraitSet, this);
-            } catch (Exception ex) {
-                System.err.println("Error creating dummy type trait set.");
-            }
-        }
-        
         // Construct type list.
         if (typeTraitSet != null) {
+
+            if (typeTraitSet.traitsInput.get().equals("") && fillEmptyTypeTraitInput.get()) {
+                StringBuilder sb = new StringBuilder();
+                for (int i=0; i<typeTraitSet.taxaInput.get().getTaxonCount(); i++) {
+                    if (i>0)
+                        sb.append(",\n");
+                    sb.append(typeTraitSet.taxaInput.get().getTaxonId(i))
+                        .append("=0");
+                }
+                typeTraitSet.traitsInput.setValue(sb.toString(), this);
+                try {
+                    typeTraitSet.initAndValidate();
+                } catch (Exception ex) {
+                    System.out.println("Error setting default type trait.");
+                }
+            }
+
             Set<String> typeSet = new HashSet<>();
                 
             int nTaxa = typeTraitSet.taxaInput.get().asStringList().size();
