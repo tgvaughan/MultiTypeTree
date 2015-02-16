@@ -107,12 +107,10 @@
 
             <!-- Multi type tree -->
 
-            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' fillEmptyTypeTrait="true" estimate='true'>
-                <trait spec="beast.evolution.tree.TraitSet" id="typeTraitSet.t:$(n)" traitname="type" value="">
-                    <taxa spec='beast.evolution.alignment.TaxonSet'>
-                        <alignment idref='data'/>
-                    </taxa>
-                </trait>
+            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' estimate='true'>
+                <taxonset spec='beast.evolution.alignment.TaxonSet'>
+                    <alignment idref='data'/>
+                </taxonset>
                 <migrationModel id="migModelInit.t:$(n)" spec='beast.evolution.tree.MigrationModel'>
                     <rateMatrix id="rateMatrixInit.t:$(n)" spec='parameter.RealParameter' value="1.0" dimension="2"/>
                     <popSizes id="popSizesInit.t:$(n)" spec='parameter.RealParameter' value="1.0" dimension="2"/>

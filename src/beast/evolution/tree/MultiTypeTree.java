@@ -16,6 +16,7 @@
  */
 package beast.evolution.tree;
 
+import beast.app.beauti.BeautiDoc;
 import beast.core.Citation;
 import beast.core.Description;
 import beast.core.Input;
@@ -48,12 +49,7 @@ public class MultiTypeTree extends Tree {
     public Input<String> typeLabelInput = new Input<>(
         "typeLabel",
         "Label for type traits (default 'type')", "type");
-
-    public Input<Boolean> fillEmptyTypeTraitInput = new Input<>(
-        "fillEmptyTypeTrait",
-        "If true, populate an empty type trait with dummy values.",
-        false);
-    
+ 
     /*
      * Non-input fields:
      */
@@ -156,23 +152,31 @@ public class MultiTypeTree extends Tree {
         }
 
         // Construct type list.
-        if (typeTraitSet != null) {
+        if (typeTraitSet == null) {
+            if (getTaxonset() != null) {
+                TraitSet dummyTraitSet = new TraitSet();
 
-            if (typeTraitSet.traitsInput.get().equals("") && fillEmptyTypeTraitInput.get()) {
                 StringBuilder sb = new StringBuilder();
-                for (int i=0; i<typeTraitSet.taxaInput.get().getTaxonCount(); i++) {
+                for (int i=0; i<getTaxonset().getTaxonCount(); i++) {
                     if (i>0)
                         sb.append(",\n");
-                    sb.append(typeTraitSet.taxaInput.get().getTaxonId(i))
-                        .append("=0");
+                    sb.append(getTaxonset().getTaxonId(i)).append("=0");
                 }
-                typeTraitSet.traitsInput.setValue(sb.toString(), this);
                 try {
-                    typeTraitSet.initAndValidate();
+                    dummyTraitSet.initByName(
+                        "traitname", "type",
+                        "taxa", getTaxonset(),
+                        "value", sb.toString());
+                    dummyTraitSet.setID("typeTraitSet.t:"
+                        + BeautiDoc.parsePartition(getID()));
+                    setTypeTrait(dummyTraitSet);
                 } catch (Exception ex) {
                     System.out.println("Error setting default type trait.");
                 }
             }
+        }
+
+        if (typeTraitSet != null) {
 
             Set<String> typeSet = new HashSet<>();
                 
@@ -204,6 +208,23 @@ public class MultiTypeTree extends Tree {
      */
     public boolean hasTypeTrait() {
         return getTypeTrait() != null;
+    }
+
+    /**
+     * Specifically set the type trait set for this tree. A null value simply
+     * removes the existing trait set.
+     *
+     * @param traitSet
+     */
+    public void setTypeTrait(TraitSet traitSet) {
+        if (hasTypeTrait()) {
+            m_traitList.get().remove(typeTraitSet);
+        }
+
+        if (traitSet != null)
+            m_traitList.setValue(traitSet, this);
+
+        typeTraitSet = traitSet;
     }
     
     /**
