@@ -23,10 +23,10 @@ import beast.core.StateNode;
 import beast.core.StateNodeInitialiser;
 import beast.util.TreeParser;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -46,8 +46,13 @@ public class MultiTypeTree extends Tree {
      * Inputs:
      */
     public Input<String> typeLabelInput = new Input<>(
-            "typeLabel",
-            "Label for type traits (default 'type')", "type");
+        "typeLabel",
+        "Label for type traits (default 'type')", "type");
+
+    public Input<Boolean> makeDummyTypeTraitInput = new Input<>(
+        "makeDummyTypeTrait",
+        "If true, construct a default type trait. Used by BEAUti template.",
+        false);
     
     /*
      * Non-input fields:
@@ -61,10 +66,9 @@ public class MultiTypeTree extends Tree {
     
     public MultiTypeTree(Node rootNode) {
         
-        if (!(rootNode instanceof MultiTypeNode)) {
+        if (!(rootNode instanceof MultiTypeNode))
             throw new IllegalArgumentException("Attempted to instantiate "
                     + "multi-type tree with regular root node.");
-        }
         
         setRoot(rootNode);
         initArrays();
@@ -151,9 +155,39 @@ public class MultiTypeTree extends Tree {
             }
         }
 
+        if (typeTraitSet == null && makeDummyTypeTraitInput.get()) {
+            // Construct dummy type trait.
+            
+            if (getTaxonset() == null)
+                throw new IllegalArgumentException(
+                    "Taxon set must be provided for dummy"
+                        + "type trait creation.");
+            
+            typeTraitSet = new TraitSet();
+            StringBuilder traitSB = new StringBuilder();
+            for (int i=0; i<getTaxonset().getTaxonCount(); i++) {
+                if (i>0)
+                    traitSB.append(",\n");
+                traitSB.append(getTaxonset().asStringList().get(i));
+                traitSB.append("=0");
+            }
+            
+            try {
+                typeTraitSet.initByName(
+                    "traitname", typeLabel,
+                    "taxa", getTaxonset(),
+                    "value", traitSB.toString());
+                typeTraitSet.setID("typeTrait.t:"
+                    + getTaxonset().alignmentInput.get().getID());
+                m_traitList.setValue(typeTraitSet, this);
+            } catch (Exception ex) {
+                System.err.println("Error creating dummy type trait set.");
+            }
+        }
+        
         // Construct type list.
         if (typeTraitSet != null) {
-            Set<String> typeSet = Sets.newHashSet();
+            Set<String> typeSet = new HashSet<>();
                 
             int nTaxa = typeTraitSet.taxaInput.get().asStringList().size();
             for (int i=0; i<nTaxa; i++)

@@ -129,15 +129,9 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                     leafNames.add(typeTraitSet.taxaInput.get().asStringList().get(i));
                 }
             } else {
-                if (getTaxonset() != null) {
-                    for (int i=0; i<getTaxonset().getTaxonCount(); i++) {
-                        leafTypes.add(0);
-                        leafNames.add(getTaxonset().asStringList().get(i));
-                    }
-                } else
-                    throw new IllegalArgumentException("Either leafColours or "
-                        + "trait set (with name '" + typeLabel
-                        + "') or taxon set must be provided.");
+                throw new IllegalArgumentException("Either leafColours or "
+                    + "trait set (with name '" + typeLabel + "') "
+                    + "must be provided.");
             }
 
         }

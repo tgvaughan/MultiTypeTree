@@ -35,6 +35,7 @@
                             beast.evolution.tree.MultiTypeTree.migrationModel'
            suppressPlugins = 'beast.core.MCMC.operator,
            beast.core.MCMC.operatorschedule,
+           beast.evolution.Tree.trait,
            beast.core.MCMC.state,
            beast.core.MCMC.init,
            beast.core.MCMC.distribution,
@@ -60,8 +61,14 @@
             type='beast.evolution.alignment.Alignment'
             />
 
-		<panel spec='BeautiPanelConfig' panelname="Tip Dates" tiptext="Allows to specify data that a taxon was sampled"
+		<panel spec='BeautiPanelConfig' panelname="Tip Dates" tiptext="Specify times at which taxa were sampled"
             path='tree'
+            hasPartitions="Tree" icon='2.png.x' forceExpansion='TRUE'
+            isVisible='true'
+        />
+
+		<panel spec='BeautiPanelConfig' panelname="Tip Locations" tiptext="Specify locations from which taxa were sampled"
+            path='tree/trait'
             hasPartitions="Tree" icon='2.png.x' forceExpansion='TRUE'
             isVisible='true'
         />
@@ -100,7 +107,7 @@
 
             <!-- Multi type tree -->
 
-            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' estimate='true'>
+            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' makeDummyTypeTrait="true" estimate='true'>
                 <taxonset spec='beast.evolution.alignment.TaxonSet'>
                     <alignment idref='data'/>
                 </taxonset>
@@ -127,7 +134,7 @@
 
             <!-- Tree prior -->
 
-            <plugin spec='multitypetree.distributions.StructuredCoalescentTreeDensity' id="treePrior.t:$(n)">
+            <plugin spec='multitypetree.distributions.StructuredCoalescentTreeDensity' id="structuredCoalescent.t:$(n)">
                 <multiTypeTree idref="Tree.t:$(n)"/>
                 <migrationModel spec='beast.evolution.tree.MigrationModel' id="migModel.t:$(n)">
                     <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix.t:$(n)" estimate="false"/>
@@ -204,7 +211,7 @@
             <connect srcID='popSizes.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
 
             <connect srcID='treeLikelihood.$(n)' targetID='likelihood' inputName='distribution' if="isInitializing"/>
-            <connect srcID='treePrior.t:$(n)' targetID='prior' inputName='distribution' if="Tree.t:$(n)/estimate=true"/>
+            <connect srcID='structuredCoalescent.t:$(n)' targetID='prior' inputName='distribution' if="Tree.t:$(n)/estimate=true"/>
             <connect srcID='ClockPrior.c:$(n)'                targetID='prior' inputName='distribution' if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true'/>
             <connect srcID='MutationRatePrior.s:$(n)'         targetID='prior' inputName='distribution' if='nooperator(FixMeanMutationRatesOperator) and inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'/>
             <connect srcID='GammaShapePrior.s:$(n)'           targetID='prior' inputName='distribution' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'>Prior on gamma shape for partition s:$(n)</connect>
