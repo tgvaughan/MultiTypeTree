@@ -185,7 +185,7 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
             try {
                 traitSet.initAndValidate();
             } catch (Exception ex) {
-                Logger.getLogger(TypeTraitSetInputEditor.class.getName()).log(Level.SEVERE, null, ex);
+                System.err.println("Error setting type trait value.");
             }
 
             fireTableCellUpdated(rowIndex, columnIndex);
