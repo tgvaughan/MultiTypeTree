@@ -18,24 +18,16 @@ package beast.app.multitypetree.beauti;
 
 import beast.app.beauti.BeautiDoc;
 import beast.app.draw.InputEditor;
-import beast.app.draw.ListInputEditor;
 import beast.core.BEASTInterface;
 import beast.core.Input;
-import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.TraitSet;
-import beast.evolution.tree.Tree;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.Box;
 import javax.swing.JLabel;
 
 /**
  *
  * @author Tim Vaughan (tgvaughan@gmail.com)
  */
-public class TypeTraitSetInputEditor extends ListInputEditor {
-
-    TraitSet typeTraitSet;
+public class TypeTraitSetInputEditor extends InputEditor.Base {
 
     public TypeTraitSetInputEditor(BeautiDoc doc) {
         super(doc);
@@ -43,31 +35,19 @@ public class TypeTraitSetInputEditor extends ListInputEditor {
 
     @Override
     public Class<?> type() {
-        return List.class;
-    }
-
-    @Override
-    public Class<?> baseType() {
         return TraitSet.class;
     }
 
     @Override
     public void init(Input<?> input, BEASTInterface plugin, int itemNr, ExpandOption bExpandOption, boolean bAddButtons) {
+        // I have no idea what this stuff does:
+        m_bAddButtons = bAddButtons;
+        m_input = input;
+        m_plugin = plugin;
+		this.itemNr = itemNr;
+        addInputLabel();
 
-        typeTraitSet = null;
-        for (TraitSet traitSet : (List<TraitSet>)input.get()) {
-            if (traitSet.getTraitName().equals("type")) {
-                typeTraitSet = traitSet;
-                break;
-            }
-        }
-
-        if (typeTraitSet == null) {
-            throw new IllegalStateException("Template error: no trait with"
-                + " name `type' exists.");
-        }
-
-        add(new JLabel(typeTraitSet.getID()));
-
+        add(new JLabel(input.get().toString()));
     }
+    
 }

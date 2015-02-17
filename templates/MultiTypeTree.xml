@@ -68,7 +68,7 @@
         />
 
 		<panel spec='BeautiPanelConfig' panelname="Tip Locations" tiptext="Specify locations from which taxa were sampled"
-            path='tree/trait'
+            path='tree/typeTrait'
             hasPartitions="Tree" icon='2.png.x' forceExpansion='TRUE'
             isVisible='true'
         />

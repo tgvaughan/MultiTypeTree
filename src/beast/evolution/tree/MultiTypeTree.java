@@ -49,6 +49,9 @@ public class MultiTypeTree extends Tree {
     public Input<String> typeLabelInput = new Input<>(
         "typeLabel",
         "Label for type traits (default 'type')", "type");
+
+    public Input<TraitSet> typeTraitInput = new Input<>(
+        "typeTrait", "Type trait set.  Used only by BEAUti.");
  
     /*
      * Non-input fields:
@@ -151,6 +154,12 @@ public class MultiTypeTree extends Tree {
             }
         }
 
+        // Use explicitly-identified type trait set if available.
+        // Seems dumb, but needed for BEAUti as ListInputEditors
+        // muck things up...
+        if (typeTraitInput.get() != null)
+            typeTraitSet = typeTraitInput.get();
+
         // Construct type list.
         if (typeTraitSet == null) {
             if (getTaxonset() != null) {
@@ -221,8 +230,10 @@ public class MultiTypeTree extends Tree {
             m_traitList.get().remove(typeTraitSet);
         }
 
-        if (traitSet != null)
-            m_traitList.setValue(traitSet, this);
+        if (traitSet != null) {
+            //m_traitList.setValue(traitSet, this);
+            typeTraitInput.setValue(traitSet, this);
+        }
 
         typeTraitSet = traitSet;
     }
