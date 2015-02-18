@@ -30,30 +30,81 @@
        <map name='prior'>beast.math.distributions.Prior</map>
 
        <beauticonfig spec='BeautiConfig'
-           collapsedPlugins = 'beast.core.MCMC.logger'
-           inlinePlugins = 'beast.evolution.sitemodel.SiteModel.substModel,
+           inputLabelMap='beast.core.MCMC.operator=Operators,
+                          beast.core.MCMC.logger=Loggers,
+                          beast.evolution.sitemodel.SiteModel.mutationRate =Substitution Rate'
+           inlinePlugins = 'beast.core.MCMC.distribution,
+                            beast.evolution.sitemodel.SiteModel.substModel,
+                            beast.evolution.tree.coalescent.ExponentialGrowth,
+                            beast.evolution.tree.coalescent.ConstantPopulation,
+                            beast.evolution.tree.coalescent.Coalescent,
+                            beast.core.State.stateNode,
                             beast.evolution.tree.MultiTypeTree.migrationModel'
+           collapsedPlugins = 'beast.core.MCMC.logger'
            suppressPlugins = 'beast.core.MCMC.operator,
-           beast.core.MCMC.operatorschedule,
-           beast.evolution.Tree.trait,
-           beast.core.MCMC.state,
-           beast.core.MCMC.init,
-           beast.core.MCMC.distribution,
-           beast.evolution.substitutionmodel.WAG.rates,
-           beast.evolution.substitutionmodel.WAG.frequencies,
-           beast.evolution.substitutionmodel.JTT.rates,
-           beast.evolution.substitutionmodel.JTT.frequencies,
-           beast.evolution.substitutionmodel.Blosum62.rates,
-           beast.evolution.substitutionmodel.Blosum62.frequencies,
-           beast.evolution.substitutionmodel.Dayhoff.rates,
-           beast.evolution.substitutionmodel.Dayhoff.frequencies,
-           beast.evolution.substitutionmodel.CPREV.rates,
-           beast.evolution.substitutionmodel.CPREV.frequencies,
-           beast.evolution.substitutionmodel.MTREV.rates,
-           beast.evolution.substitutionmodel.MTREV.frequencies,
-           beast.evolution.substitutionmodel.GTR.rates,
-           beast.evolution.substitutionmodel.JukesCantor.frequencies,
-           beast.core.Logger.model'>
+                              beast.core.MCMC.operatorschedule,
+                              beast.evolution.tree.coalescent.Coalescent.treeIntervals,
+                              beast.evolution.tree.coalescent.Coalescent.tree,
+                              beast.core.MCMC.state,
+                              beast.core.MCMC.distribution,
+                              beast.core.MCMC.init,
+                              beast.evolution.speciation.BirthDeathGernhard08Model.treeIntervals,
+                              beast.evolution.speciation.BirthDeathGernhard08Model.tree,
+                              beast.evolution.speciation.BirthDeathGernhard08Model.sampleProbability,
+                              beast.evolution.speciation.YuleModel.treeIntervals,
+                              beast.evolution.speciation.YuleModel.useTipDates,
+                              beast.evolution.speciation.YuleModel.tree,
+                              beast.evolution.tree.Tree,
+                              beast.evolution.tree.Tree.trait,
+                              beast.evolution.tree.Tree.taxa,
+                              beast.evolution.tree.Tree.taxonset,
+                              beast.evolution.tree.RandomTree.trait,
+                              beast.evolution.tree.RandomTree.initial,
+                              beast.evolution.tree.RandomTree.taxa,
+                              beast.evolution.tree.RandomTree.taxonset,
+                              beast.evolution.tree.RandomTree.estimate,
+                              beast.util.TreeParser.initial,
+                              beast.util.TreeParser.taxa,
+                              beast.util.TreeParser.taxonset,
+                              beast.util.TreeParser.trait,
+                              beast.util.TreeParser.estimate,
+                              beast.util.ClusterTree.initial,
+                              beast.util.ClusterTree.taxa,
+                              beast.util.ClusterTree.taxonset,
+                              beast.util.ClusterTree.trait,
+                              beast.util.ClusterTree.estimate,
+                              beast.evolution.substitutionmodel.WAG.rates,
+                              beast.evolution.substitutionmodel.WAG.frequencies,
+                              beast.evolution.substitutionmodel.JTT.rates,
+                              beast.evolution.substitutionmodel.JTT.frequencies,
+                              beast.evolution.substitutionmodel.Blosum62.rates,
+                              beast.evolution.substitutionmodel.Blosum62.frequencies,
+                              beast.evolution.substitutionmodel.Dayhoff.rates,
+                              beast.evolution.substitutionmodel.Dayhoff.frequencies,
+                              beast.evolution.substitutionmodel.CPREV.rates,
+                              beast.evolution.substitutionmodel.CPREV.frequencies,
+                              beast.evolution.substitutionmodel.MTREV.rates,
+                              beast.evolution.substitutionmodel.MTREV.frequencies,
+                              beast.evolution.substitutionmodel.GTR.rates,
+                              beast.evolution.substitutionmodel.JukesCantor.frequencies,
+                              beast.math.distributions.Prior.x,
+                              beast.math.distributions.MRCAPrior.tree,
+                              beast.math.distributions.MRCAPrior.monophyletic,
+                              beast.math.distributions.MRCAPrior.taxonset,
+                              beast.evolution.branchratemodel.UCRelaxedClockModel.tree,
+                              beast.evolution.branchratemodel.UCRelaxedClockModel.rateCategories,
+                              beast.evolution.branchratemodel.UCRelaxedClockModel.distr,
+                              beast.evolution.branchratemodel.RandomLocalClockModel.tree,
+                              beast.evolution.branchratemodel.RandomLocalClockModel.meanRate,
+                              beast.evolution.branchratemodel.RandomLocalClockModel.indicators,
+                              beast.evolution.operators.ScaleOperator.indicator,
+                              beast.core.Operator.weight,
+                              beast.core.Logger.model,
+                              beast.evolution.tree.coalescent.BayesianSkyline.treeIntervals,
+                              beast.evolution.tree.coalescent.BayesianSkyline.groupSizes,
+                              beast.evolution.tree.coalescent.BayesianSkyline.popSizes,
+                              beast.evolution.speciation.YuleModel.originHeight'
+                              >
 
         <panel spec='BeautiPanelConfig' panelname="Partitions" tiptext="Data Partitions"
             path='distribution/distribution[id="likelihood"]/distribution/data'
@@ -174,8 +225,9 @@
             <operator id='proportionInvariantScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@proportionInvariant.s:$(n)"/>
             <operator id='mutationRateScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@mutationRate.s:$(n)"/>
             <operator id='gammaShapeScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@gammaShape.s:$(n)"/>
-            <operator id='popSizesScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@popSizes.t:$(n)"/>
-            <operator id='rateMatrixScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@rateMatrix.t:$(n)"/>
+
+            <operator id='popSizesScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.8" weight="1" parameter="@popSizes.t:$(n)"/>
+            <operator id='rateMatrixScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.8" weight="1" parameter="@rateMatrix.t:$(n)"/>
 
             <!-- Multi-type tree operators -->
 
@@ -236,8 +288,16 @@
             <connect srcID='popSizes.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameter' if='Tree.t:$(n)/estimate=true and popSizes.t:$(n)/estimate=true'/>
             <connect srcID='rateMatrix.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameterInverse' if='Tree.t:$(n)/estimate=true and rateMatrix.t:$(n)/estimate=true'/>
 
-            <connect srcID='migModel.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.t:$(n))'/>
             <connect srcID='treelog.t:$(n)' targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
+
+            <connect srcID='migModel.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.t:$(n))'/>
+            <connect srcID='treeLikelihood.$(n)' targetID='tracelog' inputName='log' if='inlikelihood(treeLikelihood.$(n))'/>
+            <connect srcID='TreeHeight.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n))'/>
+            <connect srcID='proportionInvariant.s:$(n)' targetID='tracelog' inputName='log' if='inposterior(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'/>
+            <connect srcID='mutationRate.s:$(n)' targetID='tracelog' inputName='log' if='inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'/>
+            <connect srcID='gammaShape.s:$(n)' targetID='tracelog' inputName='log' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'/>
+            <connect srcID='clockRate.c:$(n)' targetID='tracelog' inputName='log' if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true'/>
+
 
         </partitiontemplate>
 
