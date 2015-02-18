@@ -107,7 +107,11 @@
 
             <!-- Multi type tree -->
 
-            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' migrationModel="@migModel.t:$(n)" estimate='true'>
+            <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' estimate='true'>
+                <migrationModel spec='beast.evolution.tree.MigrationModel' id="migModelInit.t:$(n)">
+                    <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" estimate="false"/>
+                    <popSizes spec='parameter.RealParameter' value="1.0 1.0" estimate="false"/>
+                </migrationModel>
                 <taxonset spec='beast.evolution.alignment.TaxonSet'>
                     <alignment idref='data'/>
                 </taxonset>
@@ -197,6 +201,7 @@
 ]]>
 
 			<connect method="beast.app.beauti.SiteModelInputEditor.customConnector"/>
+			<connect method="beast.app.multitypetree.beauti.InitMigrationModelConnector.customConnector"/>
 
             <connect srcID='Tree.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(Tree.t:$(n))'/>
             <connect srcID='mutationRate.s:$(n)' targetID='state' inputName='stateNode' if='inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'/>
