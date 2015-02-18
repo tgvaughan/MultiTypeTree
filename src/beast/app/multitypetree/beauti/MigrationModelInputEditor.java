@@ -52,6 +52,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
     JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
 
+    boolean dimChangeInProgress = false;
+
     public MigrationModelInputEditor(BeautiDoc doc) {
         super(doc);
     }
@@ -65,11 +67,13 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     public void init(Input<?> input, BEASTInterface plugin, int itemNr,
         ExpandOption bExpandOption, boolean bAddButtons) {
 
-        // I have no idea what this stuff does:
+        // Set up fields
         m_bAddButtons = bAddButtons;
         m_input = input;
         m_plugin = plugin;
 		this.itemNr = itemNr;
+
+        // Adds label to left of input editor
         addInputLabel();
 
         // Create component models and fill them with data from input
@@ -159,6 +163,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             JSpinner spinner = (JSpinner)e.getSource();
             int newDim = (int)spinner.getValue();
 
+            dimChangeInProgress = true;
+
             popSizeModel.setColumnCount(newDim);
             migModel.popSizesInput.get().setDimension(newDim);
             rateMatrixModel.setColumnCount(newDim);
@@ -176,14 +182,18 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                     }
                 }
             }
-            //saveToMigrationModel();
+
+            dimChangeInProgress = false;
+
+            saveToMigrationModel();
         });
 
         popSizeModel.addTableModelListener((TableModelEvent e) -> {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
             
-            saveToMigrationModel();
+            if (!dimChangeInProgress)
+                saveToMigrationModel();
         });
 
         popSizeEstCheckBox.addItemListener((ItemEvent e) -> {
@@ -194,7 +204,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
 
-            saveToMigrationModel();
+            if (!dimChangeInProgress)
+                saveToMigrationModel();
         });
 
         rateMatrixEstCheckBox.addItemListener((ItemEvent e) -> {
