@@ -31,6 +31,11 @@ import java.util.logging.Logger;
 
 
 /**
+ * Class containing a static method used as a "custom connector" in the
+ * MultiTypeTree BEAUti template.  This connector ensures that the
+ * simulation used to produce the initial tree uses a migration model
+ * containing the same rates and population sizes as the one specified
+ * in the tree prior.
  *
  * @author Tim Vaughan (tgvaughan@gmail.com)
  */
