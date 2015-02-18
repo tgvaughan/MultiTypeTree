@@ -59,13 +59,25 @@ public class InitMigrationModelConnector {
             String rateMatrixStr = getParameterString(migModel.rateMatrixInput.get());
             String popSizesStr = getParameterString(migModel.popSizesInput.get());
 
-            migModelInit.rateMatrixInput.get().valuesInput.setValue(
-                rateMatrixStr,
-                migModelInit.rateMatrixInput.get());
+            migModelInit.popSizesInput.get().setDimension(migModel.getNTypes());
 
             migModelInit.popSizesInput.get().valuesInput.setValue(
                 popSizesStr,
                 migModelInit.popSizesInput.get());
+
+            migModelInit.rateMatrixInput.get().setDimension(
+                migModel.getNTypes()*(migModel.getNTypes()-1));
+            migModelInit.rateMatrixInput.get().valuesInput.setValue(
+                rateMatrixStr,
+                migModelInit.rateMatrixInput.get());
+
+            try {
+                migModelInit.popSizesInput.get().initAndValidate();
+                migModelInit.rateMatrixInput.get().initAndValidate();
+                migModelInit.initAndValidate();
+            } catch (Exception ex) {
+                System.err.println("Error configuring initial migration model.");
+            }
         }
 
         return false;
