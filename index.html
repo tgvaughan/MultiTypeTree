@@ -104,14 +104,12 @@
 	<p>Congratulations! MultiTypeTree is now installed.  You
 	will now be able to run MultiTypeTree analyses in BEAST.</p>
 
-        <p><b>Note: BEAST 2 XML scripts written for versions of
-            MultiTypeTree earlier than 3.0.0 will not run without
-            modification on version 3 or later.  To get these scripts
-            to run, simply append the following to the value of
-            the <code>namespace</code> attribute of
-            the <code>&lt;beast&gt;</code> element at the top of the
-            file:</b>
-          <code>:multitypetree.distributions:multitypetree.operators:multitypetree.util</code></p>
+        <p><b>Note: BEAST 2 XML scripts written for versions of MultiTypeTree
+            earlier than 5.0.0 will not run without modification on version 5
+            or later. Details of the required modifications will be provided
+            soon. In the meantime,  contact
+            <a href="mailto:tgvaughan@gmail.com">Tim Vaughan</a>
+            for assistance.</p>
 
 	<h2>Tutorial: Structured coalescent analysis</h2>
 	<p>The MultiTypeTree package is not yet equipped with a BEAUti
@@ -160,9 +158,7 @@
 	  of rates will be D*(D-1), while the number of population
 	  sizes will be D.  These same attributes must be set within
 	  the <code>&lt;migrationModel&gt;</code> element which occurs
-	  further along in the file, together with
-	  the <code>nTypes</code> attribute of the
-	  enclosing <code>&lt;init&gt;</code> element.</p>
+      further along in the file.</p>
 
 	<p>Fourthly, the priors on the parameters must be defined. In
 	  the example log-normal distributions with &mu;=0 and
