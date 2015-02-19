@@ -38,8 +38,8 @@ import java.util.logging.Logger;
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
 @Description("A multi-type phylogenetic tree.")
-@Citation("Timothy G. Vaughan, Denise Kuhnert, Alex Popinga, David Welch and "
-        + "Alexei J. Drummond, 'Efficient Bayesian inference under the "
+@Citation("Timothy G. Vaughan, Denise Kuhnert, Alex Popinga, David Welch and \n"
+        + "Alexei J. Drummond, 'Efficient Bayesian inference under the \n"
         + "structured coalescent', Bioinformatics 30:2272, 2014.")
 public class MultiTypeTree extends Tree {
 
