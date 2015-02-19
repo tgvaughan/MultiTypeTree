@@ -33,7 +33,7 @@ import org.jblas.MatrixFunctions;
  * @author Tim Vaughan
  */
 @Description("Basic plugin describing a simple Markovian migration model.")
-public class MigrationModel extends CalculationNode implements Loggable {
+public class MigrationModel extends CalculationNode {
 
     public Input<RealParameter> rateMatrixInput = new Input<>(
             "rateMatrix",
@@ -453,75 +453,6 @@ public class MigrationModel extends CalculationNode implements Loggable {
         super.restore();
     }
 
-    /*
-     * Methods implementing loggable interface
-     */
-    
-    @Override
-    public void init(PrintStream out) throws Exception {
-        
-        String outName;
-        if (getID() == null || getID().matches("\\s*"))
-            outName = "migModel";
-        else
-            outName = getID();
-        
-        for (int i=0; i<nTypes; i++) {
-            out.print(outName + ".popSize_" + i + "\t");
-        }
-
-        for (int i=0; i<nTypes; i++) {
-            for (int j=0; j<nTypes; j++) {
-                if (i==j)
-                    continue;
-                out.format("%s.rateMatrix_%d_%d\t", outName, i, j);
-            }
-        }
-        
-        if (rateMatrixFlagsInput.get() != null) {
-            for (int i=0; i<nTypes; i++) {
-                for (int j=0; j<nTypes; j++) {
-                    if (i==j)
-                        continue;
-                    out.format("%s.rateMatrixFlag_%d_%d\t", outName, i, j);
-                }
-            }
-        }
-    }
-
-    @Override
-    public void log(int nSample, PrintStream out) {
-                
-        for (int i=0; i<nTypes; i++) {
-            out.print(getPopSize(i) + "\t");
-        }
-
-        for (int i=0; i<nTypes; i++) {
-            for (int j=0; j<nTypes; j++) {
-                if (i==j)
-                    continue;
-                out.format("%g\t", getRateForLog(i, j));
-            }
-        }
-        
-        if (rateMatrixFlagsInput.get() != null) {
-            for (int i=0; i<nTypes; i++) {
-                for (int j=0; j<nTypes; j++) {
-                    if (i==j)
-                        continue;
-                    if (getRateFlag(i,j))
-                        out.format("1\t");
-                    else
-                        out.format("0\t");
-                }
-            }
-        }
-    }
-
-    @Override
-    public void close(PrintStream out) {
-    }
-    
     /**
      * Main for debugging.
      *

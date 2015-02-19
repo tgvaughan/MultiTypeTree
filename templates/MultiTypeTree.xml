@@ -250,6 +250,14 @@
 
             <!-- Tree log -->
             <logger id="treelog.t:$(n)" logEvery="10000" fileName="$(filebase).$(tree).trees" mode="tree" log="@Tree.t:$(n)"/>
+
+            <!-- Trace log elements -->
+            <log id="treeHeight.t:$(n)" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:$(n)"/>
+            <log id="treeLength.t:$(n)" spec="multitypetree.util.TreeLengthLogger" tree="@Tree.t:$(n)"/>
+            <log id="changeCounts.t:$(n)" spec="multitypetree.util.TypeChangeCounts" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)"/>
+            <log id="totalChangeCounts.t:$(n)" spec="beast.core.util.Sum" arg="@changeCounts.t:$(n)"/>
+            <log id="rootTypeLogger.t:$(n)" spec="multitypetree.util.TreeRootTypeLogger" multiTypeTree="@Tree.t:$(n)"/>
+            <log id="migModelLogger.t:$(n)" spec="multitypetree.util.MigrationModelLogger" migrationModel="@migModel.t:$(n)" multiTypeTree="@Tree.t:$(n)"/>
 ]]>
 
 			<connect method="beast.app.beauti.SiteModelInputEditor.customConnector"/>
@@ -290,7 +298,6 @@
 
             <connect srcID='treelog.t:$(n)' targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
 
-            <connect srcID='migModel.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.t:$(n))'/>
             <connect srcID='treeLikelihood.$(n)' targetID='tracelog' inputName='log' if='inlikelihood(treeLikelihood.$(n))'/>
             <connect srcID='TreeHeight.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n))'/>
             <connect srcID='proportionInvariant.s:$(n)' targetID='tracelog' inputName='log' if='inposterior(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'/>
@@ -298,6 +305,12 @@
             <connect srcID='gammaShape.s:$(n)' targetID='tracelog' inputName='log' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'/>
             <connect srcID='clockRate.c:$(n)' targetID='tracelog' inputName='log' if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true'/>
 
+            <connect srcID='migModelLogger.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.t:$(n))'/>
+            <connect srcID='treeHeight.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
+            <connect srcID='treeLength.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
+            <connect srcID='changeCounts.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
+            <connect srcID='totalChangecounts.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
+            <connect srcID='rootTypeLogger.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
 
         </partitiontemplate>
 

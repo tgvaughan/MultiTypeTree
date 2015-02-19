@@ -248,6 +248,28 @@ public class MultiTypeTree extends Tree {
         
         return typeList;
     }
+
+    /**
+     * @param type
+     * @return string name of given type
+     */
+    public String getTypeString(int type) {
+        if (!traitsProcessed)
+            processTraits(m_traitList.get());
+
+        return typeList.get(type);
+    }
+
+    /**
+     * @param typeString
+     * @return integer type corresponding to given type string
+     */
+    public int getTypeFromString(String typeString) {
+        if (!traitsProcessed)
+            processTraits(m_traitList.get());
+
+        return typeList.indexOf(typeString);
+    }
     
     @Override
     protected final void initArrays() {

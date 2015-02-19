@@ -687,7 +687,7 @@ t128=3">
        <log idref="posterior"/>
        <log idref="treeLikelihood"/>
        <log idref="treePrior"/>
-       <log idref="migModel"/>
+       <log id="migModelLogger" spec="MigrationModelLogger" migrationModel="@migModel" multiTypeTree="@tree"/>
        <log idref="mutationRate"/>
        <log idref="hky.kappa"/>
        <log idref="hky.freq"/>
@@ -709,7 +709,7 @@ t128=3">
        <log idref="treeLikelihood"/>
        <log idref="treePrior"/>
        <log spec='TreeHeightLogger' tree='@tree'/>
-       <log idref="migModel"/>
+       <log idref="migModelLogger"/>
        <log idref="mutationRate"/>
        <log idref="totalTypeChanges"/>
        <ESS spec='ESS' name='log' arg="@treePrior"/>

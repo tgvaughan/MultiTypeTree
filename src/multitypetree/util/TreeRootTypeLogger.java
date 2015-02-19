@@ -36,8 +36,11 @@ import java.io.PrintStream;
 @Description("Logger to report root type of a multi-type tree.")
 public class TreeRootTypeLogger extends CalculationNode implements Loggable, Function {
 
-    public Input<MultiTypeTree> multiTypeTreeInput = new Input<MultiTypeTree>(
+    public Input<MultiTypeTree> multiTypeTreeInput = new Input<>(
             "multiTypeTree", "MultiTypeTree to report root type of.", Validate.REQUIRED);
+
+    public Input<Boolean> logStringTypesInput = new Input<>("logStringTypes",
+        "Use string type labels in log.  Warning: breaks tracer.", false);
 
     MultiTypeTree mtTree;
     
@@ -57,7 +60,10 @@ public class TreeRootTypeLogger extends CalculationNode implements Loggable, Fun
 
     @Override
     public void log(int nSample, PrintStream out) {
-        out.print(((MultiTypeNode)mtTree.getRoot()).getNodeType() + "\t");
+        if (logStringTypesInput.get())
+            out.print(mtTree.getTypeString(((MultiTypeNode)mtTree.getRoot()).getNodeType()) + "\t");
+        else
+            out.print(((MultiTypeNode)mtTree.getRoot()).getNodeType() + "\t");
     }
 
     @Override
