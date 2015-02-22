@@ -252,7 +252,7 @@
             <logger id="treelog.t:$(n)" logEvery="10000" fileName="$(filebase).$(tree).trees" mode="tree" log="@Tree.t:$(n)"/>
 
             <!-- MAP Tree estimate log -->
-            <logger id="maptreelog.t:$(n)" logEvery="10000" fileName="$(filebase).$(tree).map.trees" mode="tree">
+            <logger id="maptreelog.t:$(n)" logEvery="10000" fileName="$(filebase).$(n).map.trees" mode="tree">
                 <log spec="multitypetree.util.MAPTreeLogger" multiTypeTree="@Tree.t:$(n)" posterior="@posterior"/>
             </logger>
 
