@@ -169,7 +169,7 @@ public class MultiTypeTree extends Tree {
                 for (int i=0; i<getTaxonset().getTaxonCount(); i++) {
                     if (i>0)
                         sb.append(",\n");
-                    sb.append(getTaxonset().getTaxonId(i)).append("=0");
+                    sb.append(getTaxonset().getTaxonId(i)).append("=NOT_SET");
                 }
                 try {
                     dummyTraitSet.initByName(
