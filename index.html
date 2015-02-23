@@ -82,7 +82,7 @@
 	  cope with other structured-population genealogical
 	  models.</p>
 
-	<h2>Getting started</h2>
+	<h2>Installation</h2>
 	
 	<p>To get the MultiTypeTree package running on your computer,
 	follow these steps:</p>
@@ -95,96 +95,38 @@
 	  "Manage Packages" from the "File" menu.</li>
 	  <li>Select "MultiTypeTree" from the list and press the
 	  "Install/Upgrade" button.</li>
-	  <li>Press the <kbd>?</kbd> button (lower right-hand corner)
+	  <li>Press the "?" button (lower right-hand corner)
 	  and take note of the directory reported here - this is where
 	  the package is installed on your disk and is where the
-	  example script used in the next section is located.</li>
+	  script mentioned in the next section is located.</li>
 	</ol>
 
 	<p>Congratulations! MultiTypeTree is now installed.  You
 	will now be able to run MultiTypeTree analyses in BEAST.</p>
 
-        <p><b>Note: BEAST 2 XML scripts written for versions of MultiTypeTree
-            earlier than 5.0.0 will not run without modification on version 5
-            or later. Details of the required modifications will be provided
-            soon. In the meantime,  contact
-            <a href="mailto:tgvaughan@gmail.com">Tim Vaughan</a>
-            for assistance.</b></p>
+	<h2>Using MultiTypeTree</h2>
 
-	<h2>Tutorial: Structured coalescent analysis</h2>
-	<p>The MultiTypeTree package is not yet equipped with a BEAUti
-	  graphical interface.  Therefore, analyses are set up by
-	  working directly on the BEAST 2 XML input file.  In
-	  practice, the best way to do this is to modify the example
-	  XML <code>structuredCoalescent.xml</code>.  (This file can be
-	  found in the <kbd>MultiTypeTree/examples</kbd> directory
-	  that is located in the folder described at the end of the
-	  previous section. It can also be downloaded directly from
-	  <a href="https://raw.githubusercontent.com/CompEvol/MultiTypeTree/master/examples/structuredCoalescent.xml">here</a>.)</p>
+    <p>New users - including those who have not used BEAST before - should work
+    through the
+    <a href="https://github.com/CompEvol/MultiTypeTree/wiki/Beginner%27s-Tutorial">Beginner's Tutorial</a>,
+    which describes how to conduct a full structured coalescent analysis using
+    the BEAUti interface to MultiTypeTree - right through to analyzing the
+    results using Tracer and FigTree.</p>
 
-	  <p>We will give a brief overview of the modification
-	  procedure here, when the goal is to analyze a single
-	  serially-sampled sequence alignment under a structured
-	  coalescent model with D distinct locations and an HKY
-	  substitution model.  <i>We recommend that you have a copy of
-	  the example file open in a text editor when reading these
-	  instructions.</i></p>
+    <p>Alternatively, users experienced in constructing BEAST 2 XML files may
+    wish to take a look at the hand-coded XML file
+    <a href="https://raw.githubusercontent.com/CompEvol/MultiTypeTree/master/examples/structuredCoalescent.xml">structuredCoalescent.xml</a>
+    provided in the <code>examples/</code> folder of the package.  By modifying
+    this file directly (or modifying the XML output of BEAUti) it is possible
+    to configure more sophisticated analyses than can be specified using
+    BEAUti.</p>
 
-	<p>Firstly, incorporate the sequence data corresponding to the
-	  alignment using the <code>&lt;sequence&gt;</code> elements
-	  within the <code>&lt;alignment&gt;</code> element, ensuring
-	  the <code>taxon</code> attribute of each sequence is
-	  correctly specified.</p>
-
-	<p>Secondly, include the locations and times corresponding to
-	  each of the sampled sequences by making the appropriate
-	  replacements in the body of
-	  the <code>&lt;typeTraitSet&gt;</code>
-	  and <code>&lt;timeTraitSet&gt;</code> elements.  Note that
-	  the locations must be identified by no more than D unique
-	  strings or numbers, where "D" is the number of types in the model.  In the
-	  example file, the attribute <code>traitname="date-backward"</code>
-	  causes the times to represent <i>ages</i> of leaf nodes.  By
-	  using <code>traitname="date-forward"</code>, calendar years
-	  or other forward-time units can be used. Note that the taxon
-	  names in these elements must match those used to identify
-	  the sequences.</p>
-
-	<p>Thirdly, the initial migration model must be defined using
-	  the <code>&lt;migrationModel&gt;</code> element.  Most
-	  importantly, the number of migration rates and population to
-	  estimate must be defined by setting the
-	  respective <code>dimension="x"</code> attributes. The number
-	  of rates will be D*(D-1), while the number of population
-	  sizes will be D.  These same attributes must be set within
-	  the <code>&lt;migrationModel&gt;</code> element which occurs
-      further along in the file.</p>
-
-	<p>Fourthly, the priors on the parameters must be defined. In
-	  the example log-normal distributions with &mu;=0 and
-	  &sigma;=4 are used for the mutation rate, migration rates
-	  and population sizes.  However, these should be changed to
-	  reflect your prior knowledge.</p>
-
-	<p>Finally, the length of the MCMC chain to run should be
-	  specified using the <code>chainLength</code> attribute of
-	  the <code>&lt;run&gt;</code> element, and the sampling
-	  period for the state logs should be defined using
-	  the <code>logEvery</code> attributes of
-	  the <code>&lt;logger&gt;</code> elements.</p>
-
-	<p>Once the XML is complete, you can start your analysis by
-	  executing BEAST on the input file, as specified in the
-	  README.txt file distributed with BEAST 2.  This will
-	  generate the files <code>structuredCoalescent.log</code>
-	  and <code>structuredCoalescent.trees</code>. The former can
-	  be processed
-	  using <a href="http://tree.bio.ed.ac.uk/software/tracer/">Tracer</a>
-	  and contains the sampled parameters, while the latter
-	  contains the sampled multi-type trees which can be
-	  visualized using
-	  either <a href="http://tree.bio.ed.ac.uk/software/figtree/">Figtree</a>
-	  or <a href="http://tgvaughan.github.com/icytree/icytree.html">IcyTree</a>.</p>
+    <p><b>Note: BEAST 2 XML scripts written for versions of MultiTypeTree
+        earlier than 5.0.0 will not run without modification on version 5 or
+        later. Details of the required modifications will be provided soon. In
+        the meantime,  contact
+        <a href="mailto:tgvaughan@gmail.com">Tim Vaughan</a>
+        for assistance.</b></p>
 
 	<h2>Citing MultiTypeTree</h2>
     <p>If you use this package as part of research that leads to a publication, we ask that you cite the following article:
