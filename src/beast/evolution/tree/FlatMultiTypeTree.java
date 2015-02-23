@@ -38,7 +38,7 @@ public class FlatMultiTypeTree extends Tree {
 	@Override
 	public void initAndValidate() {
 		multiTypeTree = multiTypeTreeInput.get();
-		setRoot(multiTypeTree.getFlattenedTree().getRoot());
+		setRoot(multiTypeTree.getFlattenedTree(false).getRoot());
 		initArrays();
 	}
 	
