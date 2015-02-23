@@ -48,6 +48,7 @@ public class MAPTreeLogger extends Tree {
         super.initAndValidate();
 
         currentMAPTree = multiTypeTreeInput.get().copy();
+        currentMAPTree.setTypeTrait(multiTypeTreeInput.get().getTypeTrait());
         currentMAPTree.initAndValidate();
         maxPosterior = Double.NEGATIVE_INFINITY;
     }

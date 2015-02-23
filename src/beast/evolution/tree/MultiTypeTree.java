@@ -454,9 +454,10 @@ public class MultiTypeTree extends Tree {
      *
      * Caveat: assumes more than one node exists on tree (i.e. leaf != root)
      *
+     * @param useTypeStrings whether to use descriptive type strings
      * @return Flattened tree.
      */
-    public Tree getFlattenedTree() {
+    public Tree getFlattenedTree(boolean useTypeStrings) {
 
         // Create new tree to modify.  Note that copy() doesn't
         // initialise the node array lists, so initArrays() must
@@ -483,14 +484,22 @@ public class MultiTypeTree extends Tree {
 
             startNode.setMetaData(typeLabel,
                     ((MultiTypeNode)node).getNodeType());
-            startNode.metaDataString = String.format("%s=%d",
+            if(useTypeStrings)
+                startNode.metaDataString = String.format("%s=\"%s\"",
+                    typeLabel, getTypeString(mtNode.getNodeType()));
+            else
+                startNode.metaDataString = String.format("%s=%d",
                     typeLabel, mtNode.getNodeType());
 
             Node endNode = startNode.getParent();
             
             endNode.setMetaData(typeLabel,
                     ((MultiTypeNode)node.getParent()).getNodeType());
-            endNode.metaDataString = String.format("%s=%d",
+            if(useTypeStrings)
+                endNode.metaDataString = String.format("%s=\"%s\"",
+                    typeLabel, getTypeString(((MultiTypeNode)node.getParent()).getNodeType()));
+            else
+                endNode.metaDataString = String.format("%s=%d",
                     typeLabel, ((MultiTypeNode)node.getParent()).getNodeType());
 
             Node branchNode = startNode;
@@ -510,7 +519,11 @@ public class MultiTypeTree extends Tree {
                 colourChangeNode.setHeight(mtNode.getChangeTime(i));
                 colourChangeNode.setMetaData(typeLabel,
                         mtNode.getChangeType(i));
-                colourChangeNode.metaDataString = String.format("%s=%d",
+                if (useTypeStrings)
+                    colourChangeNode.metaDataString = String.format("%s=\"%s\"",
+                        typeLabel, getTypeString(mtNode.getChangeType(i)));
+                else
+                    colourChangeNode.metaDataString = String.format("%s=%d",
                         typeLabel, mtNode.getChangeType(i));
 
                 // Update branchNode:
@@ -695,12 +708,12 @@ public class MultiTypeTree extends Tree {
         StackTraceElement[] ste = Thread.currentThread().getStackTrace();
         if (ste[2].getMethodName().equals("toXML")) {            
             // Use toShortNewick to generate Newick string without taxon labels
-            String string = getFlattenedTree().getRoot().toShortNewick(true);
+            String string = getFlattenedTree(false).getRoot().toShortNewick(true);
             
             // Sanitize ampersands if this is destined for a state file.
             return string.replaceAll("&", "&amp;");
         } else{
-            return getFlattenedTree().getRoot().toSortedNewick(new int[1], true);
+            return getFlattenedTree(true).getRoot().toSortedNewick(new int[1], true);
         }
     }
 
