@@ -24,10 +24,14 @@ import beast.evolution.tree.MigrationModel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -90,42 +94,58 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixEstCheckBox = new JCheckBox("estimate");
         loadFromMigrationModel();
 
-        Box boxVert = Box.createVerticalBox();
-        boxVert.setBorder(new EtchedBorder());
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(new EtchedBorder());
 
-        Box boxHoriz;
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(3, 3, 3, 3);
+        c.weighty = 0.5;
 
         // Deme count spinner:
-        boxHoriz = Box.createHorizontalBox();
-        boxHoriz.add(new JLabel("Number of demes: "));
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 0.0;
+        c.anchor = GridBagConstraints.LINE_END;
+        panel.add(new JLabel("Number of demes: "), c);
         JSpinner dimSpinner = new JSpinner(nTypesModel);
         dimSpinner.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
-        boxHoriz.add(dimSpinner);
-        boxHoriz.add(Box.createGlue());
-        boxVert.add(boxHoriz);
-
-        boxVert.add(Box.createRigidArea(new Dimension(0, 5)));
+        c.gridx = 1;
+        c.gridy = 0;
+        c.weightx = 1.0;
+        c.anchor = GridBagConstraints.LINE_START;
+        panel.add(dimSpinner, c);
 
         // Population size table
-        boxHoriz = Box.createHorizontalBox();
-        boxHoriz.add(new JLabel("Population sizes: "));
+        c.gridx = 0;
+        c.gridy = 1;
+        c.weightx = 0.0;
+        c.anchor = GridBagConstraints.LINE_END;
+        panel.add(new JLabel("Population sizes: "), c);
         JTable popSizeTable = new JTable(popSizeModel);
         popSizeTable.setShowVerticalLines(true);
         popSizeTable.setCellSelectionEnabled(true);
         popSizeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         popSizeTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
-        boxHoriz.add(popSizeTable);
-        boxHoriz.add(Box.createGlue());
-        popSizeEstCheckBox.setSelected(migModel.popSizesInput.get().isEstimatedInput.get());
-        boxHoriz.add(popSizeEstCheckBox);
-        boxVert.add(boxHoriz);
 
-        boxVert.add(Box.createRigidArea(new Dimension(0, 5)));
+        c.gridx = 1;
+        c.gridy = 1;
+        c.weightx = 1.0;
+        c.anchor = GridBagConstraints.LINE_START;
+        panel.add(popSizeTable, c);
+        popSizeEstCheckBox.setSelected(migModel.popSizesInput.get().isEstimatedInput.get());
+        c.gridx = 2;
+        c.gridy = 1;
+        c.anchor = GridBagConstraints.LINE_END;
+        c.weightx = 1.0;
+        panel.add(popSizeEstCheckBox, c);
 
         // Migration rate table
         // (Uses custom cell renderer to grey out diagonal elements.)
-        boxHoriz = Box.createHorizontalBox();
-        boxHoriz.add(new JLabel("Migration rates: "));
+        c.gridx = 0;
+        c.gridy = 2;
+        c.weightx = 0.0;
+        c.anchor = GridBagConstraints.LINE_END;
+        panel.add(new JLabel("Migration rates: "), c);
         JTable rateMatrixTable = new JTable(rateMatrixModel) {
             @Override
             public TableCellRenderer getCellRenderer(int row, int column) {
@@ -149,13 +169,22 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixTable.setCellSelectionEnabled(true);
         rateMatrixTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         rateMatrixTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
-        boxHoriz.add(rateMatrixTable);
-        boxHoriz.add(Box.createGlue());
-        rateMatrixEstCheckBox.setSelected(migModel.rateMatrixInput.get().isEstimatedInput.get());
-        boxHoriz.add(rateMatrixEstCheckBox);
-        boxVert.add(boxHoriz);
 
-        add(boxVert);
+        c.gridx = 1;
+        c.gridy = 2;
+        c.anchor = GridBagConstraints.LINE_START;
+        c.weightx = 1.0;
+        panel.add(rateMatrixTable, c);
+        rateMatrixEstCheckBox.setSelected(migModel.rateMatrixInput.get().isEstimatedInput.get());
+
+        c.gridx = 2;
+        c.gridy = 2;
+        c.anchor = GridBagConstraints.LINE_END;
+        c.weightx = 1.0;
+        panel.add(rateMatrixEstCheckBox, c);
+
+        add(panel);
+ 
 
         // Event handlers
 
