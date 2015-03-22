@@ -2,11 +2,16 @@
 /dist
 /build
 /build-lib
+/out
 
 # netbeans cruft
 /nbbuild.xml
 /manifest.mf
 /nbproject
+
+# intellij cruft
+/.idea
+/MultiTypeTree.iml
 
 # Ignore BEAST logfiles
 *.log
