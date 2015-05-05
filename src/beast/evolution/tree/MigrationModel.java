@@ -76,9 +76,9 @@ public class MigrationModel extends CalculationNode {
         
         if (rateMatrixFlagsInput.get() != null)
             rateMatrixFlags = rateMatrixFlagsInput.get();
-        
-        rateMatrix.setLower(0.0);
-        popSizes.setLower(0.0);
+
+        rateMatrix.setLower(Math.max(rateMatrix.getLower(), 0.0));
+        popSizes.setLower(Math.max(popSizes.getLower(), 0.0));
         
         if (rateMatrix.getDimension() == nTypes*nTypes) {
             rateMatrixIsSquare = true;
