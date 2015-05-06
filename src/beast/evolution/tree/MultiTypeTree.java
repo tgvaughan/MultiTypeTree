@@ -270,7 +270,14 @@ public class MultiTypeTree extends Tree {
 
         return typeList.indexOf(typeString);
     }
-    
+
+    /**
+     * @return type label to be used in logging.
+     */
+    public String getTypeLabel() {
+        return typeLabel;
+    }
+
     @Override
     protected final void initArrays() {
         // initialise tree-as-array representation + its stored variant

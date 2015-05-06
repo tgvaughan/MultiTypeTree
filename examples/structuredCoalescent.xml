@@ -703,6 +703,11 @@ t128=3">
        <log idref="tree"/>
      </logger>
 
+
+     <logger logEvery="10000" fileName="typedNode.trees" mode="tree">
+         <log spec='TypedNodeTreeLogger' multiTypeTree="@tree"/>
+     </logger>
+
      <logger logEvery="10000">
        <model idref='posterior'/>
        <log idref="posterior"/>

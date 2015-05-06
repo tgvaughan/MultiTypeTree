@@ -257,6 +257,11 @@
                 <log spec="multitypetree.util.MAPTreeLogger" multiTypeTree="@Tree.t:$(n)" posterior="@posterior"/>
             </logger>
 
+            <!-- Log trees annotated with node types only -->
+            <logger id="typednodetreelog.t:$(n)" logEvery="10000" fileName="$(filebase).$(n).typedNode.trees" mode="tree">
+                <log spec="multitypetree.util.TypedNodeTreeLogger" multiTypeTree="@Tree.t:$(n)"/>
+            </logger>
+
             <!-- Trace log elements -->
             <log id="treeHeight.t:$(n)" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:$(n)"/>
             <log id="treeLength.t:$(n)" spec="multitypetree.util.TreeLengthLogger" tree="@Tree.t:$(n)"/>
@@ -304,6 +309,7 @@
 
             <connect srcID='treelog.t:$(n)' targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='maptreelog.t:$(n)' targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
+            <connect srcID='typednodetreelog.t:$(n)' targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
 
             <connect srcID='treeLikelihood.$(n)' targetID='tracelog' inputName='log' if='inlikelihood(treeLikelihood.$(n))'/>
             <connect srcID='TreeHeight.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n))'/>
