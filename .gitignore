@@ -12,11 +12,14 @@
 # intellij cruft
 /.idea
 /MultiTypeTree.iml
+/META-INF
 
 # Ignore BEAST logfiles
 *.log
 *.trees
 *.state
 
-# Ignore emacs backup files:
-*~
+# Other cruft:
+.localrc
+.localrcbye
+/examples/h3n2
