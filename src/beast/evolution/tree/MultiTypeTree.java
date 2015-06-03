@@ -52,7 +52,13 @@ public class MultiTypeTree extends Tree {
 
     public Input<TraitSet> typeTraitInput = new Input<>(
         "typeTrait", "Type trait set.  Used only by BEAUti.");
- 
+
+    public Input<List<String>> typeTraitValuesInput = new Input<>(
+            "typeTraitValue",
+            "An additional type value to be included even when absent " +
+                    "from the sampled taxa.",
+            new ArrayList<>());
+
     /*
      * Non-input fields:
      */
@@ -188,17 +194,22 @@ public class MultiTypeTree extends Tree {
         if (typeTraitSet != null) {
 
             Set<String> typeSet = new HashSet<>();
-                
+
             int nTaxa = typeTraitSet.taxaInput.get().asStringList().size();
-            for (int i=0; i<nTaxa; i++)
+            for (int i = 0; i < nTaxa; i++)
                 typeSet.add(typeTraitSet.getStringValue(i));
-                
+
+            // Include any addittional trait values in type list
+            for (String typeName : typeTraitValuesInput.get())
+                typeSet.add(typeName);
+
             typeList = Lists.newArrayList(typeSet);
             Collections.sort(typeList);
-            
+
             System.out.println("Type trait with the following types detected:");
-            for (int i=0; i<typeList.size(); i++)
+            for (int i = 0; i < typeList.size(); i++)
                 System.out.println(typeList.get(i) + " (" + i + ")");
+
         }
     }
     
@@ -276,6 +287,20 @@ public class MultiTypeTree extends Tree {
      */
     public String getTypeLabel() {
         return typeLabel;
+    }
+
+    /**
+     * Obtain the number of types defined for this MultiTypeTree.
+     * Note that this is the number of _possible_ types, not the
+     * number of types actually present on the tree.
+     *
+     * @return number of types defined for MultiTypeTree
+     */
+    public int getNTypes() {
+        if (!traitsProcessed)
+            processTraits(m_traitList.get());
+
+        return typeList.size();
     }
 
     @Override

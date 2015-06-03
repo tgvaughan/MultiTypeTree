@@ -27,13 +27,19 @@ import java.util.Random;
  *
  * @author Tim Vaughan
  */
-public class MultiTypeTreeDistribution extends Distribution {
+public abstract class MultiTypeTreeDistribution extends Distribution {
 
-	public Input<MultiTypeTree> mtTreeInput = new Input<MultiTypeTree>("multiTypeTree",
+	public Input<MultiTypeTree> mtTreeInput = new Input<>("multiTypeTree",
 			"Multi-type tree.", Validate.REQUIRED);
 
+    protected MultiTypeTree mtTree;
 
-	// Interface requirements:
+    @Override
+    public void initAndValidate() throws Exception {
+        mtTree = mtTreeInput.get();
+    }
+
+    // Interface requirements:
 
 	@Override
 	public List<String> getArguments() {
