@@ -72,9 +72,11 @@ public class TypeChangeTimeCondition extends MultiTypeTreeDistribution {
         logP = 0.0;
 
         for (Node node : mtTree.getNodesAsArray()) {
+            if (node.isRoot())
+                continue;
 
             if (node.getHeight()>h2.getValue()
-                || (!node.isRoot() && node.getParent().getHeight()<h1.getValue()))
+                || node.getParent().getHeight()<h1.getValue())
                 continue;
 
             MultiTypeNode mtNode = (MultiTypeNode)node;
