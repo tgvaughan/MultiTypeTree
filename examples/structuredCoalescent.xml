@@ -696,6 +696,8 @@ t128=3">
        <log spec='TypeChangeCounts' multiTypeTree="@tree"
             migrationModel="@migModel" id="typeChangeCounts" />
        <log spec='Sum' arg="@typeChangeCounts" id="totalTypeChanges" />
+       <log spec='NodeTypeCounts' multiTypeTree="@tree"
+            migrationModel="@migModel" />
        <log spec='TreeRootTypeLogger' multiTypeTree="@tree"/>
      </logger>
 
@@ -713,9 +715,6 @@ t128=3">
        <log idref="posterior"/>
        <log idref="treeLikelihood"/>
        <log idref="treePrior"/>
-       <log spec='TreeHeightLogger' tree='@tree'/>
-       <log idref="migModelLogger"/>
-       <log idref="mutationRate"/>
        <log idref="totalTypeChanges"/>
        <ESS spec='ESS' name='log' arg="@treePrior"/>
      </logger>
