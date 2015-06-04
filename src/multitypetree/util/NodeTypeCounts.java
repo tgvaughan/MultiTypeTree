@@ -42,6 +42,11 @@ public class NodeTypeCounts extends CalculationNode implements Function, Loggabl
         "Migration model needed to specify number of demes.",
         Validate.REQUIRED);
 
+    public Input<Boolean> internalOnlyInput = new Input<>(
+            "internalNodesOnly",
+            "Only count types of internal nodes.",
+            true);
+
     public Input<Boolean> useCacheInput = new Input<>(
             "useCache", "Cache counts, updating only when tree changes. "
             + "Warning: this will cause problems if this TypeChangeCounts "
@@ -80,8 +85,13 @@ public class NodeTypeCounts extends CalculationNode implements Function, Loggabl
             nodeTypeCounts[i] = 0;
         
         // Recalculate array elements
-        for (Node node : mtTree.getNodesAsArray())
-            nodeTypeCounts[((MultiTypeNode)node).getNodeType()] += 1;
+        if (internalOnlyInput.get()) {
+            for (Node node : mtTree.getInternalNodes())
+                nodeTypeCounts[((MultiTypeNode) node).getNodeType()] += 1;
+        } else {
+            for (Node node : mtTree.getNodesAsArray())
+                nodeTypeCounts[((MultiTypeNode) node).getNodeType()] += 1;
+        }
 
         if (useCache)
             dirty = false;
