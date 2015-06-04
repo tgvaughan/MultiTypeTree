@@ -19,25 +19,38 @@ public class MRCATypePrior extends MultiTypeTreeDistribution {
             "Parameter specifying individual type probabilities.");
 
     public Input<String> typeNameInput = new Input<>("typeName",
-            "Name of type MRCA is constraint to be.",
-            Input.Validate.XOR, typeProbsInput);
+            "Name of type MRCA is constraint to be.");
+
+    public Input<Integer> typeInput = new Input<>("type",
+            "Index of type MRCA is constrained to be.");
 
     protected int type;
 
     @Override
     public void initAndValidate() throws Exception {
         super.initAndValidate();
-
         if (typeProbsInput.get() != null
                 && typeProbsInput.get().getDimension() != mtTree.getNTypes()) {
             throw new IllegalArgumentException("Dimension of type probability" +
                     " parameter must match number of types.");
         } else {
-            if (!mtTree.getTypeList().contains(typeNameInput.get()))
-                throw new IllegalArgumentException("Type list does not contain" +
-                        " type '" + typeNameInput.get() + "'.");
-            else
-                type = mtTree.getTypeFromString(typeNameInput.get());
+            if (typeNameInput.get() != null) {
+                if (!mtTree.getTypeList().contains(typeNameInput.get()))
+                    throw new IllegalArgumentException("Type list does not contain" +
+                            " type '" + typeNameInput.get() + "'.");
+                else
+                    type = mtTree.getTypeFromString(typeNameInput.get());
+            } else {
+                if (typeInput.get() == null)
+                    throw new IllegalArgumentException("Must specify typeProbs, " +
+                            "typeName or type inputs to MRCATypePrior.");
+
+                if (typeInput.get()<0 || typeInput.get()>=mtTree.getNTypes())
+                    throw new IllegalArgumentException("Invalid type index " +
+                            "specified for type input of MRCATypePrior.");
+
+                type = typeInput.get();
+            }
         }
     }
 

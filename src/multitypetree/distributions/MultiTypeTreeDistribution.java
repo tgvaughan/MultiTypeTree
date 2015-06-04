@@ -20,6 +20,8 @@ import beast.core.*;
 import beast.core.Input.Validate;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.MultiTypeTree;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -41,12 +43,13 @@ public abstract class MultiTypeTreeDistribution extends Distribution {
 
     // Interface requirements:
 
-	@Override
-	public List<String> getArguments() {
-		return null;
-	}
 
-	@Override
+    @Override
+    public List<String> getArguments() {
+        return null;
+    }
+
+    @Override
 	public List<String> getConditions() {
 		return null;
 	}
