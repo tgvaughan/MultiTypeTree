@@ -142,7 +142,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
         Node parent = node.getParent();
         Node sister = getOtherChild(parent, node);
         sister.setParent(null);
-        parent.getChildren().remove(sister);
+        parent.removeChild(sister);
 
         // Clear colour changes on new root:
         ((MultiTypeNode)sister).clearChanges();
