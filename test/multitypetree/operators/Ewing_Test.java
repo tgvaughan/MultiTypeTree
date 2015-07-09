@@ -38,12 +38,12 @@ public class Ewing_Test {
         System.out.println("Ewing_test1");
         
         // Fix seed.
-        Randomizer.setSeed(42);
+        Randomizer.setSeed(1);
         
         // Assemble initial MultiTypeTree
         String newickStr =
-                "((1[deme='0']:1,2[deme='0']:1)[deme='0']:1,"
-                + "3[deme='0']:2)[deme='0']:0;";
+                "((1[&deme=0]:1,2[&deme=0]:1)[&deme=0]:1,"
+                + "3[&deme=0]:2)[&deme=0]:0;";
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
@@ -164,8 +164,8 @@ public class Ewing_Test {
         
         // Assemble initial MultiTypeTree
         String newickStr =
-                "(((1[deme='1']:0.5)[deme='0']:0.5,2[deme='0']:1)[deme='0']:1,"
-                + "3[deme='0']:2)[deme='0']:0;";
+                "(((1[&deme=1]:0.5)[&deme=0]:0.5,2[&deme=0]:1)[&deme=0]:1,"
+                + "3[&deme=0]:2)[&deme=0]:0;";
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
