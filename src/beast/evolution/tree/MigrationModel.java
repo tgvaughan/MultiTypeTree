@@ -53,14 +53,14 @@ public class MigrationModel extends CalculationNode {
     private BooleanParameter rateMatrixFlags;
     private double totalPopSize;
     private double mu, muSym;
-    private int nTypes;
+    protected int nTypes;
     private DoubleMatrix Q, R;
     private DoubleMatrix Qsym, Rsym;
     private List<DoubleMatrix> RpowN, RsymPowN;
     private DoubleMatrix RpowMax, RsymPowMax;
     private boolean RpowSteady, RsymPowSteady;
     
-    private boolean rateMatrixIsSquare, symmetricRateMatrix;
+    protected boolean rateMatrixIsSquare, symmetricRateMatrix;
     
     // Flag to indicate whether EV decompositions need updating.
     private boolean dirty;
@@ -265,7 +265,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return Offset (or -1 if i==j)
      */
-    private int getArrayOffset(int i, int j) {
+    protected int getArrayOffset(int i, int j) {
         
         if (i==j)
             throw new RuntimeException("Programmer error: requested migration "
