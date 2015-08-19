@@ -144,7 +144,7 @@ public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
      * Determines the sequence of migration, coalescence and sampling events
      * which make up the coloured tree.
      */
-    public void updateEventSequence() {
+    protected void updateEventSequence() {
 
         // Clean up previous list:
         eventList.clear();

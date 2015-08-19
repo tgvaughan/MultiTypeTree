@@ -33,7 +33,7 @@ import org.jblas.MatrixFunctions;
  * @author Tim Vaughan
  */
 @Description("Basic plugin describing a simple Markovian migration model.")
-public class MigrationModel extends CalculationNode {
+public class MigrationModel extends CalculationNode implements MigrationModelInterface {
 
     public Input<RealParameter> rateMatrixInput = new Input<>(
             "rateMatrix",
@@ -49,31 +49,35 @@ public class MigrationModel extends CalculationNode {
             "Optional boolean parameter specifying which rates to use."
             + " (Default is to use all rates.)");
     
-    private RealParameter rateMatrix, popSizes;
-    private BooleanParameter rateMatrixFlags;
-    private double totalPopSize;
-    private double mu, muSym;
+    protected RealParameter rateMatrix, popSizes;
+    protected BooleanParameter rateMatrixFlags;
+    protected double mu, muSym;
     protected int nTypes;
-    private DoubleMatrix Q, R;
-    private DoubleMatrix Qsym, Rsym;
-    private List<DoubleMatrix> RpowN, RsymPowN;
-    private DoubleMatrix RpowMax, RsymPowMax;
-    private boolean RpowSteady, RsymPowSteady;
+    protected DoubleMatrix Q, R;
+    protected DoubleMatrix Qsym, Rsym;
+    protected List<DoubleMatrix> RpowN, RsymPowN;
+    protected DoubleMatrix RpowMax, RsymPowMax;
+    protected boolean RpowSteady, RsymPowSteady;
     
     protected boolean rateMatrixIsSquare, symmetricRateMatrix;
     
     // Flag to indicate whether EV decompositions need updating.
-    private boolean dirty;
+    protected boolean dirty;
 
-    public MigrationModel() { }
+    public MigrationModel() {
+        // Initialise caching array for powers of uniformized
+        // transition matrix:
+        RpowN = new ArrayList<>();
+        RsymPowN = new ArrayList<>();
+    }
 
     @Override
     public void initAndValidate() throws Exception {
         
         popSizes = popSizesInput.get();
-        nTypes = popSizes.getDimension();
         rateMatrix = rateMatrixInput.get();
-        
+        nTypes = popSizes.getDimension();
+
         if (rateMatrixFlagsInput.get() != null)
             rateMatrixFlags = rateMatrixFlagsInput.get();
 
@@ -102,31 +106,19 @@ public class MigrationModel extends CalculationNode {
                         + " array does not have same number of elements as"
                         + " migration rate matrix.");
         }
-        
-        // Initialise caching array for powers of uniformized
-        // transition matrix:
-        RpowN = new ArrayList<>();
-        RsymPowN = new ArrayList<>();
-        
+
         dirty = true;
         updateMatrices();
     }
-    
+
     /**
      * Ensure all local fields including matrices and eigenvalue decomposition
      * objects are consistent with current values held by inputs.
      */
     public void updateMatrices()  {
-        
+
         if (!dirty)
             return;
-
-        popSizes = popSizesInput.get();
-        rateMatrix = rateMatrixInput.get();
-
-        totalPopSize = 0.0;
-        for (int i = 0; i < popSizes.getDimension(); i++)
-            totalPopSize += popSizes.getArrayValue(i);
 
         mu = 0.0;
         muSym = 0.0;
@@ -179,6 +171,7 @@ public class MigrationModel extends CalculationNode {
     /**
      * @return number of demes in the migration model.
      */
+    @Override
     public int getNTypes() {
         return nTypes;
     }
@@ -209,6 +202,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @return Rate matrix element.
      */
+    @Override
     public double getRate(int i, int j) {
         if (i==j)
             return 0;
@@ -239,6 +233,21 @@ public class MigrationModel extends CalculationNode {
 
         return rateMatrixFlagsInput.get().getValue(getArrayOffset(i, j));
     }
+
+    /**
+     * Retrieve rate of migration from i to j forward in time.
+     *
+     * @param i source deme
+     * @param j dest deme
+     * @return migration rate
+     */
+    @Override
+    public double getForwardsRate(int i, int j) {
+        if (i==j)
+            return 0.0;
+
+        return getRate(j, i)*getPopSize(j)/getPopSize(i);
+    }
     
     /**
      * Set element of rate matrix for migration model.
@@ -248,6 +257,7 @@ public class MigrationModel extends CalculationNode {
      * @param j
      * @param rate 
      */
+    @Override
     public void setRate(int i, int j, double rate) {
         if (i==j)
             return;
@@ -309,16 +319,7 @@ public class MigrationModel extends CalculationNode {
         dirty = true;
     }
 
-    /**
-     * Obtain total effective population size across all demes.
-     *
-     * @return Effective population size.
-     */
-    public double getTotalPopSize() {
-        updateMatrices();
-        return totalPopSize;
-    }
-
+    @Override
     public double getMu(boolean symmetric) {
         updateMatrices();
         if (symmetric)
@@ -327,6 +328,7 @@ public class MigrationModel extends CalculationNode {
             return mu;
     }
     
+    @Override
     public DoubleMatrix getR(boolean symmetric) {
         updateMatrices();
         if (symmetric)
@@ -335,6 +337,7 @@ public class MigrationModel extends CalculationNode {
             return R;
     }
     
+    @Override
     public DoubleMatrix getQ(boolean symmetric) {
         updateMatrices();
         if (symmetric)
@@ -343,6 +346,7 @@ public class MigrationModel extends CalculationNode {
             return Q;
     }
     
+    @Override
     public DoubleMatrix getRpowN(int n, boolean symmetric) {
         updateMatrices();
         
@@ -400,6 +404,7 @@ public class MigrationModel extends CalculationNode {
      * @param symmetric
      * @return Matrix of upper bounds.
      */
+    @Override
     public DoubleMatrix getRpowMax(boolean symmetric) {
         
         if (symmetric) {
@@ -422,6 +427,7 @@ public class MigrationModel extends CalculationNode {
      * @param symmetric
      * @return index of first known steady element.
      */
+    @Override
     public int RpowSteadyN(boolean symmetric) {
         if (symmetric) {
             if (RsymPowSteady)
