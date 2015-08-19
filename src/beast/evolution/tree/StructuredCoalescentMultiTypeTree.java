@@ -305,7 +305,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                 if (j == i)
                     continue;
 
-                double m = migModel.getRate(i, j);
+                double m = migModel.getBackwardRate(i, j);
 
                 migrationProp.get(i).set(j, k * m);
                 totalProp += migrationProp.get(i).get(j);

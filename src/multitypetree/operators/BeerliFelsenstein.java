@@ -94,7 +94,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             for (int dp=0; dp<migModel.getNTypes(); dp++) {
                 if (d==dp)
                     continue;
-                migProp[d] += migModel.getRate(d, dp);
+                migProp[d] += migModel.getBackwardRate(d, dp);
             }
         }
         
@@ -176,13 +176,13 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                         if (toDeme == deme)
                             continue;
                     
-                        u -= migModel.getRate(deme, toDeme);
+                        u -= migModel.getBackwardRate(deme, toDeme);
                         if (u<0)
                             break;
                     }
                 
                     // HR event contribution
-                    logHR += Math.log(migModel.getRate(deme, toDeme));
+                    logHR += Math.log(migModel.getBackwardRate(deme, toDeme));
 
                     // Implelent migration
                     mtNode.addChange(toDeme, t);
@@ -247,13 +247,13 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                             if (toDeme == deme)
                                 continue;
                             
-                            u -= migModel.getRate(deme, toDeme);
+                            u -= migModel.getBackwardRate(deme, toDeme);
                             if (u<0)
                                 break;
                         }
                         
                         // HR contribution
-                        logHR += Math.log(migModel.getRate(deme, toDeme));
+                        logHR += Math.log(migModel.getBackwardRate(deme, toDeme));
                         
                         mtNode.addChange(toDeme, t);
                         deme = toDeme;
@@ -265,13 +265,13 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                             if (toDeme == demeSis)
                                 continue;
                             
-                            u -= migModel.getRate(demeSis, toDeme);
+                            u -= migModel.getBackwardRate(demeSis, toDeme);
                             if (u<0)
                                 break;
                         }
                         
                         // HR contribution
-                        logHR += Math.log(migModel.getRate(demeSis, toDeme));
+                        logHR += Math.log(migModel.getBackwardRate(demeSis, toDeme));
                         
                         mtNodeSis.addChange(toDeme, t);
                         demeSis = toDeme;
@@ -435,7 +435,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 if (changeIdx<mtNode.getChangeCount()) {
                     // Migration
                     int toDeme = mtNode.getChangeType(changeIdx);
-                    logP += Math.log(migModel.getRate(deme, toDeme));
+                    logP += Math.log(migModel.getBackwardRate(deme, toDeme));
                     deme = toDeme;
                 } else {
                     // Coalescence

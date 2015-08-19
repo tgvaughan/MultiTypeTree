@@ -54,20 +54,20 @@ public class TypeSwap extends UniformizationRetypeOperator {
                 continue;
 
             // Swap cols:
-            double oldA = migModel.getRate(i, typeA);
-            double oldB = migModel.getRate(i, typeB);
+            double oldA = migModel.getBackwardRate(i, typeA);
+            double oldB = migModel.getBackwardRate(i, typeB);
             migModel.setRate(i, typeA, oldB);
             migModel.setRate(i, typeB, oldA);
             
             // Swap rows:
-            oldA = migModel.getRate(typeA, i);
-            oldB = migModel.getRate(typeB, i);
+            oldA = migModel.getBackwardRate(typeA, i);
+            oldB = migModel.getBackwardRate(typeB, i);
             migModel.setRate(typeA, i, oldB);
             migModel.setRate(typeB, i, oldA);
         }
         
-        double old1 = migModel.getRate(typeA, typeB);
-        double old2 = migModel.getRate(typeB, typeA);
+        double old1 = migModel.getBackwardRate(typeA, typeB);
+        double old2 = migModel.getBackwardRate(typeB, typeA);
         migModel.setRate(typeB, typeA, old1);
         migModel.setRate(typeA, typeB, old2);
         

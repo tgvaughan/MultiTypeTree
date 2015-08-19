@@ -8,9 +8,9 @@ import org.jblas.DoubleMatrix;
 public interface MigrationModel {
     int getNTypes();
 
-    double getRate(int i, int j);
+    double getBackwardRate(int i, int j);
 
-    double getForwardsRate(int i, int j);
+    double getForwardRate(int i, int j);
 
     void setRate(int i, int j, double rate);
 

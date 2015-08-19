@@ -131,10 +131,10 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
             Qsym.put(i,i, 0.0);
             for (int j = 0; j < nTypes; j++) {
                 if (i != j) {
-                    Q.put(i, j, getRate(i, j));
+                    Q.put(i, j, getBackwardRate(i, j));
                     Q.put(i, i, Q.get(i, i) - Q.get(i, j));
                     
-                    Qsym.put(i, j, 0.5*(getRate(i, j) + getRate(j, i)));
+                    Qsym.put(i, j, 0.5*(getBackwardRate(i, j) + getBackwardRate(j, i)));
                     Qsym.put(i, i, Qsym.get(i, i) - Qsym.get(i, j));
                 }
             }
@@ -202,7 +202,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      * @return Rate matrix element.
      */
     @Override
-    public double getRate(int i, int j) {
+    public double getBackwardRate(int i, int j) {
         if (i==j)
             return 0;
         
@@ -241,11 +241,11 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      * @return migration rate
      */
     @Override
-    public double getForwardsRate(int i, int j) {
+    public double getForwardRate(int i, int j) {
         if (i==j)
             return 0.0;
 
-        return getRate(j, i)*getPopSize(j)/getPopSize(i);
+        return getBackwardRate(j, i)*getPopSize(j)/getPopSize(i);
     }
     
     /**

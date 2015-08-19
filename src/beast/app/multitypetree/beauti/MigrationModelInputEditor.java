@@ -253,7 +253,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             for (int j=0; j<migModel.getNTypes(); j++) {
                 if (i == j)
                     continue;
-                rateMatrixModel.setValueAt(migModel.getRate(i, j), i, j);
+                rateMatrixModel.setValueAt(migModel.getBackwardRate(i, j), i, j);
             }
         }
 

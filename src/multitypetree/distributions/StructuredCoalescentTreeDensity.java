@@ -110,7 +110,7 @@ public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
                         if (cp==c)
                             continue;
 
-                        double m = migrationModel.getRate(c, cp);
+                        double m = migrationModel.getBackwardRate(c, cp);
                         lambda += k*m;
                     }
                 }
@@ -126,7 +126,7 @@ public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
 
                 case MIGRATE:
                     double m = migrationModel
-                            .getRate(event.type, event.destType);
+                            .getBackwardRate(event.type, event.destType);
                     logP += Math.log(m);
                     break;
 
