@@ -44,7 +44,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
     /*
      * Plugin inputs:
      */
-    public Input<MigrationModel> migrationModelInput = new Input<>(
+    public Input<SCMigrationModel> migrationModelInput = new Input<>(
             "migrationModel",
             "Migration model to use in simulator.",
             Validate.REQUIRED);
@@ -60,7 +60,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
     /*
      * Non-input fields:
      */
-    protected MigrationModel migModel;
+    protected SCMigrationModel migModel;
     
     private List<Integer> leafTypes;
     private List<String> leafNames;
@@ -485,7 +485,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         popSizes.initByName(
                 "value", "7.0",
                 "dimension", "4");
-        MigrationModel migrationModel = new MigrationModel();
+        SCMigrationModel migrationModel = new SCMigrationModel();
         migrationModel.initByName(
                 "rateMatrix", rateMatrix,
                 "popSizes", popSizes);

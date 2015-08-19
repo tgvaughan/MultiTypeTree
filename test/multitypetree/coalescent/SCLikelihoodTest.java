@@ -18,7 +18,7 @@ package multitypetree.coalescent;
 
 import beast.core.parameter.RealParameter;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
-import beast.evolution.tree.MigrationModel;
+import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -52,7 +52,7 @@ public class SCLikelihoodTest {
 		rateMatrix.initByName("value","2.0 1.0");
 		RealParameter popSizes = new RealParameter();
 		popSizes.initByName("value","5.0 10.0");
-		MigrationModel migrationModel = new MigrationModel();
+		SCMigrationModel migrationModel = new SCMigrationModel();
 		migrationModel.initByName(
                         "rateMatrix", rateMatrix,
                         "popSizes", popSizes);

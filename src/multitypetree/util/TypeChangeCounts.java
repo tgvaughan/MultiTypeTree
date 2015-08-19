@@ -22,7 +22,7 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Loggable;
 import beast.core.Function;
-import beast.evolution.tree.MigrationModel;
+import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.Node;
@@ -40,7 +40,7 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
             "Multi-type tree whose changes will be counted.",
             Validate.REQUIRED);
 
-    public Input<MigrationModel> migrationModelInput = new Input<>(
+    public Input<SCMigrationModel> migrationModelInput = new Input<>(
         "migrationModel",
         "Migration model needed to specify number of demes.",
         Validate.REQUIRED);

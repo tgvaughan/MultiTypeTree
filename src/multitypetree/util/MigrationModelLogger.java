@@ -20,7 +20,7 @@ import beast.core.BEASTObject;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Loggable;
-import beast.evolution.tree.MigrationModel;
+import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.MultiTypeTree;
 import java.io.PrintStream;
 
@@ -30,13 +30,13 @@ import java.io.PrintStream;
  */
 public class MigrationModelLogger extends BEASTObject implements Loggable {
 
-    public Input<MigrationModel> migModelInput = new Input<>("migrationModel",
+    public Input<SCMigrationModel> migModelInput = new Input<>("migrationModel",
         "Migration model to log.", Validate.REQUIRED);
 
     public Input<MultiTypeTree> multiTypeTreeInput = new Input<>(
         "multiTypeTree", "Tree from which to acquire type names.");
 
-    private MigrationModel migModel;
+    private SCMigrationModel migModel;
     private MultiTypeTree mtTree;
 
     @Override

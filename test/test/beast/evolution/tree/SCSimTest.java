@@ -18,7 +18,7 @@ package test.beast.evolution.tree;
 
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.MigrationModel;
+import beast.evolution.tree.SCMigrationModel;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import org.junit.Assert;
@@ -45,7 +45,7 @@ public class SCSimTest {
         RealParameter popSizes = new RealParameter();
         popSizes.initByName(
                 "value", "7.0 7.0");
-        MigrationModel migrationModel = new MigrationModel();
+        SCMigrationModel migrationModel = new SCMigrationModel();
         migrationModel.initByName(
                 "rateMatrix", rateMatrix,
                 "popSizes", popSizes);

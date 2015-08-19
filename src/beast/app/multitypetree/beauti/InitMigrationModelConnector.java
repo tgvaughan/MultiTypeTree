@@ -19,15 +19,11 @@ package beast.app.multitypetree.beauti;
 import beast.app.beauti.BeautiDoc;
 import beast.core.BEASTInterface;
 import beast.core.parameter.Parameter;
-import beast.core.parameter.RealParameter;
 import beast.evolution.likelihood.TreeLikelihood;
-import beast.evolution.tree.MigrationModel;
-import beast.evolution.tree.MultiTypeTree;
+import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
-import beast.util.Randomizer;
+
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -50,10 +46,10 @@ public class InitMigrationModelConnector {
 
             String pID = BeautiDoc.parsePartition(tree.getID());
 
-            MigrationModel migModel = (MigrationModel)doc.pluginmap.get(
+            SCMigrationModel migModel = (SCMigrationModel)doc.pluginmap.get(
                 "migModel.t:" + pID);
 
-            MigrationModel migModelInit = (MigrationModel)doc.pluginmap.get(
+            SCMigrationModel migModelInit = (SCMigrationModel)doc.pluginmap.get(
                 "migModelInit.t:" + pID);
 
             String rateMatrixStr = getParameterString(migModel.rateMatrixInput.get());

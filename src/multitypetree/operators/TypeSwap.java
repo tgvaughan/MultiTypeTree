@@ -17,9 +17,9 @@
 package multitypetree.operators;
 
 import beast.core.Description;
-import beast.evolution.tree.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
+import beast.evolution.tree.SCMigrationModel;
 import beast.util.Randomizer;
 
 /**
@@ -72,10 +72,13 @@ public class TypeSwap extends UniformizationRetypeOperator {
         migModel.setRate(typeA, typeB, old2);
         
         // Swap population sizes:
-        old1 = migModel.getPopSize(typeA);
-        old2 = migModel.getPopSize(typeB);
-        migModel.setPopSize(typeA, old2);
-        migModel.setPopSize(typeB, old1);
+        if (migModel instanceof SCMigrationModel) {
+            SCMigrationModel migModelSC = (SCMigrationModel)migModel;
+            old1 = migModelSC.getPopSize(typeA);
+            old2 = migModelSC.getPopSize(typeB);
+            migModelSC.setPopSize(typeA, old2);
+            migModelSC.setPopSize(typeB, old1);
+        }
         
         // Swap types on tree:
         for (Node node : mtTree.getInternalNodes()) {

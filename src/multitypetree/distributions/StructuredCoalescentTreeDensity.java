@@ -19,7 +19,7 @@ package multitypetree.distributions;
 import beast.core.*;
 import beast.core.Input.Validate;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.MigrationModel;
+import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.MultiTypeTree;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
@@ -38,7 +38,7 @@ import java.util.Map;
 @Description("Likelihood of ColouredTree under structured coalescent.")
 public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
 
-    public Input<MigrationModel> migrationModelInput = new Input<>(
+    public Input<SCMigrationModel> migrationModelInput = new Input<>(
             "migrationModel", "Model of migration between demes.",
             Validate.REQUIRED);
     public Input<Boolean> checkValidityInput = new Input<>(
@@ -47,7 +47,7 @@ public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
             +"Useful if operators are in danger of proposing invalid trees.",
             false);
     
-    protected MigrationModel migrationModel;
+    protected SCMigrationModel migrationModel;
     protected MultiTypeTree mtTree;
     protected boolean checkValidity;
 
@@ -270,7 +270,7 @@ public class StructuredCoalescentTreeDensity extends MultiTypeTreeDistribution {
         rateMatrix.initByName("value", "2.0 1.0");
         RealParameter popSizes = new RealParameter();
         popSizes.initByName("value", "5.0 10.0");
-        MigrationModel migrationModel = new MigrationModel();
+        SCMigrationModel migrationModel = new SCMigrationModel();
         migrationModel.initByName(
                 "rateMatrix", rateMatrix,
                 "popSizes", popSizes);
