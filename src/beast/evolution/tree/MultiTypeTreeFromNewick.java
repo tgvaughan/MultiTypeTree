@@ -32,9 +32,8 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
                 "adjustTipHeights", adjustTipHeightsInput.get(),
                 "singlechild", true,
                 "newick", newickStringInput.get());
-        Tree flatTree = parser;
-        
-        initFromFlatTree(flatTree, true);
+
+        initFromFlatTree(parser, true);
     }
 
     @Override
