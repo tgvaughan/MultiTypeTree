@@ -659,8 +659,12 @@ public class MultiTypeTree extends Tree {
                     treeNode.addChange(colours.get(i), times.get(i));
 
                 // Set node type at base of multi-type tree branch:
-                int nodeType = (int) Math.round(
-                        (Double) flatTreeNode.getMetaData(typeLabel));
+                Object typeObject = flatTreeNode.getMetaData(typeLabel);
+                int nodeType;
+                if (typeObject instanceof Integer)
+                    nodeType = (int)flatTreeNode.getMetaData(typeLabel);
+                else
+                    nodeType = (int)Math.round((Double)flatTreeNode.getMetaData(typeLabel));
                 treeNode.setNodeType(nodeType);
 
                 // Set node height:
