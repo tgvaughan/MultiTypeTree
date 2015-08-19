@@ -12,8 +12,6 @@ public interface MigrationModel {
 
     double getForwardRate(int i, int j);
 
-    void setRate(int i, int j, double rate);
-
     double getMu(boolean symmetric);
 
     DoubleMatrix getR(boolean symmetric);

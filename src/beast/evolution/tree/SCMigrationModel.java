@@ -256,8 +256,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      * @param j
      * @param rate 
      */
-    @Override
-    public void setRate(int i, int j, double rate) {
+    public void setBackwardRate(int i, int j, double rate) {
         if (i==j)
             return;
         
