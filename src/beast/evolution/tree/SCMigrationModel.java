@@ -393,32 +393,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
         }
         return matPowerList.get(n);
     }
-    
-    /**
-     * Return matrix containing upper bounds on elements from the powers
-     * of R if known.  Returns a matrix of ones if steady state has not yet
-     * been reached.
-     * 
-     * @param symmetric
-     * @return Matrix of upper bounds.
-     */
-    @Override
-    public DoubleMatrix getRpowMax(boolean symmetric) {
-        
-        if (symmetric) {
-            if (RsymPowSteady)
-                return RsymPowMax;
-            else
-                return DoubleMatrix.ones(nTypes, nTypes);
-        } else {
-            if (RpowSteady)
-                return RpowMax;
-            else
-                return DoubleMatrix.ones(nTypes, nTypes);
-        }
-    }
-    
-    
+
     /**
      * Power above which R is known to be steady.
      * 

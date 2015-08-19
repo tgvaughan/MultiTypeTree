@@ -20,7 +20,5 @@ public interface MigrationModel {
 
     DoubleMatrix getRpowN(int n, boolean symmetric);
 
-    DoubleMatrix getRpowMax(boolean symmetric);
-
     int RpowSteadyN(boolean symmetric);
 }
