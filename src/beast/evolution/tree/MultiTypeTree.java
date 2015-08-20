@@ -289,20 +289,6 @@ public class MultiTypeTree extends Tree {
         return typeLabel;
     }
 
-    /**
-     * Obtain the number of types defined for this MultiTypeTree.
-     * Note that this is the number of _possible_ types, not the
-     * number of types actually present on the tree.
-     *
-     * @return number of types defined for MultiTypeTree
-     */
-    public int getNTypes() {
-        if (!traitsProcessed)
-            processTraits(m_traitList.get());
-
-        return typeList.size();
-    }
-
     @Override
     protected final void initArrays() {
         // initialise tree-as-array representation + its stored variant
