@@ -160,7 +160,7 @@
             <!-- Multi type tree -->
 
             <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' estimate='true'>
-                <migrationModel spec='beast.evolution.tree.MigrationModel' id="migModelInit.t:$(n)">
+                <migrationModel spec='beast.evolution.tree.SCMigrationModel' id="migModelInit.t:$(n)">
                     <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" estimate="false"/>
                     <popSizes spec='parameter.RealParameter' value="1.0 1.0" estimate="false"/>
                 </migrationModel>
@@ -188,7 +188,7 @@
 
             <plugin spec='multitypetree.distributions.StructuredCoalescentTreeDensity' id="structuredCoalescent.t:$(n)">
                 <multiTypeTree idref="Tree.t:$(n)"/>
-                <migrationModel spec='beast.evolution.tree.MigrationModel' id="migModel.t:$(n)">
+                <migrationModel spec='beast.evolution.tree.SCMigrationModel' id="migModel.t:$(n)">
                     <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix.t:$(n)" estimate="false"/>
                     <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes.t:$(n)" estimate="false"/>
                 </migrationModel>
