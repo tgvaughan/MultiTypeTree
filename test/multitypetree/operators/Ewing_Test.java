@@ -47,7 +47,7 @@ public class Ewing_Test {
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
-                "newick", newickStr,
+                "value", newickStr,
                 "typeLabel", "deme");
         
         // Assemble migration model:
@@ -169,7 +169,7 @@ public class Ewing_Test {
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
-                "newick", newickStr,
+                "value", newickStr,
                 "typeLabel", "deme");
         
         // Assemble migration model:

@@ -51,7 +51,7 @@ public class TWB_TS_Test {
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
-                "newick", newickStr,
+                "value", newickStr,
                 "typeLabel", "deme");
         
         // Assemble migration model:
@@ -141,7 +141,7 @@ public class TWB_TS_Test {
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
-                "newick", newickStr,
+                "value", newickStr,
                 "typeLabel", "deme");
         
         // Assemble migration model:
