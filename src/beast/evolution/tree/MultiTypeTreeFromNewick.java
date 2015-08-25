@@ -15,7 +15,7 @@ import java.util.List;
 @Description("Class to initialize a MultiTypeTree from single child newick tree with type metadata")
 public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeInitialiser {
 
-    public Input<String> newickStringInput = new Input<>("newick",
+    public Input<String> newickStringInput = new Input<>("value",
             "Tree in Newick format.", Validate.REQUIRED);
 
     public Input<Boolean> adjustTipHeightsInput = new Input<>("adjustTipHeights",
