@@ -23,9 +23,7 @@ import beast.core.State;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
-import beast.evolution.tree.MigrationModel;
-import multitypetree.operators.MultiTypeTreeScale;
-import multitypetree.operators.TypedWilsonBalding;
+import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
@@ -53,13 +51,13 @@ public class TWB_TS_Test {
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
-                "newick", newickStr,
+                "value", newickStr,
                 "typeLabel", "deme");
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
         RealParameter popSizes = new RealParameter("7.0 7.0");
-        MigrationModel migModel = new MigrationModel();
+        SCMigrationModel migModel = new SCMigrationModel();
         migModel.initByName(
                 "rateMatrix", rateMatrix,
                 "popSizes", popSizes);
@@ -143,13 +141,13 @@ public class TWB_TS_Test {
         
         MultiTypeTreeFromNewick mtTree = new MultiTypeTreeFromNewick();
         mtTree.initByName(
-                "newick", newickStr,
+                "value", newickStr,
                 "typeLabel", "deme");
         
         // Assemble migration model:
         RealParameter rateMatrix = new RealParameter("0.1 0.1");
         RealParameter popSizes = new RealParameter("7.0 7.0");
-        MigrationModel migModel = new MigrationModel();
+        SCMigrationModel migModel = new SCMigrationModel();
         migModel.initByName(
                 "rateMatrix", rateMatrix,
                 "popSizes", popSizes);

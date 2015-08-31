@@ -20,11 +20,7 @@ import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Operator;
-import beast.evolution.tree.MigrationModel;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.Node;
-import beast.evolution.tree.Tree;
+import beast.evolution.tree.*;
 
 /**
  * Abstract base class for all operators on ColouredTree objects.

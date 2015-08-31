@@ -19,11 +19,9 @@ package multitypetree.operators;
 
 import beast.core.Citation;
 import beast.core.Description;
-import beast.core.Input;
-import beast.core.Input.Validate;
-import beast.evolution.tree.MigrationModel;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
+import beast.evolution.tree.SCMigrationModel;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
 import java.util.Collections;
@@ -48,8 +46,21 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
         Node node;
         int thisDeme, prevDeme;
     }
+    private SCMigrationModel migModelSC;
 
     public BeerliFelsenstein() { }
+
+    @Override
+    public void initAndValidate() throws Exception {
+        super.initAndValidate();
+
+        if (!(migModel instanceof  SCMigrationModel)) {
+            throw new IllegalArgumentException("BeerliFelsenstein operator only " +
+                    "applies to structured coalescent migration models.");
+        }
+
+        migModelSC = (SCMigrationModel)migModel;
+    }
 
     @Override
     public double proposal() {
@@ -83,7 +94,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             for (int dp=0; dp<migModel.getNTypes(); dp++) {
                 if (d==dp)
                     continue;
-                migProp[d] += migModel.getRate(d, dp);
+                migProp[d] += migModel.getBackwardRate(d, dp);
             }
         }
         
@@ -129,7 +140,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             while (true) {
                 
                 // Calculate coalescent propensity
-                double coalProp = nodesOfType.get(deme).size()/migModel.getPopSize(deme);
+                double coalProp = nodesOfType.get(deme).size()/migModelSC.getPopSize(deme);
 
                 // Select event time
                 double dt = Randomizer.nextExponential(coalProp + migProp[deme]);
@@ -148,7 +159,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                     Node coalNode = (Node)selectRandomElement(nodesOfType.get(deme));
                     
                     // HR event contribution
-                    logHR += Math.log(1.0/migModel.getPopSize(deme));
+                    logHR += Math.log(1.0/migModelSC.getPopSize(deme));
                     
                     // Implement coalescence
                     coalTime = t;                    
@@ -165,13 +176,13 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                         if (toDeme == deme)
                             continue;
                     
-                        u -= migModel.getRate(deme, toDeme);
+                        u -= migModel.getBackwardRate(deme, toDeme);
                         if (u<0)
                             break;
                     }
                 
                     // HR event contribution
-                    logHR += Math.log(migModel.getRate(deme, toDeme));
+                    logHR += Math.log(migModel.getBackwardRate(deme, toDeme));
 
                     // Implelent migration
                     mtNode.addChange(toDeme, t);
@@ -198,7 +209,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 // Calculate coalescent propensity
                 double coalProp;
                 if (deme == demeSis)
-                    coalProp = 1.0/migModel.getPopSize(deme);
+                    coalProp = 1.0/migModelSC.getPopSize(deme);
                 else
                     coalProp = 0.0;
                 
@@ -215,7 +226,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 if (u <coalProp) {
                     // Coalescence
                     
-                    logHR += Math.log(1.0/migModel.getPopSize(deme));
+                    logHR += Math.log(1.0/migModelSC.getPopSize(deme));
                     
                     coalTime = t;
                     nodeParent.addChild(mtNodeSis);
@@ -236,13 +247,13 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                             if (toDeme == deme)
                                 continue;
                             
-                            u -= migModel.getRate(deme, toDeme);
+                            u -= migModel.getBackwardRate(deme, toDeme);
                             if (u<0)
                                 break;
                         }
                         
                         // HR contribution
-                        logHR += Math.log(migModel.getRate(deme, toDeme));
+                        logHR += Math.log(migModel.getBackwardRate(deme, toDeme));
                         
                         mtNode.addChange(toDeme, t);
                         deme = toDeme;
@@ -254,13 +265,13 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                             if (toDeme == demeSis)
                                 continue;
                             
-                            u -= migModel.getRate(demeSis, toDeme);
+                            u -= migModel.getBackwardRate(demeSis, toDeme);
                             if (u<0)
                                 break;
                         }
                         
                         // HR contribution
-                        logHR += Math.log(migModel.getRate(demeSis, toDeme));
+                        logHR += Math.log(migModel.getBackwardRate(demeSis, toDeme));
                         
                         mtNodeSis.addChange(toDeme, t);
                         demeSis = toDeme;
@@ -405,7 +416,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             while (true) {
                 
                 // Calculate coalescence propensities
-                double coalProp = lineageCounts[deme]/migModel.getPopSize(deme);
+                double coalProp = lineageCounts[deme]/migModelSC.getPopSize(deme);
                 
                 double nextTime;
                 if (changeIdx<mtNode.getChangeCount())
@@ -424,11 +435,11 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
                 if (changeIdx<mtNode.getChangeCount()) {
                     // Migration
                     int toDeme = mtNode.getChangeType(changeIdx);
-                    logP += Math.log(migModel.getRate(deme, toDeme));
+                    logP += Math.log(migModel.getBackwardRate(deme, toDeme));
                     deme = toDeme;
                 } else {
                     // Coalescence
-                    logP += Math.log(1.0/migModel.getPopSize(deme));
+                    logP += Math.log(1.0/migModelSC.getPopSize(deme));
                     return logP;
                 }
             }
@@ -450,7 +461,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
             // Calculate propensities
             double coalProp;
             if (deme == demeSis)
-                coalProp = 1.0/migModel.getPopSize(deme);
+                coalProp = 1.0/migModelSC.getPopSize(deme);
             else
                 coalProp = 0.0;
         }

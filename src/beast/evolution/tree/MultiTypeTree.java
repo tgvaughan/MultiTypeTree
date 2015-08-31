@@ -289,20 +289,6 @@ public class MultiTypeTree extends Tree {
         return typeLabel;
     }
 
-    /**
-     * Obtain the number of types defined for this MultiTypeTree.
-     * Note that this is the number of _possible_ types, not the
-     * number of types actually present on the tree.
-     *
-     * @return number of types defined for MultiTypeTree
-     */
-    public int getNTypes() {
-        if (!traitsProcessed)
-            processTraits(m_traitList.get());
-
-        return typeList.size();
-    }
-
     @Override
     protected final void initArrays() {
         // initialise tree-as-array representation + its stored variant
@@ -614,9 +600,18 @@ public class MultiTypeTree extends Tree {
                 List<Double> times = new ArrayList<>();
 
                 while (flatTreeNode.getChildCount()==1) {
-                    int col = (int) Math.round(
-                            (Double) flatTreeNode.getMetaData(typeLabel));
+                    Object typeObject = flatTreeNode.getMetaData(typeLabel);
+                    int col;
+                    if (typeObject instanceof Integer)
+                        col = (int) typeObject;
+                    else if (typeObject instanceof Double)
+                        col = (int) Math.round((double)typeObject);
+                    else if (typeObject instanceof String)
+                        col = Integer.parseInt((String)typeObject);
+                    else
+                        throw new IllegalArgumentException("Unrecognized type metadata.");
                     colours.add(col);
+
                     times.add(flatTreeNode.getHeight());
 
                     flatTreeNode = flatTreeNode.getLeft();
@@ -659,8 +654,17 @@ public class MultiTypeTree extends Tree {
                     treeNode.addChange(colours.get(i), times.get(i));
 
                 // Set node type at base of multi-type tree branch:
-                int nodeType = (int) Math.round(
-                        (Double) flatTreeNode.getMetaData(typeLabel));
+                Object typeObject = flatTreeNode.getMetaData(typeLabel);
+                int nodeType;
+                if (typeObject instanceof Integer)
+                    nodeType = (int)typeObject;
+                else if (typeObject instanceof Double)
+                    nodeType = (int)Math.round((Double)typeObject);
+                else if (typeObject instanceof String)
+                    nodeType = Integer.parseInt((String)typeObject);
+                else
+                    throw new IllegalArgumentException("Unrecognised type metadata.");
+
                 treeNode.setNodeType(nodeType);
 
                 // Set node height:
@@ -865,7 +869,7 @@ public class MultiTypeTree extends Tree {
     @Override
     public void fromXML(org.w3c.dom.Node node) {
         try {
-            String sNewick = node.getTextContent().replace("&", "");
+            String sNewick = node.getTextContent();
 
             TreeParser parser = new TreeParser();
             parser.initByName(

@@ -19,10 +19,7 @@ package multitypetree.operators;
 import beast.core.Input;
 import beast.core.State;
 import beast.core.parameter.RealParameter;
-import beast.evolution.tree.MigrationModel;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.MultiTypeTreeFromNewick;
-import beast.evolution.tree.Node;
+import beast.evolution.tree.*;
 import beast.util.Randomizer;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -299,7 +296,7 @@ public abstract class UniformizationRetypeOperator extends MultiTypeTreeOperator
                 + "0.05 0.06 0.07 0.08 "
                 + "0.09 0.10 0.11 0.12");
         RealParameter popSizes = new RealParameter("7.0 7.0 7.0 7.0");
-        MigrationModel migModel = new MigrationModel();
+        SCMigrationModel migModel = new SCMigrationModel();
         migModel.initByName(
                 "rateMatrix", rateMatrix,
                 "popSizes", popSizes);

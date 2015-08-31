@@ -18,7 +18,7 @@
 package multitypetree.util;
 
 import beast.core.parameter.IntegerParameter;
-import beast.evolution.tree.MigrationModel;
+import beast.evolution.tree.SCMigrationModel;
 
 /**
  *
@@ -26,7 +26,7 @@ import beast.evolution.tree.MigrationModel;
  */
 public class UtilMethods {
     
-    public static double [] getSimulatedHeights(MigrationModel migrationModel,
+    public static double [] getSimulatedHeights(SCMigrationModel migrationModel,
             IntegerParameter leafTypes) throws Exception {
 
         // Generate ensemble:

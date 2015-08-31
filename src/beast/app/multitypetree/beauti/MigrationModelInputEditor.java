@@ -20,7 +20,7 @@ import beast.app.beauti.BeautiDoc;
 import beast.app.draw.InputEditor;
 import beast.core.BEASTInterface;
 import beast.core.Input;
-import beast.evolution.tree.MigrationModel;
+import beast.evolution.tree.SCMigrationModel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -28,7 +28,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
-import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -52,7 +51,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
     DefaultTableModel popSizeModel, rateMatrixModel;
     SpinnerNumberModel nTypesModel;
-    MigrationModel migModel;
+    SCMigrationModel migModel;
 
     JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
 
@@ -64,7 +63,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
     @Override
     public Class<?> type() {
-        return MigrationModel.class;
+        return SCMigrationModel.class;
     }
 
     @Override
@@ -81,7 +80,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         addInputLabel();
 
         // Create component models and fill them with data from input
-        migModel = (MigrationModel) input.get();
+        migModel = (SCMigrationModel) input.get();
         nTypesModel = new SpinnerNumberModel(2, 2, Short.MAX_VALUE, 1);
         popSizeModel = new DefaultTableModel();
         rateMatrixModel = new DefaultTableModel() {
@@ -254,7 +253,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             for (int j=0; j<migModel.getNTypes(); j++) {
                 if (i == j)
                     continue;
-                rateMatrixModel.setValueAt(migModel.getRate(i, j), i, j);
+                rateMatrixModel.setValueAt(migModel.getBackwardRate(i, j), i, j);
             }
         }
 
