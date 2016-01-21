@@ -865,7 +865,7 @@ public class MultiTypeTree extends Tree {
     @Override
     public void fromXML(org.w3c.dom.Node node) {
         try {
-            String sNewick = node.getTextContent().replace("&", "");
+            String sNewick = node.getTextContent();
 
             TreeParser parser = new TreeParser();
             parser.initByName(
