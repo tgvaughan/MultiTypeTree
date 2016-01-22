@@ -8,8 +8,8 @@
   <property name="sourceVersion" value="1.8"/>
   <property name="targetVersion" value="1.8"/>
 
-  <property name="beastRev" value="master"/>
-  <property name="beastAr" value="beast2-master"/>
+  <property name="beastRev" value="2.3.3"/>
+  <property name="beastAr" value="beast2-2.3.3"/>
   <!--*******************************************************************-->
 
   <!-- Directories necessary for all BEAST 2 packages -->
