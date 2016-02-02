@@ -100,7 +100,6 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
                 if (i==j)
                     continue;
                 out.print(migModel.getRateForLog(i, j) + "\t");
-                // out.format("%g\t", migModel.getRateForLog(i, j));
             }
         }
         
