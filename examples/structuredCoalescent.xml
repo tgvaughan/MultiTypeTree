@@ -540,7 +540,7 @@ t128=3">
    </siteModel>
  
    <!-- Migration model -->
-   <migrationModel spec='MigrationModel' id='migModel'>
+   <migrationModel spec='SCMigrationModel' id='migModel'>
      <rateMatrix spec='RealParameter' value="1.0" dimension="2" id="rateMatrix"/>
      <popSizes spec='RealParameter' value="1.0" dimension="2" id="popSizes"/>
    </migrationModel>
@@ -580,7 +580,7 @@ t128=3">
    <run spec="MCMC" id="mcmc" chainLength="100000000" storeEvery="10000">
 
      <init spec='StructuredCoalescentMultiTypeTree' id='tree'>
-         <migrationModel spec='MigrationModel'>
+         <migrationModel spec='SCMigrationModel'>
              <rateMatrix spec='RealParameter' value="1.0" dimension="2"/>
              <popSizes spec='RealParameter' value="1.0" dimension="2"/>
          </migrationModel>
