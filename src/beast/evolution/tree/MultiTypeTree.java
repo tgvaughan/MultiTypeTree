@@ -80,7 +80,7 @@ public class MultiTypeTree extends Tree {
     }
     
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         
         if (m_initial.get() != null && !(this instanceof StateNodeInitialiser)) {
             
@@ -569,7 +569,7 @@ public class MultiTypeTree extends Tree {
      * @param takeNrsFromFlatTree 
      * @throws java.lang.Exception 
      */
-    public void initFromFlatTree(Tree flatTree, boolean takeNrsFromFlatTree) throws Exception {
+    public void initFromFlatTree(Tree flatTree, boolean takeNrsFromFlatTree) {
 
         // Build new coloured tree:
 
@@ -820,7 +820,7 @@ public class MultiTypeTree extends Tree {
     // Methods implementing the Loggable interface //
     /////////////////////////////////////////////////
     @Override
-    public void init(PrintStream printStream) throws Exception {
+    public void init(PrintStream printStream) {
 
         printStream.println("#NEXUS\n");
         printStream.println("Begin taxa;");

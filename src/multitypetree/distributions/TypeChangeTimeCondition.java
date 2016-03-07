@@ -53,7 +53,7 @@ public class TypeChangeTimeCondition extends MultiTypeTreeDistribution {
     protected RealParameter h1, h2;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
 
         h1 = h1Input.get();
@@ -66,7 +66,7 @@ public class TypeChangeTimeCondition extends MultiTypeTreeDistribution {
     }
 
     @Override
-    public double calculateLogP() throws Exception {
+    public double calculateLogP() {
         update();
 
         logP = 0.0;

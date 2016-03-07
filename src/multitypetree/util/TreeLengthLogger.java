@@ -38,7 +38,7 @@ import beast.evolution.tree.Tree;
 @Description("Logger to report total length of all branches on tree.")
 public class TreeLengthLogger extends CalculationNode implements Loggable, Function {
     
-    public Input<Tree> treeInput = new Input<Tree>("tree",
+    public Input<Tree> treeInput = new Input<>("tree",
             "Tree to report total branch length of.",
             Validate.REQUIRED);
 
@@ -46,7 +46,7 @@ public class TreeLengthLogger extends CalculationNode implements Loggable, Funct
     public void initAndValidate() { }
     
     @Override
-    public void init(PrintStream out) throws Exception {
+    public void init(PrintStream out) {
         Tree tree = treeInput.get();
         if (getID() == null || getID().matches("\\s*")) {
             out.print(tree.getID() + ".length\t");

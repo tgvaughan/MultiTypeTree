@@ -51,7 +51,7 @@ public class BeerliFelsenstein extends MultiTypeTreeOperator {
     public BeerliFelsenstein() { }
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
 
         if (!(migModel instanceof  SCMigrationModel)) {

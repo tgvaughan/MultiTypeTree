@@ -17,11 +17,11 @@ import java.util.List;
 public class RandomMultiTypeTree extends MultiTypeTree implements StateNodeInitialiser {
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
         
         if (!hasTypeTrait())
-            throw new Exception("No trait set with name '" + typeLabel + "' "
+            throw new IllegalArgumentException("No trait set with name '" + typeLabel + "' "
                     + "identified.  Needed to specify taxon locations.");
         
         // Fill leaf colour array:
@@ -32,7 +32,7 @@ public class RandomMultiTypeTree extends MultiTypeTree implements StateNodeIniti
         generateTyping(getRoot());
         
         if (!isValid())
-            throw new Exception("Inconsistent colour assignment.");
+            throw new IllegalStateException("Inconsistent colour assignment.");
         
     }
 

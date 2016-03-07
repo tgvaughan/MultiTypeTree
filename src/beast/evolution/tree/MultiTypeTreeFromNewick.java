@@ -22,7 +22,7 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
             "Adjust tip heights in tree? Default true.", true);
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         
         super.initAndValidate();
         

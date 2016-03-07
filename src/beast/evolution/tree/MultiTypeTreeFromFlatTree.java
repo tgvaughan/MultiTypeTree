@@ -17,7 +17,7 @@ public class MultiTypeTreeFromFlatTree extends MultiTypeTree {
             Input.Validate.REQUIRED);
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
 
         initFromFlatTree(flatTreeInput.get(), true);

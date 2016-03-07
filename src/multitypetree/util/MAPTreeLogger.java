@@ -44,7 +44,7 @@ public class MAPTreeLogger extends Tree {
     double maxPosterior;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
 
         currentMAPTree = multiTypeTreeInput.get().copy();
@@ -59,7 +59,7 @@ public class MAPTreeLogger extends Tree {
     }
 
     @Override
-    public void init(PrintStream out) throws Exception {
+    public void init(PrintStream out) {
         currentMAPTree.init(out);
     }
 

@@ -26,6 +26,8 @@ import beast.core.parameter.RealParameter;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import com.google.common.collect.Lists;
+
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -106,7 +108,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
     public StructuredCoalescentMultiTypeTree() { }
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         
         super.initAndValidate();
 
@@ -167,6 +169,9 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                 pstream.println("#nexus\nbegin trees;");
                 pstream.println("tree TREE_1 = " + toString() + ";");
                 pstream.println("end;");
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException("Error opening file '"
+                        + outputFileNameInput.get() + "' for writing.");
             }
         }
     }
@@ -175,10 +180,9 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
      * Generates tree using the specified list of active leaf nodes using the
      * structured coalescent.
      *
-     * @param activeNodes
      * @return Root node of generated tree.
      */
-    private MultiTypeNode simulateTree() throws Exception {
+    private MultiTypeNode simulateTree() {
 
         // Initialise node creation counter:
         int nextNodeNr = 0;
@@ -274,7 +278,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                 return nodeList.get(0);
 
         // Should not fall through.
-        throw new Exception("No active nodes remaining end of "
+        throw new RuntimeException("No active nodes remaining end of "
                 + "structured coalescent simulation!");
     }
 
@@ -340,8 +344,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
      * @return Event object describing next event.
      */
     private SCEvent getNextEvent(List<List<Double>> migrateProp,
-            List<Double> coalesceProp, double totalProp, double t)
-            throws Exception {
+            List<Double> coalesceProp, double totalProp, double t) {
 
         // Get time of next event:
         if (totalProp>0.0)
@@ -371,7 +374,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         }
 
         // Loop should not fall through.
-        throw new Exception("Structured coalescenct event selection error.");
+        throw new RuntimeException("Structured coalescenct event selection error.");
 
     }
 
@@ -460,7 +463,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
     }
     
     @Override
-    public void initStateNodes() throws Exception { }
+    public void initStateNodes() { }
 
     @Override
     public void getInitialisedStateNodes(List<StateNode> stateNodeList) {

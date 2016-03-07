@@ -34,7 +34,7 @@ public class TypeBirthDeath extends MultiTypeTreeOperator {
     private Set<Integer> illegalTypes;
     
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
 
         illegalTypes = new HashSet<>();

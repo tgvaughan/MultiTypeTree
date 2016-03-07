@@ -44,7 +44,7 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
     private double alpha;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
 
         alpha = alphaInput.get();

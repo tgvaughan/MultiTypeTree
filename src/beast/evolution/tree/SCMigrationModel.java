@@ -71,7 +71,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
     }
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         
         popSizes = popSizesInput.get();
         rateMatrix = rateMatrixInput.get();

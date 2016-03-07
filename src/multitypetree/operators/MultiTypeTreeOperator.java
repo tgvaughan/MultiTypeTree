@@ -44,7 +44,7 @@ public abstract class MultiTypeTreeOperator extends Operator {
     protected MigrationModel migModel;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         mtTree = multiTypeTreeInput.get();
         migModel = migrationModelInput.get();
     }

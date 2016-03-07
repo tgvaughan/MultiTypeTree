@@ -37,7 +37,7 @@ public abstract class MultiTypeTreeDistribution extends Distribution {
     protected MultiTypeTree mtTree;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         mtTree = mtTreeInput.get();
     }
 

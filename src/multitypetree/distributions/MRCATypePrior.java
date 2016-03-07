@@ -31,7 +31,7 @@ public class MRCATypePrior extends MultiTypeTreeDistribution {
     protected int type;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
         if (typeProbsInput.get() != null
                 && typeProbsInput.get().getDimension() != migrationModelInput.get().getNTypes()) {
@@ -59,7 +59,7 @@ public class MRCATypePrior extends MultiTypeTreeDistribution {
     }
 
     @Override
-    public double calculateLogP() throws Exception {
+    public double calculateLogP() {
 
         MultiTypeNode mrca = (MultiTypeNode)TreeUtils.getCommonAncestorNode(
                 mtTree, taxonSetInput.get().getTaxaNames());
