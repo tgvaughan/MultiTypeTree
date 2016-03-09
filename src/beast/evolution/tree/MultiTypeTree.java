@@ -53,11 +53,10 @@ public class MultiTypeTree extends Tree {
     public Input<TraitSet> typeTraitInput = new Input<>(
         "typeTrait", "Type trait set.  Used only by BEAUti.");
 
-    public Input<List<String>> typeTraitValuesInput = new Input<>(
-            "typeTraitValue",
-            "An additional type value to be included even when absent " +
-                    "from the sampled taxa.",
-            new ArrayList<>());
+    public Input<String> typeTraitValuesInput = new Input<>(
+            "typeTraitValues",
+            "Comma-delimited list of types to be included even when absent " +
+                    "from the sampled taxa.");
 
     /*
      * Non-input fields:
@@ -200,8 +199,10 @@ public class MultiTypeTree extends Tree {
                 typeSet.add(typeTraitSet.getStringValue(i));
 
             // Include any addittional trait values in type list
-            for (String typeName : typeTraitValuesInput.get())
-                typeSet.add(typeName);
+            if (typeTraitValuesInput.get() != null) {
+                for (String typeName : typeTraitValuesInput.get().split(","))
+                    typeSet.add(typeName);
+            }
 
             typeList = Lists.newArrayList(typeSet);
             Collections.sort(typeList);

@@ -6,6 +6,7 @@ import beast.evolution.tree.*;
 import beast.util.Randomizer;
 import org.jblas.MatrixFunctions;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class StructuredCoalescentUntypedDensity extends TreeDistribution {
+public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
 
     public Input<SCMigrationModel> migrationModelInput = new Input<>(
             "migrationModel", "Model of migration between demes.",
@@ -30,8 +31,8 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
             Input.Validate.REQUIRED);
 
     int nParticles;
+    double[] logParticleWeights;
     Tree tree;
-    TraitSet typeTraitSet;
     SCMigrationModel migrationModel;
     IntegerParameter nodeTypes;
 
@@ -43,7 +44,6 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
         double time;
         int type, destType;
         SCEventKind kind;
-        Node node;
 
         @Override
         public int compareTo(SCEvent o) {
@@ -55,9 +55,20 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
 
             return 0;
         }
+
+        @Override
+        public String toString() {
+            return kind
+                    + " " + type + (kind == SCEventKind.MIGRATE ? "->" + destType : "")
+                    + " (" + time + ")";
+        }
     }
     private List<SCEvent> eventList;
-    private List<Integer[]> lineageCountList;
+    private int[] lineageCount;
+
+    public StructuredCoalescentUntypedTreeDensity() {
+        eventList = new ArrayList<>();
+    }
 
 
     @Override
@@ -68,6 +79,8 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
         tree = (Tree) treeInput.get();
         migrationModel = migrationModelInput.get();
         nodeTypes = nodeTypesInput.get();
+        lineageCount = new int[migrationModel.getNTypes()];
+        logParticleWeights = new double[nParticles];
     }
 
 
@@ -75,22 +88,19 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
     public double calculateLogP() {
         logP = 0.0;
 
+        double maxLogWeight = Double.NEGATIVE_INFINITY;
         for (int p=0; p<nParticles; p++) {
 
             eventList.clear();
+            logParticleWeights[p] = 0.0;
 
             for (int i=0; i<tree.getNodeCount(); i++) {
 
                 Node node = tree.getNode(i);
                 Node parent = node.getParent();
 
-                int ip = parent.getNr();
-
-                int startType = nodeTypes.getValue(i);
-                int endType = nodeTypes.getValue(ip);
-
                 SCEvent event = new SCEvent();
-                event.type = startType;
+                event.type = nodeTypes.getValue(i);
                 event.time = node.getHeight();
                 event.kind = node.isLeaf() ? SCEventKind.SAMPLE : SCEventKind.COALESCE;
                 eventList.add(event);
@@ -99,7 +109,10 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
                     continue;
 
                 try {
-                    logP -= addTypeChanges(startType, endType, node.getHeight(), parent.getHeight());
+                    int startType = nodeTypes.getValue(i);
+                    int endType = nodeTypes.getValue(parent.getNr());
+
+                    logParticleWeights[p] -= addTypeChanges(startType, endType, node.getHeight(), parent.getHeight());
                 } catch (NoValidPathException e) {
                     // Internal node types inconsistent with migration model.
                     return Double.NEGATIVE_INFINITY;
@@ -108,8 +121,64 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
 
             Collections.sort(eventList);
 
+            for (int c=0; c<migrationModel.getNTypes(); c++)
+                lineageCount[c] = eventList.get(0).type == c ? 1 : 0;
+
+            for (int eventIdx = 1; eventIdx<eventList.size(); eventIdx++) {
+
+                SCEvent event = eventList.get(eventIdx);
+                double delta_t = event.time-eventList.get(eventIdx-1).time;
+
+                // Interval contribution:
+                if (delta_t>0) {
+                    double lambda = 0.0;
+                    for (int c = 0; c<lineageCount.length; c++) {
+                        int k = lineageCount[c];
+                        double Nc = migrationModel.getPopSize(c);
+                        lambda += k*(k-1)/(2.0*Nc);
+
+                        for (int cp = 0; cp<lineageCount.length; cp++) {
+                            if (cp==c)
+                                continue;
+
+                            double m = migrationModel.getBackwardRate(c, cp);
+                            lambda += k*m;
+                        }
+                    }
+                    logParticleWeights[p] += -delta_t*lambda;
+                }
+
+                // Event contribution:
+                switch (event.kind) {
+                    case COALESCE:
+                        double N = migrationModel.getPopSize(event.type);
+                        logParticleWeights[p] += Math.log(1.0/N);
+                        lineageCount[event.type] -= 1;
+                        break;
+
+                    case MIGRATE:
+                        double m = migrationModel
+                                .getBackwardRate(event.type, event.destType);
+                        logParticleWeights[p] += Math.log(m);
+                        lineageCount[event.type] -= 1;
+                        lineageCount[event.destType] += 1;
+                        break;
+
+                    case SAMPLE:
+                        lineageCount[event.type] += 1;
+                        break;
+                }
+            }
+
+            maxLogWeight = Math.max(logParticleWeights[p], maxLogWeight);
         }
 
+        double sumScaledWeights = 0;
+        for (int p=0; p<nParticles; p++) {
+            sumScaledWeights += Math.exp(logParticleWeights[p] - maxLogWeight);
+        }
+
+        logP = Math.log(sumScaledWeights/nParticles) + maxLogWeight;
 
         return logP;
     }
@@ -258,6 +327,7 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
 
                 // Add change to branch:
                 SCEvent event = new SCEvent();
+                event.kind = SCEventKind.MIGRATE;
                 event.type = prevType;
                 event.destType = types[i];
                 event.time = times[i];
@@ -278,6 +348,11 @@ public class StructuredCoalescentUntypedDensity extends TreeDistribution {
 
         // Return probability of path given boundary conditions:
         return logProb;
+    }
+
+    @Override
+    protected boolean requiresRecalculation() {
+        return true;
     }
 
     @Override

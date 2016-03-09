@@ -31,7 +31,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 /**
- * A multi-type tree generated randomly from leaf types and a migration matrix
+ * A regular BEAST tree generated randomly from leaf types and a migration matrix
  * with fixed population sizes.
  *
  * @author Tim Vaughan
@@ -40,17 +40,15 @@ import java.util.*;
 + "a migration matrix with fixed population sizes.")
 public class StructuredCoalescentUntypedTree extends Tree implements StateNodeInitialiser {
 
-    /*
-     * Plugin inputs:
-     */
+
     public Input<SCMigrationModel> migrationModelInput = new Input<>(
             "migrationModel",
             "Migration model to use in simulator.",
             Validate.REQUIRED);
 
-    public Input<IntegerParameter> internalNodeTypesInput = new Input<>(
-            "internalNodeTypes",
-            "Integers representing types of internal nodes.",
+    public Input<IntegerParameter> nodeTypesInput = new Input<>(
+            "nodeTypes",
+            "Integers representing types of nodes.",
             Input.Validate.REQUIRED);
 
     public Input<String> typeLabelInput = new Input<>(
@@ -61,21 +59,15 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
             "outputFileName", "Optional name of file to write simulated "
                     + "tree to.");
 
-    /*
-     * Non-input fields:
-     */
-    protected SCMigrationModel migModel;
-    protected IntegerParameter internalNodeTypes;
+    SCMigrationModel migModel;
+    IntegerParameter internalNodeTypes;
 
-    private List<Integer> leafTypes;
-    private List<String> leafNames;
-    private List<Double> leafTimes;
-    private int nLeaves;
+    List<Integer> leafTypes;
+    List<String> leafNames;
+    List<Double> leafTimes;
+    int nLeaves;
 
-    /*
-     * Other private fields and classes:
-     */
-    private abstract class SCEvent {
+    abstract class SCEvent {
 
         double time;
         int fromType, toType;
@@ -85,7 +77,7 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
         }
     }
 
-    private class CoalescenceEvent extends SCEvent {
+    class CoalescenceEvent extends SCEvent {
 
         public CoalescenceEvent(int type, double time) {
             this.fromType = type;
@@ -93,7 +85,7 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
         }
     }
 
-    private class MigrationEvent extends SCEvent {
+    class MigrationEvent extends SCEvent {
 
         public MigrationEvent(int fromType, int toType, double time) {
             this.fromType = fromType;
@@ -117,10 +109,7 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
 
         // Obtain required parameters from inputs:
         migModel = migrationModelInput.get();
-        internalNodeTypes = internalNodeTypesInput.get();
-
-        // Prepare internalNodeTypes for initialization:
-        internalNodeTypes.setDimension(getInternalNodeCount());
+        internalNodeTypes = nodeTypesInput.get();
 
         // Obtain leaf colours from explicit input or alignment:
         leafTypes = new ArrayList<>();
@@ -165,9 +154,15 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
                         + "doesn't match number of leaf colours supplied.");
 
             for (int i=0; i<nLeaves; i++)
-                leafTimes.add(timeTraitSet.getValue(i));
+                leafTimes.add(timeTraitSet.getValue(leafNames.get(i)));
         }
+    }
 
+    @Override
+    public void initStateNodes() {
+
+        // Prepare internalNodeTypes for initialization:
+        internalNodeTypes.setDimension(getNodeCount());
 
         // Construct tree
         this.root = simulateTree();
@@ -181,7 +176,7 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
         if (outputFileNameInput.get() != null) {
             try (PrintStream pstream = new PrintStream(outputFileNameInput.get())) {
                 pstream.println("#nexus\nbegin trees;");
-                pstream.println("tree TREE_1 = " + toString() + ";");
+                pstream.println("tree TREE_1 = " + root.toNewick() + ";");
                 pstream.println("end;");
             } catch (FileNotFoundException e) {
                 throw new RuntimeException("Error opening file '"
@@ -189,6 +184,7 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
             }
         }
     }
+
 
     /**
      * Generates tree using the specified list of active leaf nodes using the
@@ -472,9 +468,6 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
 
         return nodeList.get(n);
     }
-
-    @Override
-    public void initStateNodes() { }
 
     @Override
     public void getInitialisedStateNodes(List<StateNode> stateNodeList) {
