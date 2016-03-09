@@ -38,6 +38,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
             "rateMatrix",
             "Migration rate matrix",
             Validate.REQUIRED);
+
     public Input<RealParameter> popSizesInput = new Input<>(
             "popSizes",
             "Deme population sizes.",

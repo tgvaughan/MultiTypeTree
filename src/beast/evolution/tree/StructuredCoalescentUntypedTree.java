@@ -46,11 +46,6 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
             "Migration model to use in simulator.",
             Validate.REQUIRED);
 
-    public Input<IntegerParameter> nodeTypesInput = new Input<>(
-            "nodeTypes",
-            "Integers representing types of nodes.",
-            Input.Validate.REQUIRED);
-
     public Input<String> typeLabelInput = new Input<>(
             "typeLabel",
             "Label for type traits (default 'type')", "type");
@@ -60,7 +55,6 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
                     + "tree to.");
 
     SCMigrationModel migModel;
-    IntegerParameter internalNodeTypes;
 
     List<Integer> leafTypes;
     List<String> leafNames;
@@ -109,7 +103,6 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
 
         // Obtain required parameters from inputs:
         migModel = migrationModelInput.get();
-        internalNodeTypes = nodeTypesInput.get();
 
         // Obtain leaf colours from explicit input or alignment:
         leafTypes = new ArrayList<>();
@@ -161,9 +154,6 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
     @Override
     public void initStateNodes() {
 
-        // Prepare internalNodeTypes for initialization:
-        internalNodeTypes.setDimension(getNodeCount());
-
         // Construct tree
         this.root = simulateTree();
         this.root.parent = null;
@@ -212,7 +202,6 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
             node.setID(leafNames.get(l));
             inactiveNodes.get(leafTypes.get(l)).add(node);
             node.setHeight(leafTimes.get(l));
-            internalNodeTypes.setValue(nextNodeNr, leafTypes.get(l));
 
             nextNodeNr++;
         }
@@ -423,9 +412,6 @@ public class StructuredCoalescentUntypedTree extends Tree implements StateNodeIn
             activeNodes.get(event.fromType).remove(son);
             int idx = activeNodes.get(event.fromType).indexOf(daughter);
             activeNodes.get(event.fromType).set(idx, parent);
-
-            // Update internal node types array
-            internalNodeTypes.setValue(parent.getNr(), event.fromType);
 
         } else {
 

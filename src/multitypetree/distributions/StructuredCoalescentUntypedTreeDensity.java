@@ -6,10 +6,7 @@ import beast.evolution.tree.*;
 import beast.util.Randomizer;
 import org.jblas.MatrixFunctions;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
@@ -20,21 +17,19 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
             "migrationModel", "Model of migration between demes.",
             Input.Validate.REQUIRED);
 
-    public Input<IntegerParameter> nodeTypesInput = new Input<>(
-            "nodeTypes",
-            "Integers representing types of nodes.",
-            Input.Validate.REQUIRED);
-
     public Input<Integer> nParticlesInput = new Input<>(
             "nParticles",
             "Number of simulated trees used in density estimate.",
             Input.Validate.REQUIRED);
 
+    public Input<String> typeLabelInput = new Input<>(
+            "typeLabel",
+            "Label for type traits (default 'type')", "type");
+
     int nParticles;
     double[] logParticleWeights;
     Tree tree;
     SCMigrationModel migrationModel;
-    IntegerParameter nodeTypes;
 
     private enum SCEventKind {
         COALESCE, MIGRATE, SAMPLE
@@ -63,8 +58,10 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
                     + " (" + time + ")";
         }
     }
-    private List<SCEvent> eventList;
-    private int[] lineageCount;
+
+    List<SCEvent> eventList;
+    int[] lineageCount;
+    int[] nodeTypes;
 
     public StructuredCoalescentUntypedTreeDensity() {
         eventList = new ArrayList<>();
@@ -78,9 +75,35 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
         nParticles = nParticlesInput.get();
         tree = (Tree) treeInput.get();
         migrationModel = migrationModelInput.get();
-        nodeTypes = nodeTypesInput.get();
         lineageCount = new int[migrationModel.getNTypes()];
         logParticleWeights = new double[nParticles];
+        nodeTypes = new int[tree.getNodeCount()];
+
+        // Fill leaf colour array:
+        TraitSet typeTraitSet = null;
+        for (TraitSet traitSet : tree.m_traitList.get()) {
+            if (traitSet.getTraitName().equals(typeLabelInput.get())) {
+                typeTraitSet = traitSet;
+                break;
+            }
+        }
+        if (typeTraitSet != null) {
+
+            Set<String> typeSet = new TreeSet<>();
+            for (String taxon : tree.getTaxaNames()) {
+                typeSet.add(typeTraitSet.getStringValue(taxon));
+            }
+            List<String> typeList = new ArrayList<>(typeSet);
+
+            for (Node leaf : tree.getExternalNodes()) {
+                nodeTypes[leaf.getNr()] = typeList.indexOf(typeTraitSet.getStringValue(leaf.getID()));
+            }
+        } else {
+            throw new IllegalArgumentException(
+                    "Trait set (with name '" + typeLabelInput.get() + "') "
+                            + "must be provided.");
+        }
+
     }
 
 
@@ -89,33 +112,28 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
         logP = 0.0;
 
         double maxLogWeight = Double.NEGATIVE_INFINITY;
+
         for (int p=0; p<nParticles; p++) {
-
             eventList.clear();
-            logParticleWeights[p] = 0.0;
+            logParticleWeights[p] = 0;
 
-            for (int i=0; i<tree.getNodeCount(); i++) {
+            // Clear internal node types:
+            for (int i = tree.getLeafNodeCount(); i < tree.getNodeCount(); i++)
+                nodeTypes[i] = -1;
 
-                Node node = tree.getNode(i);
-                Node parent = node.getParent();
+            // Choose random order in which to colour lineages:
+            int leafNrs[] = Randomizer.shuffled(tree.getLeafNodeCount());
 
-                SCEvent event = new SCEvent();
-                event.type = nodeTypes.getValue(i);
-                event.time = node.getHeight();
-                event.kind = node.isLeaf() ? SCEventKind.SAMPLE : SCEventKind.COALESCE;
-                eventList.add(event);
+            boolean isFirst = true;
+            for (int leafNr : leafNrs) {
 
-                if (node.isRoot())
-                    continue;
-
-                try {
-                    int startType = nodeTypes.getValue(i);
-                    int endType = nodeTypes.getValue(parent.getNr());
-
-                    logParticleWeights[p] -= addTypeChanges(startType, endType, node.getHeight(), parent.getHeight());
-                } catch (NoValidPathException e) {
-                    // Internal node types inconsistent with migration model.
-                    return Double.NEGATIVE_INFINITY;
+                if (isFirst) {
+                    logParticleWeights[p] -= colourFirstLineage(leafNr);
+//                    printAncestralColours(leafNr);
+                    isFirst = false;
+                } else {
+                    logParticleWeights[p] -= colourLineage(leafNr);
+//                    printAncestralColours(leafNr);
                 }
             }
 
@@ -127,32 +145,32 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
             for (int eventIdx = 1; eventIdx<eventList.size(); eventIdx++) {
 
                 SCEvent event = eventList.get(eventIdx);
-                double delta_t = event.time-eventList.get(eventIdx-1).time;
+                double delta_t = event.time - eventList.get(eventIdx - 1).time;
 
                 // Interval contribution:
-                if (delta_t>0) {
+                if (delta_t > 0) {
                     double lambda = 0.0;
-                    for (int c = 0; c<lineageCount.length; c++) {
+                    for (int c = 0; c < lineageCount.length; c++) {
                         int k = lineageCount[c];
                         double Nc = migrationModel.getPopSize(c);
-                        lambda += k*(k-1)/(2.0*Nc);
+                        lambda += k * (k - 1) / (2.0 * Nc);
 
-                        for (int cp = 0; cp<lineageCount.length; cp++) {
-                            if (cp==c)
+                        for (int cp = 0; cp < lineageCount.length; cp++) {
+                            if (cp == c)
                                 continue;
 
                             double m = migrationModel.getBackwardRate(c, cp);
-                            lambda += k*m;
+                            lambda += k * m;
                         }
                     }
-                    logParticleWeights[p] += -delta_t*lambda;
+                    logParticleWeights[p] += -delta_t * lambda;
                 }
 
                 // Event contribution:
                 switch (event.kind) {
                     case COALESCE:
                         double N = migrationModel.getPopSize(event.type);
-                        logParticleWeights[p] += Math.log(1.0/N);
+                        logParticleWeights[p] += Math.log(1.0 / N);
                         lineageCount[event.type] -= 1;
                         break;
 
@@ -184,6 +202,114 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
     }
 
     /**
+     * Colour first lineage of tree.  This is handled specially because
+     * this CTMC is not conditioned on an earlier node type.
+     *
+     * @param leafNr number of starting leaf
+     * @return log probability of simulated path
+     */
+    double colourFirstLineage(int leafNr) {
+
+        Node leaf = tree.getNode(leafNr);
+        double time = leaf.getHeight();
+        int type = nodeTypes[leafNr];
+        Node nextNode = leaf.getParent();
+
+        SCEvent event = new SCEvent();
+        event.kind = SCEventKind.SAMPLE;
+        event.type = type;
+        event.time = leaf.getHeight();
+        eventList.add(event);
+
+
+        double thisLogP = 0.0;
+
+        while (true) {
+
+            double aTot = 0;
+            for (int c=0; c<migrationModel.getNTypes(); c++) {
+                if (c == type)
+                    continue;
+
+                aTot += migrationModel.getBackwardRate(type, c);
+            }
+
+            double newTime = time + Randomizer.nextExponential(aTot);
+
+            while (nextNode != null && nextNode.getHeight() < newTime) {
+                nodeTypes[nextNode.getNr()] = type;
+
+                event = new SCEvent();
+                event.kind = SCEventKind.COALESCE;
+                event.type = type;
+                event.time = nextNode.getHeight();
+                eventList.add(event);
+
+                thisLogP += -aTot*(nextNode.getHeight() - time);
+                time = nextNode.getHeight();
+
+                nextNode = nextNode.getParent();
+            }
+
+            if (nextNode == null)
+                break;
+
+            thisLogP += -aTot*(newTime - time);
+            time = newTime;
+
+            double u = Randomizer.nextDouble()*aTot;
+
+            int newType;
+            for (newType=0; newType<migrationModel.getNTypes(); newType++) {
+                if (newType==type)
+                    continue;
+
+                u -= migrationModel.getBackwardRate(type, newType);
+                if (u<0.0)
+                    break;
+            }
+
+            event = new SCEvent();
+            event.kind = SCEventKind.MIGRATE;
+            event.type = type;
+            event.destType = newType;
+            event.time = time;
+            eventList.add(event);
+
+            thisLogP += Math.log(migrationModel.getBackwardRate(type, newType));
+            type = newType;
+        }
+
+        return thisLogP;
+    }
+
+    double colourLineage(int leafNr) {
+        double thisLogP = 0.0;
+
+        Node leaf = tree.getNode(leafNr);
+
+        SCEvent event = new SCEvent();
+        event.kind = SCEventKind.SAMPLE;
+        event.type = nodeTypes[leafNr];
+        event.time = leaf.getHeight();
+        eventList.add(event);
+
+        // Find first coloured ancestral node
+        Node firstColouredAncestor = leaf.getParent();
+        while (nodeTypes[firstColouredAncestor.getNr()]<0)
+            firstColouredAncestor = firstColouredAncestor.getParent();
+
+        try {
+            thisLogP += addTypeChanges(nodeTypes[leafNr], nodeTypes[firstColouredAncestor.getNr()],
+                    leaf.getHeight(), firstColouredAncestor.getHeight(), leaf);
+        } catch (NoValidPathException e) {
+            return Double.NEGATIVE_INFINITY;
+        }
+
+        return thisLogP;
+    }
+
+    /**
      * Exception used to signal non-existence of allowed type sequence
      * between node types.
      */
@@ -193,7 +319,6 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
             return "No valid valid type sequence exists between chosen nodes.";
         }
     }
-
 
     /**
      * Sample the number of virtual events to occur along branch.
@@ -253,7 +378,7 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
      * @return Probability of new state.
      * @throws multitypetree.operators.UniformizationRetypeOperator.NoValidPathException
      */
-    protected double addTypeChanges(int startType, int endType, double startTime, double endTime) throws NoValidPathException {
+    protected double addTypeChanges(int startType, int endType, double startTime, double endTime, Node startNode) throws NoValidPathException {
         double L = endTime - startTime;
 
         // Pre-calculate some stuff:
@@ -321,6 +446,7 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
         // of path conditional on start type:
         prevType = startType;
         double prevTime = startTime;
+        Node prevNode = startNode;
         for (int i = 0; i<nVirt; i++) {
 
             if (types[i] != prevType) {
@@ -333,6 +459,21 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
                 event.time = times[i];
                 eventList.add(event);
 
+                // Colour any internal nodes we pass:
+                while (prevNode.getHeight() < times[i]) {
+                    if (!prevNode.isLeaf()) {
+                        nodeTypes[prevNode.getNr()] = prevType;
+
+                        event = new SCEvent();
+                        event.kind = SCEventKind.COALESCE;
+                        event.type = prevType;
+                        event.time = prevNode.getHeight();
+                        eventList.add(event);
+
+                    }
+                    prevNode = prevNode.getParent();
+                }
+
                 // Add probability contribution:
                 logProb += migrationModel.getQ(false).get(prevType, prevType)*(times[i]-prevTime)
                         +Math.log(migrationModel.getQ(false).get(prevType, types[i]));
@@ -343,11 +484,38 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
         }
         logProb += migrationModel.getQ(false).get(prevType, prevType)*(endTime-prevTime);
 
+        // Colour any internal nodes between last migration time and end time
+        while (prevNode.getHeight() < endTime) {
+            if (!prevNode.isLeaf()) {
+                nodeTypes[prevNode.getNr()] = prevType;
+
+                SCEvent event = new SCEvent();
+                event.kind = SCEventKind.COALESCE;
+                event.type = prevType;
+                event.time = prevNode.getHeight();
+                eventList.add(event);
+
+            }
+            prevNode = prevNode.getParent();
+        }
+
         // Adjust probability to account for end condition:
         logProb -= Math.log(Pba);
 
         // Return probability of path given boundary conditions:
         return logProb;
+    }
+
+    public void printAncestralColours(int leafNr) {
+        Node node = tree.getNode(leafNr);
+
+        while (node != null) {
+            if (!node.isLeaf())
+                System.out.print(", ");
+            System.out.print(node.getNr() + " " + nodeTypes[node.getNr()]);
+            node = node.getParent();
+        }
+        System.out.println();
     }
 
     @Override
