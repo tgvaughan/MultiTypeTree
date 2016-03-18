@@ -140,7 +140,7 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
     }
 
     @Override
-    public void init(PrintStream out) throws Exception {
+    public void init(PrintStream out) {
         
         String idString = mtTree.getID();
 

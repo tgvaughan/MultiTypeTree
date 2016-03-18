@@ -23,12 +23,12 @@ public class TypedNodeTreeLogger extends BEASTObject implements Loggable {
     MultiTypeTree mtTree;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         mtTree = multiTypeTreeInput.get();
     }
 
     @Override
-    public void init(PrintStream out) throws Exception {
+    public void init(PrintStream out) {
         mtTree.init(out);
     }
 

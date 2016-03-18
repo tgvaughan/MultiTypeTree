@@ -66,7 +66,7 @@ public class MultiTypeTreeScale extends MultiTypeTreeOperator {
     boolean indicatorsUsed, indicatorsInverseUsed;
     
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
 
         super.initAndValidate();
 

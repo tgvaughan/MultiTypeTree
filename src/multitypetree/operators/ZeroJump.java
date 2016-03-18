@@ -41,7 +41,7 @@ public class ZeroJump extends Operator {
     private double alpha;
     
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         parameter = parameterInput.get();
         alpha = alphaInput.get();
     }

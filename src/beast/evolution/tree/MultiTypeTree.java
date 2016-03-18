@@ -53,11 +53,10 @@ public class MultiTypeTree extends Tree {
     public Input<TraitSet> typeTraitInput = new Input<>(
         "typeTrait", "Type trait set.  Used only by BEAUti.");
 
-    public Input<List<String>> typeTraitValuesInput = new Input<>(
-            "typeTraitValue",
-            "An additional type value to be included even when absent " +
-                    "from the sampled taxa.",
-            new ArrayList<>());
+    public Input<String> typeTraitValuesInput = new Input<>(
+            "typeTraitValues",
+            "Comma-delimited list of types to be included even when absent " +
+                    "from the sampled taxa.");
 
     /*
      * Non-input fields:
@@ -80,7 +79,7 @@ public class MultiTypeTree extends Tree {
     }
     
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         
         if (m_initial.get() != null && !(this instanceof StateNodeInitialiser)) {
             
@@ -200,8 +199,10 @@ public class MultiTypeTree extends Tree {
                 typeSet.add(typeTraitSet.getStringValue(i));
 
             // Include any addittional trait values in type list
-            for (String typeName : typeTraitValuesInput.get())
-                typeSet.add(typeName);
+            if (typeTraitValuesInput.get() != null) {
+                for (String typeName : typeTraitValuesInput.get().split(","))
+                    typeSet.add(typeName);
+            }
 
             typeList = Lists.newArrayList(typeSet);
             Collections.sort(typeList);
@@ -569,7 +570,7 @@ public class MultiTypeTree extends Tree {
      * @param takeNrsFromFlatTree 
      * @throws java.lang.Exception 
      */
-    public void initFromFlatTree(Tree flatTree, boolean takeNrsFromFlatTree) throws Exception {
+    public void initFromFlatTree(Tree flatTree, boolean takeNrsFromFlatTree) {
 
         // Build new coloured tree:
 
@@ -820,7 +821,7 @@ public class MultiTypeTree extends Tree {
     // Methods implementing the Loggable interface //
     /////////////////////////////////////////////////
     @Override
-    public void init(PrintStream printStream) throws Exception {
+    public void init(PrintStream printStream) {
 
         printStream.println("#NEXUS\n");
         printStream.println("Begin taxa;");

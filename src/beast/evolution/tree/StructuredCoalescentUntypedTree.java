@@ -25,54 +25,43 @@ import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
-import com.google.common.collect.Lists;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
- * A multi-type tree generated randomly from leaf types and a migration matrix
+ * A regular BEAST tree generated randomly from leaf types and a migration matrix
  * with fixed population sizes.
  *
  * @author Tim Vaughan
  */
 @Description("A multi-type tree generated randomly from leaf types and"
 + "a migration matrix with fixed population sizes.")
-public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements StateNodeInitialiser {
+public class StructuredCoalescentUntypedTree extends Tree implements StateNodeInitialiser {
 
-    /*
-     * Plugin inputs:
-     */
+
     public Input<SCMigrationModel> migrationModelInput = new Input<>(
             "migrationModel",
             "Migration model to use in simulator.",
             Validate.REQUIRED);
-    
-    public Input<IntegerParameter> leafTypesInput = new Input<>(
-            "leafTypes",
-            "Types of leaf nodes.");
-    
+
+    public Input<String> typeLabelInput = new Input<>(
+            "typeLabel",
+            "Label for type traits (default 'type')", "type");
+
     public Input<String> outputFileNameInput = new Input<>(
             "outputFileName", "Optional name of file to write simulated "
                     + "tree to.");
 
-    /*
-     * Non-input fields:
-     */
-    protected SCMigrationModel migModel;
-    
-    private List<Integer> leafTypes;
-    private List<String> leafNames;
-    private List<Double> leafTimes;
-    private int nLeaves;
+    SCMigrationModel migModel;
 
-    /*
-     * Other private fields and classes:
-     */
-    private abstract class SCEvent {
+    List<Integer> leafTypes;
+    List<String> leafNames;
+    List<Double> leafTimes;
+    int nLeaves;
+
+    abstract class SCEvent {
 
         double time;
         int fromType, toType;
@@ -82,7 +71,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         }
     }
 
-    private class CoalescenceEvent extends SCEvent {
+    class CoalescenceEvent extends SCEvent {
 
         public CoalescenceEvent(int type, double time) {
             this.fromType = type;
@@ -90,7 +79,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         }
     }
 
-    private class MigrationEvent extends SCEvent {
+    class MigrationEvent extends SCEvent {
 
         public MigrationEvent(int fromType, int toType, double time) {
             this.fromType = fromType;
@@ -98,50 +87,57 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             this.time = time;
         }
     }
-    
+
     private class NullEvent extends SCEvent {
         public NullEvent() {
             this.time = Double.POSITIVE_INFINITY;
         }
     }
-    
-    public StructuredCoalescentMultiTypeTree() { }
+
+    public StructuredCoalescentUntypedTree() { }
 
     @Override
     public void initAndValidate() {
-        
+
         super.initAndValidate();
 
         // Obtain required parameters from inputs:
         migModel = migrationModelInput.get();
 
         // Obtain leaf colours from explicit input or alignment:
-        leafTypes = Lists.newArrayList();
-        leafNames = Lists.newArrayList();
-        if (leafTypesInput.get() != null) {            
-            for (int i=0; i<leafTypesInput.get().getDimension(); i++) {
-                leafTypes.add(leafTypesInput.get().getValue(i));
-                leafNames.add(String.valueOf(i));
+        leafTypes = new ArrayList<>();
+        leafNames = new ArrayList<>();
+
+        // Fill leaf colour array:
+        TraitSet typeTraitSet = null;
+        for (TraitSet traitSet : m_traitList.get()) {
+            if (traitSet.getTraitName().equals(typeLabelInput.get())) {
+                typeTraitSet = traitSet;
+                break;
+            }
+        }
+        if (typeTraitSet != null) {
+
+            Set<String> typeSet = new TreeSet<>();
+            for (String taxon : getTaxaNames()) {
+                typeSet.add(typeTraitSet.getStringValue(taxon));
+            }
+            List<String> typeList = new ArrayList<>(typeSet);
+
+            for (String taxon : getTaxaNames()) {
+                leafTypes.add(typeList.indexOf(typeTraitSet.getStringValue(taxon)));
+                leafNames.add(taxon);
             }
         } else {
-            // Fill leaf colour array:
-            if (hasTypeTrait()) {
-                for (int i = 0; i<typeTraitSet.taxaInput.get().asStringList().size(); i++) {
-                    leafTypes.add(getTypeList().indexOf(typeTraitSet.getStringValue(i)));
-                    leafNames.add(typeTraitSet.taxaInput.get().asStringList().get(i));
-                }
-            } else {
-                throw new IllegalArgumentException("Either leafColours or "
-                    + "trait set (with name '" + typeLabel + "') "
-                    + "must be provided.");
-            }
-
+            throw new IllegalArgumentException(
+                    "Trait set (with name '" + typeLabelInput.get() + "') "
+                            + "must be provided.");
         }
-        
+
         nLeaves = leafTypes.size();
-        
+
         // Set leaf times if specified:
-        leafTimes = Lists.newArrayList();
+        leafTimes = new ArrayList<>();
         if (timeTraitSet == null) {
             for (int i=0; i<nLeaves; i++)
                 leafTimes.add(0.0);
@@ -149,11 +145,14 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             if (timeTraitSet.taxaInput.get().asStringList().size() != nLeaves)
                 throw new IllegalArgumentException("Number of time traits "
                         + "doesn't match number of leaf colours supplied.");
-            
+
             for (int i=0; i<nLeaves; i++)
-                leafTimes.add(timeTraitSet.getValue(i));
+                leafTimes.add(timeTraitSet.getValue(leafNames.get(i)));
         }
-        
+    }
+
+    @Override
+    public void initStateNodes() {
 
         // Construct tree
         this.root = simulateTree();
@@ -167,7 +166,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         if (outputFileNameInput.get() != null) {
             try (PrintStream pstream = new PrintStream(outputFileNameInput.get())) {
                 pstream.println("#nexus\nbegin trees;");
-                pstream.println("tree TREE_1 = " + toString() + ";");
+                pstream.println("tree TREE_1 = " + root.toNewick() + ";");
                 pstream.println("end;");
             } catch (FileNotFoundException e) {
                 throw new RuntimeException("Error opening file '"
@@ -176,20 +175,21 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         }
     }
 
+
     /**
      * Generates tree using the specified list of active leaf nodes using the
      * structured coalescent.
      *
      * @return Root node of generated tree.
      */
-    private MultiTypeNode simulateTree() {
+    private Node simulateTree() {
 
         // Initialise node creation counter:
         int nextNodeNr = 0;
 
         // Initialise node lists:
-        List<List<MultiTypeNode>> activeNodes = Lists.newArrayList();
-        List<List<MultiTypeNode>> inactiveNodes = Lists.newArrayList();
+        List<List<Node>> activeNodes = new ArrayList<>();
+        List<List<Node>> inactiveNodes = new ArrayList<>();
         for (int i = 0; i < migModel.getNTypes(); i++) {
             activeNodes.add(new ArrayList<>());
             inactiveNodes.add(new ArrayList<>());
@@ -197,26 +197,25 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
 
         // Add nodes to inactive nodes list:
         for (int l = 0; l < nLeaves; l++) {
-            MultiTypeNode node = new MultiTypeNode();
+            Node node = new Node();
             node.setNr(nextNodeNr);
             node.setID(leafNames.get(l));
             inactiveNodes.get(leafTypes.get(l)).add(node);
             node.setHeight(leafTimes.get(l));
-            node.setNodeType(leafTypes.get(l));
 
             nextNodeNr++;
         }
-        
+
         // Sort nodes in inactive nodes lists in order of increasing age:
         for (int i=0; i<migModel.getNTypes(); i++) {
             Collections.sort(inactiveNodes.get(i),
-                (MultiTypeNode node1, MultiTypeNode node2) -> {
+                (Node node1, Node node2) -> {
                     double dt = node1.getHeight()-node2.getHeight();
                     if (dt<0)
                         return -1;
                     if (dt>0)
                         return 1;
-                    
+
                     return 0;
                 });
         }
@@ -239,19 +238,19 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             // Step 1: Calculate propensities.
             double totalProp = updatePropensities(migrationProp, coalesceProp,
                     activeNodes);
-            
+
             // Step 2: Determine next event.
             SCEvent event = getNextEvent(migrationProp, coalesceProp,
                     totalProp, t);
 
             // Step 3: Handle activation of nodes:
-            MultiTypeNode nextNode = null;
+            Node nextNode = null;
             int nextNodeType = -1;
             double nextTime = Double.POSITIVE_INFINITY;
             for (int i=0; i<migModel.getNTypes(); i++) {
                 if (inactiveNodes.get(i).isEmpty())
                     continue;
-                
+
                 if (inactiveNodes.get(i).get(0).getHeight()<nextTime) {
                     nextNode = inactiveNodes.get(i).get(0);
                     nextTime = nextNode.getHeight();
@@ -264,7 +263,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                 inactiveNodes.get(nextNodeType).remove(0);
                 continue;
             }
-            
+
             // Step 4: Place event on tree.
             nextNodeNr = updateTree(activeNodes, event, nextNodeNr);
 
@@ -273,7 +272,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         }
 
         // Return sole remaining active node as root:
-        for (List<MultiTypeNode> nodeList : activeNodes)
+        for (List<Node> nodeList : activeNodes)
             if (!nodeList.isEmpty())
                 return nodeList.get(0);
 
@@ -292,7 +291,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
      * @return Total reaction propensity.
      */
     private double updatePropensities(List<List<Double>> migrationProp,
-            List<Double> coalesceProp, List<List<MultiTypeNode>> activeNodes) {
+            List<Double> coalesceProp, List<List<Node>> activeNodes) {
 
         double totalProp = 0.0;
 
@@ -326,10 +325,10 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
      * @param activeNodes
      * @return Number of active nodes remaining.
      */
-    private int totalNodesRemaining(List<List<MultiTypeNode>> activeNodes) {
+    private int totalNodesRemaining(List<List<Node>> activeNodes) {
         int result = 0;
 
-        for (List<MultiTypeNode> nodeList : activeNodes)
+        for (List<Node> nodeList : activeNodes)
             result += nodeList.size();
 
         return result;
@@ -386,18 +385,18 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
      * @param nextNodeNr Integer identifier of last node added to tree.
      * @return Updated nextNodeNr.
      */
-    private int updateTree(List<List<MultiTypeNode>> activeNodes, SCEvent event,
+    private int updateTree(List<List<Node>> activeNodes, SCEvent event,
             int nextNodeNr) {
 
         if (event instanceof CoalescenceEvent) {
 
             // Randomly select node pair with chosen colour:
-            MultiTypeNode daughter = selectRandomNode(activeNodes.get(event.fromType));
-            MultiTypeNode son = selectRandomSibling(
+            Node daughter = selectRandomNode(activeNodes.get(event.fromType));
+            Node son = selectRandomSibling(
                     activeNodes.get(event.fromType), daughter);
 
             // Create new parent node with appropriate ID and time:
-            MultiTypeNode parent = new MultiTypeNode();
+            Node parent = new MultiTypeNode();
             parent.setNr(nextNodeNr);
             parent.setID(String.valueOf(nextNodeNr));
             parent.setHeight(event.time);
@@ -409,9 +408,6 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             son.setParent(parent);
             daughter.setParent(parent);
 
-            // Ensure new parent is set to correct colour:
-            parent.setNodeType(event.fromType);
-
             // Update activeNodes:
             activeNodes.get(event.fromType).remove(son);
             int idx = activeNodes.get(event.fromType).indexOf(daughter);
@@ -420,10 +416,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         } else {
 
             // Randomly select node with chosen colour:
-            MultiTypeNode migrator = selectRandomNode(activeNodes.get(event.fromType));
-
-            // Record colour change in change lists:
-            migrator.addChange(event.toType, event.time);
+            Node migrator = selectRandomNode(activeNodes.get(event.fromType));
 
             // Update activeNodes:
             activeNodes.get(event.fromType).remove(migrator);
@@ -441,7 +434,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
      * @param nodeList
      * @return A randomly selected node.
      */
-    private MultiTypeNode selectRandomNode(List<MultiTypeNode> nodeList) {
+    private Node selectRandomNode(List<Node> nodeList) {
         return nodeList.get(Randomizer.nextInt(nodeList.size()));
     }
 
@@ -452,7 +445,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
      * @param node
      * @return Randomly selected node.
      */
-    private MultiTypeNode selectRandomSibling(List<MultiTypeNode> nodeList, Node node) {
+    private Node selectRandomSibling(List<Node> nodeList, Node node) {
 
         int n = Randomizer.nextInt(nodeList.size() - 1);
         int idxToAvoid = nodeList.indexOf(node);
@@ -461,21 +454,18 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
 
         return nodeList.get(n);
     }
-    
-    @Override
-    public void initStateNodes() { }
 
     @Override
     public void getInitialisedStateNodes(List<StateNode> stateNodeList) {
         stateNodeList.add(this);
     }
-    
+
     /**
      * Generates an ensemble of trees from the structured coalescent for testing
      * coloured tree-space samplers.
      *
      * @param argv
-     * @throws java.lang.Exception
+     * @throws Exception
      */
     public static void main(String[] argv) throws Exception {
         
@@ -501,11 +491,10 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         // Generate ensemble:
         int reps = 1000000;
         double[] heights = new double[reps];
-        double[] changes = new double[reps];
 
         long startTime = System.currentTimeMillis();
-        StructuredCoalescentMultiTypeTree sctree;
-        sctree = new StructuredCoalescentMultiTypeTree();
+        StructuredCoalescentUntypedTree sctree;
+        sctree = new StructuredCoalescentUntypedTree();
         for (int i = 0; i < reps; i++) {
 
             if (i % 1000 == 0)
@@ -517,7 +506,6 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                     "nTypes", 4);
 
             heights[i] = sctree.getRoot().getHeight();
-            changes[i] = sctree.getTotalNumberOfChanges();
         }
 
         long time = System.currentTimeMillis() - startTime;
@@ -526,16 +514,12 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
                 DiscreteStatistics.mean(heights), DiscreteStatistics.stdev(heights) / Math.sqrt(reps));
         System.out.printf("V[T] = %1.4f\n", DiscreteStatistics.variance(heights));
 
-        System.out.printf("E[C] = %1.4f +/- %1.4f\n",
-                DiscreteStatistics.mean(changes), DiscreteStatistics.stdev(changes) / Math.sqrt(reps));
-        System.out.printf("V[C] = %1.4f\n", DiscreteStatistics.variance(changes));
-
         System.out.printf("Took %1.2f seconds\n", time / 1000.0);
 
         try (PrintStream outStream = new PrintStream("heights.txt")) {
             outStream.println("h c");
             for (int i = 0; i < reps; i++)
-                outStream.format("%g %g\n", heights[i], changes[i]);
+                outStream.format("%g\n", heights[i]);
         }
     }
 

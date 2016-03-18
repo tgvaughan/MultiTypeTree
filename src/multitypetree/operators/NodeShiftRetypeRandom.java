@@ -42,7 +42,7 @@ public class NodeShiftRetypeRandom extends RandomRetypeOperator {
             "Scale factor used in root height proposals. (Default 0.8)", 0.8);
     
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
         
         if (rootOnlyInput.get() && noRootInput.get())

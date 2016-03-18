@@ -42,7 +42,7 @@ public class TypedWilsonBaldingRandom extends RandomRetypeOperator {
     private double alpha;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
 
         alpha = alphaInput.get();

@@ -118,7 +118,7 @@ public class NodeTypeCounts extends CalculationNode implements Function, Loggabl
     }
 
     @Override
-    public void init(PrintStream out) throws Exception {
+    public void init(PrintStream out) {
         
         String idString = mtTree.getID();
 

@@ -36,7 +36,7 @@ public class PriorWithPole extends Prior {
     double p0;
     
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
 
         if (!(m_x.get() instanceof RealParameter))
             throw new RuntimeException("PriorWithPole only applies to"

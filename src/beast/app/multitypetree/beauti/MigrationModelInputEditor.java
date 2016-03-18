@@ -67,13 +67,13 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     }
 
     @Override
-    public void init(Input<?> input, BEASTInterface plugin, int itemNr,
+    public void init(Input<?> input, BEASTInterface beastObject, int itemNr,
         ExpandOption bExpandOption, boolean bAddButtons) {
 
         // Set up fields
         m_bAddButtons = bAddButtons;
         m_input = input;
-        m_plugin = plugin;
+        m_beastObject = beastObject;
 		this.itemNr = itemNr;
 
         // Adds label to left of input editor

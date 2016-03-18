@@ -50,7 +50,7 @@ public class TreeRootTypeLogger extends CalculationNode implements Loggable, Fun
     }
 
     @Override
-    public void init(PrintStream out) throws Exception {
+    public void init(PrintStream out) {
         if (getID() == null || getID().matches("\\s*")) {
             out.print(mtTree.getID() + ".rootColor\t");
         } else {

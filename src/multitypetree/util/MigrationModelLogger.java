@@ -40,13 +40,13 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
     private MultiTypeTree mtTree;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         migModel = migModelInput.get();
         mtTree = multiTypeTreeInput.get();
     }
 
     @Override
-    public void init(PrintStream out) throws Exception {
+    public void init(PrintStream out) {
         String outName;
         if (migModel.getID() == null || migModel.getID().matches("\\s*"))
             outName = "migModel";
@@ -99,7 +99,7 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
             for (int j=0; j<migModel.getNTypes(); j++) {
                 if (i==j)
                     continue;
-                out.format("%g\t", migModel.getRateForLog(i, j));
+                out.print(migModel.getRateForLog(i, j) + "\t");
             }
         }
         
