@@ -5,6 +5,7 @@ import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.StateNode;
 import beast.core.StateNodeInitialiser;
+import beast.core.util.Log;
 import beast.util.Randomizer;
 import beast.util.TreeParser;
 import org.jblas.MatrixFunctions;
@@ -74,10 +75,10 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
             else
                 typedNode.setParent(typedNodes[node.getParent().getNr()]);
 
-            for (int c=0; c<node.getChildCount(); c++) {
-                while (typedNode.children.size() <= node.getChildCount())
-                    typedNode.children.add(null);
+            while (typedNode.children.size() < node.getChildCount())
+                typedNode.children.add(null);
 
+            for (int c=0; c<node.getChildCount(); c++) {
                 typedNode.setChild(c, typedNodes[node.getChild(c).getNr()]);
             }
         }
@@ -118,6 +119,7 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
                     }
                 }
             } catch (NoValidPathException ex) {
+                Log.info.println("Colour simulation failed. Retrying.");
                 continue;
             }
 
@@ -328,16 +330,16 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
         // of path conditional on start type:
         prevType = startType;
         MultiTypeNode prevNode = startNode;
+        MultiTypeNode nextNode = (MultiTypeNode) startNode.getParent();
         for (int i = 0; i<nVirt; i++) {
 
             if (types[i] != prevType) {
 
                 // Colour any internal nodes we pass:
-                while (prevNode.getHeight() < times[i]) {
-                    if (!prevNode.isLeaf())
-                        prevNode.setNodeType(prevType);
-
-                    prevNode = (MultiTypeNode) prevNode.getParent();
+                while (times[i] > nextNode.getHeight()) {
+                    nextNode.setNodeType(prevType);
+                    prevNode = nextNode;
+                    nextNode = (MultiTypeNode) nextNode.getParent();
                 }
 
                 // Add change to branch:
@@ -348,11 +350,10 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
         }
 
         // Colour any internal nodes between last migration time and end time
-        while (prevNode.getHeight() < endTime) {
-            if (!prevNode.isLeaf())
-                prevNode.setNodeType(prevType);
+        while (nextNode.getHeight() < endTime) {
+            nextNode.setNodeType(prevType);
 
-            prevNode = (MultiTypeNode) prevNode.getParent();
+            nextNode = (MultiTypeNode) nextNode.getParent();
         }
     }
 
