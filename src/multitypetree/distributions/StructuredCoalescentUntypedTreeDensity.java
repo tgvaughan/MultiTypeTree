@@ -129,7 +129,6 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
 
                 if (isFirst) {
                     logParticleWeights[p] -= colourFirstLineage(leafNr);
-//                    printAncestralColours(leafNr);
                     isFirst = false;
                 } else {
                     logParticleWeights[p] -= colourLineage(leafNr);
