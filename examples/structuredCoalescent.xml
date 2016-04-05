@@ -682,7 +682,7 @@ t128=3">
 
      <!-- Loggers -->
      
-     <logger logEvery="1000" fileName="structuredCoalescent.log">
+     <logger logEvery="1000" fileName="$(filebase).log">
        <model idref='posterior'/>
        <log idref="posterior"/>
        <log idref="treeLikelihood"/>
@@ -701,12 +701,12 @@ t128=3">
        <log spec='TreeRootTypeLogger' multiTypeTree="@tree"/>
      </logger>
 
-     <logger logEvery="10000" fileName="structuredCoalescent.trees" mode="tree">
+     <logger logEvery="10000" fileName="$(filebase).trees" mode="tree">
        <log idref="tree"/>
      </logger>
 
 
-     <logger logEvery="10000" fileName="typedNode.trees" mode="tree">
+     <logger logEvery="10000" fileName="$(filebase).typedNode.trees" mode="tree">
          <log spec='TypedNodeTreeLogger' multiTypeTree="@tree"/>
      </logger>
 
