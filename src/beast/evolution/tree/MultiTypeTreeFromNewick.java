@@ -19,7 +19,7 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
             "Tree in Newick format.", Validate.REQUIRED);
 
     public Input<Boolean> adjustTipHeightsInput = new Input<>("adjustTipHeights",
-            "Adjust tip heights in tree? Default true.", true);
+            "Adjust tip heights in tree? Default true.", false);
 
     @Override
     public void initAndValidate() {

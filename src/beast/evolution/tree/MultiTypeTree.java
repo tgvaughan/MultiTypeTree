@@ -607,9 +607,13 @@ public class MultiTypeTree extends Tree {
                         col = (int) typeObject;
                     else if (typeObject instanceof Double)
                         col = (int) Math.round((double)typeObject);
-                    else if (typeObject instanceof String)
-                        col = Integer.parseInt((String)typeObject);
-                    else
+                    else if (typeObject instanceof String) {
+                        try {
+                            col = Integer.parseInt((String) typeObject);
+                        } catch (NumberFormatException ex) {
+                            col = getTypeFromString((String) typeObject);
+                        }
+                    } else
                         throw new IllegalArgumentException("Unrecognized type metadata.");
                     colours.add(col);
 
@@ -661,9 +665,13 @@ public class MultiTypeTree extends Tree {
                     nodeType = (int)typeObject;
                 else if (typeObject instanceof Double)
                     nodeType = (int)Math.round((Double)typeObject);
-                else if (typeObject instanceof String)
-                    nodeType = Integer.parseInt((String)typeObject);
-                else
+                else if (typeObject instanceof String) {
+                    try {
+                        nodeType = Integer.parseInt((String) typeObject);
+                    } catch (NumberFormatException ex) {
+                        nodeType = getTypeFromString((String) typeObject);
+                    }
+                } else
                     throw new IllegalArgumentException("Unrecognised type metadata.");
 
                 treeNode.setNodeType(nodeType);
