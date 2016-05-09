@@ -265,6 +265,7 @@
             <!-- Trace log elements -->
             <log id="treeHeight.t:$(n)" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:$(n)"/>
             <log id="treeLength.t:$(n)" spec="multitypetree.util.TreeLengthLogger" tree="@Tree.t:$(n)"/>
+            <log id="typeLengths.t:$(n)" spec="multitypetree.util.TypeLengths" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)"/>
             <log id="changeCounts.t:$(n)" spec="multitypetree.util.TypeChangeCounts" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)"/>
             <log id="totalChangeCounts.t:$(n)" spec="beast.core.util.Sum" arg="@changeCounts.t:$(n)"/>
             <log id="nodeTypeCounts.t:$(n)" spec="multitypetree.util.NodeTypeCounts" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)"/>
@@ -322,6 +323,7 @@
             <connect srcID='migModelLogger.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(migModel.t:$(n))'/>
             <connect srcID='treeHeight.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='treeLength.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
+            <connect srcID='typeLengths.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='changeCounts.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='totalChangecounts.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='nodeTypeCounts.t:$(n)' targetID='tracelog' inputName='log' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
