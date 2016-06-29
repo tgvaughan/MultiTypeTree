@@ -104,7 +104,8 @@
                               beast.evolution.tree.coalescent.BayesianSkyline.groupSizes,
                               beast.evolution.tree.coalescent.BayesianSkyline.popSizes,
                               beast.evolution.speciation.YuleModel.originHeight,
-                              multitypetree.distributions.StructuredCoalescentTreeDensity.multiTypeTree'
+                              multitypetree.distributions.StructuredCoalescentTreeDensity.multiTypeTree,
+                              multitypetree.distributions.StructuredCoalescentTreeDensity.checkValidity'
                               >
 
         <panel spec='BeautiPanelConfig' panelname="Partitions" tiptext="Data Partitions"
