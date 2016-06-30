@@ -17,6 +17,7 @@
 package multitypetree.operators;
 
 import beast.core.Description;
+import beast.core.Input;
 import beast.evolution.tree.MultiTypeNode;
 import beast.evolution.tree.Node;
 import beast.util.Randomizer;
@@ -27,21 +28,30 @@ import beast.util.Randomizer;
 @Description("Retypes a randomly chosen node and its attached branches. "
         + "This variant uses the uniformization branch retyping procedure.")
 public class NodeRetype extends UniformizationRetypeOperator {
+
+    public Input<Boolean> retypeLeavesInput = new Input<>(
+            "retypeLeaves",
+            "Allow leaves to be retyped.");
     
     @Override
     public double proposal() {
         double logHR = 0.0;
         
         // Select node:
-        Node node = mtTree.getNode(mtTree.getLeafNodeCount()
+        Node node;
+        if (retypeLeavesInput.get()) {
+            node = mtTree.getNode(Randomizer.nextInt(mtTree.getNodeCount()));
+        } else
+            node = mtTree.getNode(mtTree.getLeafNodeCount()
                 + Randomizer.nextInt(mtTree.getInternalNodeCount()));
         
         // Record probability of current types along attached branches:
         if (!node.isRoot())
             logHR += getBranchTypeProb(node);
 
-        logHR += getBranchTypeProb(node.getLeft())
-                + getBranchTypeProb(node.getRight());
+        if (!node.isLeaf())
+            logHR += getBranchTypeProb(node.getLeft())
+                    + getBranchTypeProb(node.getRight());
         
         // Select new node type:
         ((MultiTypeNode)node).setNodeType(
@@ -52,13 +62,13 @@ public class NodeRetype extends UniformizationRetypeOperator {
             if (!node.isRoot())
                 logHR -= retypeBranch(node);
 
-            logHR -= retypeBranch(node.getLeft())
-                    + retypeBranch(node.getRight());
+            if (!node.isLeaf())
+                logHR -= retypeBranch(node.getLeft())
+                        + retypeBranch(node.getRight());
         } catch (NoValidPathException e) {
             return Double.NEGATIVE_INFINITY;
         }
-        
-        
+
         return logHR;
     }
     
