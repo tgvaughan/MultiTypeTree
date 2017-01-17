@@ -19,6 +19,7 @@ package beast.app.multitypetree.beauti;
 import beast.app.beauti.BeautiDoc;
 import beast.core.BEASTInterface;
 import beast.core.parameter.Parameter;
+import beast.core.parameter.RealParameter;
 import beast.evolution.likelihood.TreeLikelihood;
 import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
@@ -52,24 +53,24 @@ public class InitMigrationModelConnector {
             SCMigrationModel migModelInit = (SCMigrationModel)doc.pluginmap.get(
                 "migModelInit.t:" + pID);
 
-            String rateMatrixStr = getParameterString(migModel.rateMatrixInput.get());
-            String popSizesStr = getParameterString(migModel.popSizesInput.get());
+            String rateMatrixStr = getParameterString((RealParameter)migModel.rateMatrixInput.get());
+            String popSizesStr = getParameterString((RealParameter)migModel.popSizesInput.get());
 
-            migModelInit.popSizesInput.get().setDimension(migModel.getNTypes());
+            ((RealParameter)migModelInit.popSizesInput.get()).setDimension(migModel.getNTypes());
 
-            migModelInit.popSizesInput.get().valuesInput.setValue(
+            ((RealParameter)migModelInit.popSizesInput.get()).valuesInput.setValue(
                 popSizesStr,
-                migModelInit.popSizesInput.get());
+                    (RealParameter)migModelInit.popSizesInput.get());
 
-            migModelInit.rateMatrixInput.get().setDimension(
+            ((RealParameter)migModelInit.rateMatrixInput.get()).setDimension(
                 migModel.getNTypes()*(migModel.getNTypes()-1));
-            migModelInit.rateMatrixInput.get().valuesInput.setValue(
+            ((RealParameter)migModelInit.rateMatrixInput.get()).valuesInput.setValue(
                 rateMatrixStr,
-                migModelInit.rateMatrixInput.get());
+                    (RealParameter)migModelInit.rateMatrixInput.get());
 
             try {
-                migModelInit.popSizesInput.get().initAndValidate();
-                migModelInit.rateMatrixInput.get().initAndValidate();
+                ((RealParameter)migModelInit.popSizesInput.get()).initAndValidate();
+                ((RealParameter)migModelInit.rateMatrixInput.get()).initAndValidate();
                 migModelInit.initAndValidate();
             } catch (Exception ex) {
                 System.err.println("Error configuring initial migration model.");

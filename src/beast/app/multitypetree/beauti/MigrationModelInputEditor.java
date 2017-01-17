@@ -20,6 +20,7 @@ import beast.app.beauti.BeautiDoc;
 import beast.app.draw.InputEditor;
 import beast.core.BEASTInterface;
 import beast.core.Input;
+import beast.core.parameter.RealParameter;
 import beast.evolution.tree.SCMigrationModel;
 import java.awt.Color;
 import java.awt.Component;
@@ -131,7 +132,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.weightx = 1.0;
         c.anchor = GridBagConstraints.LINE_START;
         panel.add(popSizeTable, c);
-        popSizeEstCheckBox.setSelected(migModel.popSizesInput.get().isEstimatedInput.get());
+        popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
         c.gridx = 2;
         c.gridy = 1;
         c.anchor = GridBagConstraints.LINE_END;
@@ -174,7 +175,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.anchor = GridBagConstraints.LINE_START;
         c.weightx = 1.0;
         panel.add(rateMatrixTable, c);
-        rateMatrixEstCheckBox.setSelected(migModel.rateMatrixInput.get().isEstimatedInput.get());
+        rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
 
         c.gridx = 2;
         c.gridy = 2;
@@ -194,10 +195,10 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             dimChangeInProgress = true;
 
             popSizeModel.setColumnCount(newDim);
-            migModel.popSizesInput.get().setDimension(newDim);
+            ((RealParameter)migModel.popSizesInput.get()).setDimension(newDim);
             rateMatrixModel.setColumnCount(newDim);
             rateMatrixModel.setRowCount(newDim);
-            migModel.rateMatrixInput.get().setDimension(newDim*newDim);
+            ((RealParameter)migModel.rateMatrixInput.get()).setDimension(newDim*newDim);
             for (int i=0; i<newDim; i++) {
                 if (popSizeModel.getValueAt(0, i) == null) {
                     popSizeModel.setValueAt(1.0, 0, i);
@@ -257,8 +258,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             }
         }
 
-        popSizeEstCheckBox.setSelected(migModel.popSizesInput.get().isEstimatedInput.get());
-        rateMatrixEstCheckBox.setSelected(migModel.rateMatrixInput.get().isEstimatedInput.get());
+        popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
+        rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
     }
 
     public void saveToMigrationModel() {
@@ -272,10 +273,10 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             else
                 sbPopSize.append("1.0");
         }
-        migModel.popSizesInput.get().setDimension(popSizeModel.getColumnCount());
-        migModel.popSizesInput.get().valuesInput.setValue(
+        ((RealParameter)migModel.popSizesInput.get()).setDimension(popSizeModel.getColumnCount());
+        ((RealParameter)migModel.popSizesInput.get()).valuesInput.setValue(
             sbPopSize.toString(),
-            migModel.popSizesInput.get());
+                (RealParameter)migModel.popSizesInput.get());
 
         StringBuilder sbRateMatrix = new StringBuilder();
         boolean first = true;
@@ -295,20 +296,20 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                     sbRateMatrix.append("1.0");
             }
         }
-        migModel.rateMatrixInput.get().setDimension(
+        ((RealParameter)migModel.rateMatrixInput.get()).setDimension(
             popSizeModel.getColumnCount()*(popSizeModel.getColumnCount()-1));
-        migModel.rateMatrixInput.get().valuesInput.setValue(
+        ((RealParameter)migModel.rateMatrixInput.get()).valuesInput.setValue(
             sbRateMatrix.toString(),
-            migModel.rateMatrixInput.get());
+                (RealParameter)migModel.rateMatrixInput.get());
 
-        migModel.popSizesInput.get().isEstimatedInput.setValue(
-            popSizeEstCheckBox.isSelected(), migModel.popSizesInput.get());
-        migModel.rateMatrixInput.get().isEstimatedInput.setValue(
-            rateMatrixEstCheckBox.isSelected(), migModel.rateMatrixInput.get());
+        ((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.setValue(
+            popSizeEstCheckBox.isSelected(), (RealParameter)migModel.popSizesInput.get());
+        ((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.setValue(
+            rateMatrixEstCheckBox.isSelected(), (RealParameter)migModel.rateMatrixInput.get());
 
         try {
-            migModel.rateMatrixInput.get().initAndValidate();
-            migModel.popSizesInput.get().initAndValidate();
+            ((RealParameter)migModel.rateMatrixInput.get()).initAndValidate();
+            ((RealParameter)migModel.popSizesInput.get()).initAndValidate();
             migModel.initAndValidate();
         } catch (Exception ex) {
             System.err.println("Error updating migration model state.");

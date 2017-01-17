@@ -18,6 +18,7 @@ package beast.evolution.tree;
 
 import beast.core.CalculationNode;
 import beast.core.Description;
+import beast.core.Function;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.parameter.BooleanParameter;
@@ -34,12 +35,12 @@ import org.jblas.MatrixFunctions;
 @Description("Basic plugin describing a simple Markovian migration model.")
 public class SCMigrationModel extends CalculationNode implements MigrationModel {
 
-    public Input<RealParameter> rateMatrixInput = new Input<>(
+    public Input<Function> rateMatrixInput = new Input<>(
             "rateMatrix",
             "Migration rate matrix",
             Validate.REQUIRED);
 
-    public Input<RealParameter> popSizesInput = new Input<>(
+    public Input<Function> popSizesInput = new Input<>(
             "popSizes",
             "Deme population sizes.",
             Validate.REQUIRED);
@@ -49,7 +50,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
             "Optional boolean parameter specifying which rates to use."
             + " (Default is to use all rates.)");
     
-    protected RealParameter rateMatrix, popSizes;
+    protected Function rateMatrix, popSizes;
     protected BooleanParameter rateMatrixFlags;
     protected double mu, muSym;
     protected int nTypes;
@@ -81,8 +82,11 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
         if (rateMatrixFlagsInput.get() != null)
             rateMatrixFlags = rateMatrixFlagsInput.get();
 
-        rateMatrix.setLower(Math.max(rateMatrix.getLower(), 0.0));
-        popSizes.setLower(Math.max(popSizes.getLower(), 0.0));
+        if (rateMatrix instanceof RealParameter)
+            ((RealParameter)rateMatrix).setLower(Math.max(((RealParameter)rateMatrix).getLower(), 0.0));
+
+        if (popSizes instanceof RealParameter)
+            ((RealParameter)popSizes).setLower(Math.max(((RealParameter)popSizes).getLower(), 0.0));
         
         if (rateMatrix.getDimension() == nTypes*nTypes) {
             rateMatrixIsSquare = true;
@@ -190,7 +194,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
         if (i==j)
             return 0;
 
-        return rateMatrix.getValue(getArrayOffset(i, j));
+        return rateMatrix.getArrayValue(getArrayOffset(i, j));
         
     }
 
@@ -212,7 +216,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
                 && !rateMatrixFlagsInput.get().getValue(offset))
             return 0.0;
         else
-            return rateMatrix.getValue(offset);
+            return rateMatrix.getArrayValue(offset);
     }
     
     /**
@@ -249,24 +253,6 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
         return getBackwardRate(j, i)*getPopSize(j)/getPopSize(i);
     }
     
-    /**
-     * Set element of rate matrix for migration model.
-     * This method should only be called by operators.
-     * 
-     * @param i
-     * @param j
-     * @param rate 
-     */
-    public void setBackwardRate(int i, int j, double rate) {
-        if (i==j)
-            return;
-        
-        rateMatrix.setValue(getArrayOffset(i,j), rate);
-
-        // Model is now dirty.
-        dirty = true;
-    }
-
     /**
      * Obtain offset into "rate matrix" and associated flag arrays.
      * 
@@ -305,17 +291,6 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      */
     public double getPopSize(int i) {
         return popSizes.getArrayValue(i);
-    }
-    
-    /**
-     * Set effective population size of particular type/deme.
-     * 
-     * @param i deme index
-     * @param newSize 
-     */
-    public void setPopSize(int i, double newSize) {
-        popSizes.setValue(i, newSize);
-        dirty = true;
     }
 
     @Override
