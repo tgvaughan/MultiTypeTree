@@ -29,9 +29,7 @@ import com.google.common.collect.Lists;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * A multi-type tree generated randomly from leaf types and a migration matrix
@@ -118,7 +116,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
         // Obtain leaf colours from explicit input or alignment:
         leafTypes = Lists.newArrayList();
         leafNames = Lists.newArrayList();
-        if (leafTypesInput.get() != null) {            
+        if (leafTypesInput.get() != null) {
             for (int i=0; i<leafTypesInput.get().getDimension(); i++) {
                 leafTypes.add(leafTypesInput.get().getValue(i));
                 leafNames.add(String.valueOf(i));
@@ -137,7 +135,14 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             }
 
         }
-        
+
+        // Count unique leaf types:
+        int nUniqueLeafTypes = new HashSet<>(leafTypes).size();
+        if (nUniqueLeafTypes > migModel.getNTypes())
+            throw new IllegalArgumentException("There are " + nUniqueLeafTypes
+                    + " unique leaf types but the model only includes "
+                    + migModel.getNTypes() + " unique types!");
+
         nLeaves = leafTypes.size();
         
         // Set leaf times if specified:

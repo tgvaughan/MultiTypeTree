@@ -23,8 +23,11 @@ import beast.core.parameter.RealParameter;
 import beast.evolution.likelihood.TreeLikelihood;
 import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
+import beast.evolution.tree.TraitSet;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -37,6 +40,15 @@ import java.util.List;
  * @author Tim Vaughan (tgvaughan@gmail.com)
  */
 public class InitMigrationModelConnector {
+
+    public static int uniqueTraitsInData(StructuredCoalescentMultiTypeTree scTree) {
+        Set<String> uniqueTypes = new HashSet<>();
+        TraitSet typeTraitSet = scTree.typeTraitInput.get();
+        for (String taxonName : typeTraitSet.taxaInput.get().getTaxaNames())
+            uniqueTypes.add(typeTraitSet.getStringValue(taxonName));
+
+        return uniqueTypes.size();
+    }
     
     public static boolean customConnector(BeautiDoc doc) {
 
@@ -55,6 +67,37 @@ public class InitMigrationModelConnector {
 
             String rateMatrixStr = getParameterString((RealParameter)migModel.rateMatrixInput.get());
             String popSizesStr = getParameterString((RealParameter)migModel.popSizesInput.get());
+
+            // Ensure model has minimum number of demes
+            int uniqueTraitCount = uniqueTraitsInData(tree);
+            StringBuilder rateMatrixStrBuilder = new StringBuilder();
+            StringBuilder popSizesStrBuilder = new StringBuilder();
+            if (migModel.getNTypes()<uniqueTraitCount) {
+                for (int i=0; i<uniqueTraitCount; i++) {
+                    popSizesStrBuilder.append(" 1.0");
+                    for (int j=0; j<uniqueTraitCount; j++) {
+                        if (j == i)
+                            continue;
+
+                        rateMatrixStrBuilder.append(" 1.0");
+                    }
+                }
+
+                popSizesStr = popSizesStrBuilder.toString();
+                rateMatrixStr = rateMatrixStrBuilder.toString();
+
+                ((RealParameter)migModel.popSizesInput.get()).setDimension(uniqueTraitCount);
+                ((RealParameter)migModel.popSizesInput.get()).valuesInput.setValue(popSizesStr,
+                        (RealParameter)migModel.popSizesInput.get());
+
+                ((RealParameter)migModel.rateMatrixInput.get()).setDimension(uniqueTraitCount*(uniqueTraitCount-1));
+                ((RealParameter)migModel.rateMatrixInput.get()).valuesInput.setValue(rateMatrixStr,
+                        (RealParameter)migModel.rateMatrixInput.get());
+
+                ((RealParameter)migModel.popSizesInput.get()).initAndValidate();
+                ((RealParameter)migModel.rateMatrixInput.get()).initAndValidate();
+                migModel.initAndValidate();
+            }
 
             ((RealParameter)migModelInit.popSizesInput.get()).setDimension(migModel.getNTypes());
 
