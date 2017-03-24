@@ -22,26 +22,26 @@ import beast.core.BEASTInterface;
 import beast.core.Input;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.SCMigrationModel;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
+import com.sun.org.apache.xml.internal.security.Init;
+import multitypetree.distributions.StructuredCoalescentTreeDensity;
+
+import java.awt.*;
 import java.awt.event.ItemEvent;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.SpinnerNumberModel;
+import java.awt.font.TextLayout;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 /**
  * A BEAUti input editor for MigrationModels.
@@ -57,6 +57,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
 
     boolean dimChangeInProgress = false;
+
+    List<String> rowNames = new ArrayList<>();
 
     public MigrationModelInputEditor(BeautiDoc doc) {
         super(doc);
@@ -87,7 +89,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return row != column;
+                return row != column && column != migModel.getNTypes();
             }
         };
         popSizeEstCheckBox = new JCheckBox("estimate");
@@ -107,6 +109,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.weightx = 0.0;
         c.anchor = GridBagConstraints.LINE_END;
         panel.add(new JLabel("Number of demes: "), c);
+
         JSpinner dimSpinner = new JSpinner(nTypesModel);
         dimSpinner.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
         c.gridx = 1;
@@ -121,7 +124,22 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.weightx = 0.0;
         c.anchor = GridBagConstraints.LINE_END;
         panel.add(new JLabel("Population sizes: "), c);
-        JTable popSizeTable = new JTable(popSizeModel);
+
+        JTable popSizeTable = new JTable(popSizeModel) {
+            @Override
+            public TableCellRenderer getCellRenderer(int row, int column) {
+                return new DefaultTableCellRenderer() {
+                    @Override
+                    public Component getTableCellRendererComponent(
+                            JTable table, Object value, boolean isSelected,
+                            boolean hasFocus, int row, int column) {
+                        setHorizontalAlignment(SwingConstants.CENTER);
+                        return super.getTableCellRendererComponent(
+                                table, value, isSelected, hasFocus, row, column);
+                    }
+                };
+            }
+        };
         popSizeTable.setShowVerticalLines(true);
         popSizeTable.setCellSelectionEnabled(true);
         popSizeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -133,6 +151,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.anchor = GridBagConstraints.LINE_START;
         panel.add(popSizeTable, c);
         popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
+
         c.gridx = 2;
         c.gridy = 1;
         c.anchor = GridBagConstraints.LINE_END;
@@ -149,39 +168,91 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         JTable rateMatrixTable = new JTable(rateMatrixModel) {
             @Override
             public TableCellRenderer getCellRenderer(int row, int column) {
-                if (row != column)
-                    return super.getCellRenderer(row, column);
-                else
-                    return new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(
-                            JTable table, Object value, boolean isSelected,
-                            boolean hasFocus, int row, int column) {
-                            JLabel label = new JLabel();
-                            label.setOpaque(true);
-                            label.setBackground(Color.GRAY);
-                            return label;
-                        }
-                    };
+
+                return new DefaultTableCellRenderer() {
+                            @Override
+                            public Component getTableCellRendererComponent(
+                                    JTable table, Object value, boolean isSelected,
+                                    boolean hasFocus, int row, int column) {
+
+
+
+                                if (row == column) {
+                                    JLabel label = new JLabel();
+                                    label.setOpaque(true);
+                                    label.setBackground(Color.GRAY);
+
+                                    return label;
+
+                                } else {
+
+                                    Component c = super.getTableCellRendererComponent(
+                                        table, value, isSelected, hasFocus, row, column);
+
+                                    JComponent jc = (JComponent)c;
+                                    if (column == migModel.getNTypes()) {
+                                        c.setBackground(panel.getBackground());
+                                        c.setForeground(Color.gray);
+                                        setHorizontalAlignment(SwingConstants.LEFT);
+                                    } else {
+                                        int l = 1, r = 1, t = 1, b=1;
+                                        if (column>0)
+                                            l = 0;
+                                        if (row>0)
+                                            t = 0;
+
+                                        setBorder(BorderFactory.createMatteBorder(t, l, b, r, Color.GRAY));
+                                        setHorizontalAlignment(SwingConstants.CENTER);
+                                    }
+                                    return c;
+                                }
+                            }
+                };
             }
         };
-        rateMatrixTable.setShowGrid(true);
+        rateMatrixTable.setShowGrid(false);
+        rateMatrixTable.setIntercellSpacing(new Dimension(0,0));
         rateMatrixTable.setCellSelectionEnabled(true);
         rateMatrixTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        rateMatrixTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
+        rateMatrixTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        TableColumn col = rateMatrixTable.getColumnModel().getColumn(migModel.getNTypes());
+
+
+        FontMetrics metrics = new Canvas().getFontMetrics(getFont());
+        int maxWidth = 0;
+        for (String rowName : rowNames)
+            maxWidth = Math.max(maxWidth, metrics.stringWidth(rowName + "M"));
+
+        col.setPreferredWidth(maxWidth);
+//        rateMatrixTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
 
         c.gridx = 1;
         c.gridy = 2;
         c.anchor = GridBagConstraints.LINE_START;
         c.weightx = 1.0;
         panel.add(rateMatrixTable, c);
-        rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
 
+        rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
         c.gridx = 2;
         c.gridy = 2;
         c.anchor = GridBagConstraints.LINE_END;
         c.weightx = 1.0;
         panel.add(rateMatrixEstCheckBox, c);
+
+        c.gridx = 1;
+        c.gridy = 3;
+        c.anchor = GridBagConstraints.LINE_START;
+        c.weightx = 1.0;
+        panel.add(new JLabel("Rows: sources, columns: sinks (backwards in time)"), c);
+
+        c.gridx = 1;
+        c.gridy = 4;
+        c.anchor = GridBagConstraints.LINE_START;
+        c.weightx = 1.0;
+        JLabel multilineLabel = new JLabel();
+        multilineLabel.setText("<html><body>Correspondence between row/col indices<br>"
+                + "and deme names shown to right of matrix.</body></html>");
+        panel.add(multilineLabel, c);
 
         add(panel);
  
@@ -247,7 +318,23 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         popSizeModel.setRowCount(1);
         popSizeModel.setColumnCount(migModel.getNTypes());
         rateMatrixModel.setRowCount(migModel.getNTypes());
-        rateMatrixModel.setColumnCount(migModel.getNTypes());
+        rateMatrixModel.setColumnCount(migModel.getNTypes()+1);
+
+        List<String> traitNames = null;
+        if (m_beastObject instanceof StructuredCoalescentTreeDensity) {
+            StructuredCoalescentTreeDensity scDensity = (StructuredCoalescentTreeDensity)m_beastObject;
+            StructuredCoalescentMultiTypeTree scTree = (StructuredCoalescentMultiTypeTree)(scDensity.mtTreeInput.get());
+            traitNames = InitMigrationModelConnector.uniqueTraitsInData(scTree);
+            nTypesModel.setMinimum(Math.max(traitNames.size(),2));
+        };
+
+        rowNames.clear();
+        for (int i = 0; i < migModel.getNTypes(); i++) {
+        if (traitNames != null && i<traitNames.size())
+            rowNames.add(" " + traitNames.get(i) + " (" + String.valueOf(i) + ") ");
+        else
+            rowNames.add(" (" + String.valueOf(i) + ") ");
+        }
 
         for (int i=0; i<migModel.getNTypes(); i++) {
             popSizeModel.setValueAt(migModel.getPopSize(i), 0, i);
@@ -256,6 +343,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                     continue;
                 rateMatrixModel.setValueAt(migModel.getBackwardRate(i, j), i, j);
             }
+
+            rateMatrixModel.setValueAt(rowNames.get(i), i, migModel.getNTypes());
         }
 
         popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
@@ -281,7 +370,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         StringBuilder sbRateMatrix = new StringBuilder();
         boolean first = true;
         for (int i=0; i<rateMatrixModel.getRowCount(); i++) {
-            for (int j=0; j<rateMatrixModel.getColumnCount(); j++) {
+            for (int j=0; j<rateMatrixModel.getColumnCount()-1; j++) {
                 if (i == j)
                     continue;
 

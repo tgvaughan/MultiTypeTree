@@ -25,9 +25,7 @@ import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
 import beast.evolution.tree.TraitSet;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -41,15 +39,15 @@ import java.util.Set;
  */
 public class InitMigrationModelConnector {
 
-    public static int uniqueTraitsInData(StructuredCoalescentMultiTypeTree scTree) {
-        Set<String> uniqueTypes = new HashSet<>();
+    public static List<String> uniqueTraitsInData(StructuredCoalescentMultiTypeTree scTree) {
+        SortedSet<String> uniqueTypes = new TreeSet<>();
         TraitSet typeTraitSet = scTree.typeTraitInput.get();
         for (String taxonName : typeTraitSet.taxaInput.get().getTaxaNames())
             uniqueTypes.add(typeTraitSet.getStringValue(taxonName));
 
-        return uniqueTypes.size();
+        return new ArrayList<>(uniqueTypes);
     }
-    
+
     public static boolean customConnector(BeautiDoc doc) {
 
         for (BEASTInterface p : doc.getPartitions("Tree")) {
@@ -69,7 +67,7 @@ public class InitMigrationModelConnector {
             String popSizesStr = getParameterString((RealParameter)migModel.popSizesInput.get());
 
             // Ensure model has minimum number of demes
-            int uniqueTraitCount = uniqueTraitsInData(tree);
+            int uniqueTraitCount = uniqueTraitsInData(tree).size();
             StringBuilder rateMatrixStrBuilder = new StringBuilder();
             StringBuilder popSizesStrBuilder = new StringBuilder();
             if (migModel.getNTypes()<uniqueTraitCount) {
