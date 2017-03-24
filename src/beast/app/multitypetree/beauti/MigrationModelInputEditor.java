@@ -23,18 +23,9 @@ import beast.core.Input;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
-import com.sun.org.apache.xml.internal.security.Init;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
 
-import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.font.TextLayout;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
@@ -42,6 +33,10 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A BEAUti input editor for MigrationModels.
