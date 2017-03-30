@@ -270,7 +270,7 @@ public class MultiTypeTree extends Tree {
             processTraits(m_traitList.get());
 
         if (type>=typeList.size())
-            throw new IllegalArgumentException("Requested name of unknown type index.");
+            return "type_" + type;
 
         return typeList.get(type);
     }

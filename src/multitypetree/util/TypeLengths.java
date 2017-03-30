@@ -115,12 +115,6 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
         
         String idString = mtTree.getID();
 
-        if (!mtTree.hasTypeTrait() || mtTree.getTypeList().size() != nTypes) {
-            throw new IllegalArgumentException(
-                    "TypeLengths logger needs MultiTypeTree to have named types,\n"
-                    + "and as many named types as there are demes in the model.");
-        }
-
         for (int type = 0; type < nTypes; type++)
             out.print(idString + ".length_" + mtTree.getTypeString(type) + "\t");
     }
