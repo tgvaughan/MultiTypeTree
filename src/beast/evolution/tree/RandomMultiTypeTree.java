@@ -27,7 +27,7 @@ public class RandomMultiTypeTree extends MultiTypeTree implements StateNodeIniti
         // Fill leaf colour array:
         for (int i = 0; i<getLeafNodeCount(); i++)
             ((MultiTypeNode)getNode(i)).setNodeType(
-                    getTypeList().indexOf(typeTraitSet.getStringValue(i)));
+                    getTypeSet().getTypeIndex(typeTraitSet.getStringValue(i)));
 
         generateTyping(getRoot());
         

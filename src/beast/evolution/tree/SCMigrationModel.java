@@ -49,7 +49,12 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
             "rateMatrixFlags",
             "Optional boolean parameter specifying which rates to use."
             + " (Default is to use all rates.)");
-    
+
+    public Input<TypeSet> typeSetInput = new Input<>("typeSet",
+            "Type set defining names of types present in model.",
+            Validate.REQUIRED);
+
+    protected TypeSet typeSet;
     protected Function rateMatrix, popSizes;
     protected BooleanParameter rateMatrixFlags;
     protected double mu, muSym;
@@ -74,10 +79,13 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
 
     @Override
     public void initAndValidate() {
-        
+
+        typeSet = typeSetInput.get();
+
+        nTypes = typeSet.getNTypes();
+
         popSizes = popSizesInput.get();
         rateMatrix = rateMatrixInput.get();
-        nTypes = popSizes.getDimension();
 
         if (rateMatrixFlagsInput.get() != null)
             rateMatrixFlags = rateMatrixFlagsInput.get();
@@ -177,9 +185,24 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      */
     @Override
     public int getNTypes() {
-        return nTypes;
+        return typeSet.getNTypes();
     }
-    
+
+
+    /**
+     * @return name for given type index
+     */
+    public String getTypeName(int typeIdx) {
+        return typeSet.getTypeName(typeIdx);
+    }
+
+    /**
+     * @return corresponding type set
+     */
+    public TypeSet getTypeSet() {
+        return typeSet;
+    }
+
     /**
      * Obtain element of rate matrix for migration model.  Unlike getRate(),
      * this method does not return 0 when the BSSVS indicator variable is

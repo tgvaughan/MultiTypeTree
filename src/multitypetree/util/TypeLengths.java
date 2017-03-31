@@ -18,10 +18,7 @@ package multitypetree.util;
 
 import beast.core.*;
 import beast.core.Input.Validate;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.Node;
-import beast.evolution.tree.SCMigrationModel;
+import beast.evolution.tree.*;
 
 import java.io.PrintStream;
 
@@ -43,6 +40,7 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
         Validate.REQUIRED);
 
     private MultiTypeTree mtTree;
+    private MigrationModel migModel;
 
     private int nTypes;
 
@@ -53,7 +51,8 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
     @Override
     public void initAndValidate() {
         mtTree = multiTypeTreeInput.get();
-        nTypes = migrationModelInput.get().getNTypes();
+        migModel = migrationModelInput.get();
+        nTypes = migModel.getNTypes();
         
         typeLengths = new double[nTypes];
         
@@ -116,7 +115,7 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
         String idString = mtTree.getID();
 
         for (int type = 0; type < nTypes; type++)
-            out.print(idString + ".length_" + mtTree.getTypeString(type) + "\t");
+            out.print(idString + ".length_" + migModel.getTypeName(type) + "\t");
     }
 
     @Override

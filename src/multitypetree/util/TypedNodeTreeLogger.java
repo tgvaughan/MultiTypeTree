@@ -40,7 +40,7 @@ public class TypedNodeTreeLogger extends BEASTObject implements Loggable {
             MultiTypeNode mtNode = (MultiTypeNode)node;
             mtNode.metaDataString = mtTree.getTypeLabel()
                     + "=\""
-                    + mtTree.getTypeString(mtNode.getNodeType())
+                    + mtTree.getTypeSet().getTypeName(mtNode.getNodeType())
                     + "\"";
         }
 

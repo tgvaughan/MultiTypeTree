@@ -161,11 +161,13 @@
             <!-- Multi type tree -->
 
             <plugin spec='beast.evolution.tree.StructuredCoalescentMultiTypeTree' id='Tree.t:$(n)' estimate='true'>
+                <typeSet spec="beast.evolution.tree.TypeSet" id="typeSet.t:$(n)"/>
                 <migrationModel spec='beast.evolution.tree.SCMigrationModel' id="migModelInit.t:$(n)">
                     <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" estimate="false"/>
                     <popSizes spec='parameter.RealParameter' value="1.0 1.0" estimate="false"/>
+                    <typeSet idref="typeSet.t:$(n)"/>
                 </migrationModel>
-                <taxonset spec='beast.evolution.alignment.TaxonSet'>
+                <taxonset spec='beast.evolution.alignment.TaxonSet' id="taxonsSet.t:$(n)">
                     <alignment idref='data'/>
                 </taxonset>
             </plugin>
@@ -192,6 +194,7 @@
                 <migrationModel spec='beast.evolution.tree.SCMigrationModel' id="migModel.t:$(n)">
                     <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix.t:$(n)" estimate="false"/>
                     <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes.t:$(n)" estimate="false"/>
+                    <typeSet idref="typeSet.t:$(n)"/>
                 </migrationModel>
 
             </plugin>
@@ -276,6 +279,8 @@
 
 			<connect method="beast.app.beauti.SiteModelInputEditor.customConnector"/>
 			<connect method="beast.app.multitypetree.beauti.InitMigrationModelConnector.customConnector"/>
+
+            <connect srcID="typeTraitSet.t:$(n)" targetID="typeSet.t:$(n)" inputName="typeTraitSet"/>
 
             <connect srcID='Tree.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(Tree.t:$(n))'/>
             <connect srcID='mutationRate.s:$(n)' targetID='state' inputName='stateNode' if='inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'/>

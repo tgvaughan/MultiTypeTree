@@ -8,6 +8,10 @@ import org.jblas.DoubleMatrix;
 public interface MigrationModel {
     int getNTypes();
 
+    String getTypeName(int typeIdx);
+
+    TypeSet getTypeSet();
+
     double getBackwardRate(int i, int j);
 
     double getForwardRate(int i, int j);
@@ -21,4 +25,5 @@ public interface MigrationModel {
     DoubleMatrix getRpowN(int n, boolean symmetric);
 
     int RpowSteadyN(boolean symmetric);
+
 }

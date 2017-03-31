@@ -125,7 +125,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
             // Fill leaf colour array:
             if (hasTypeTrait()) {
                 for (int i = 0; i<typeTraitSet.taxaInput.get().asStringList().size(); i++) {
-                    leafTypes.add(getTypeList().indexOf(typeTraitSet.getStringValue(i)));
+                    leafTypes.add(migModel.getTypeSet().getTypeIndex((typeTraitSet.getStringValue(i))));
                     leafNames.add(typeTraitSet.taxaInput.get().asStringList().get(i));
                 }
             } else {

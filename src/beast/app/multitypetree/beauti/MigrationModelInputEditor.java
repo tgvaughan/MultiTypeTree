@@ -46,7 +46,7 @@ import java.util.List;
 public class MigrationModelInputEditor extends InputEditor.Base {
 
     DefaultTableModel popSizeModel, rateMatrixModel;
-    SpinnerNumberModel nTypesModel;
+    DefaultListModel<String> typeListModel;
     SCMigrationModel migModel;
 
     JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
@@ -79,7 +79,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         // Create component models and fill them with data from input
         migModel = (SCMigrationModel) input.get();
-        nTypesModel = new SpinnerNumberModel(2, 2, Short.MAX_VALUE, 1);
+        typeListModel = new DefaultListModel<>();
         popSizeModel = new DefaultTableModel();
         rateMatrixModel = new DefaultTableModel() {
             @Override
@@ -98,20 +98,21 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.insets = new Insets(3, 3, 3, 3);
         c.weighty = 0.5;
 
-        // Deme count spinner:
+        // Type list:
         c.gridx = 0;
         c.gridy = 0;
         c.weightx = 0.0;
         c.anchor = GridBagConstraints.LINE_END;
-        panel.add(new JLabel("Number of demes: "), c);
+        panel.add(new JLabel("<html><body>Additional types to<br>always include:</body></html>"), c);
 
-        JSpinner dimSpinner = new JSpinner(nTypesModel);
-        dimSpinner.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
+        JList<String> jlist = new JList<>(typeListModel);
+        JScrollPane listScrollPane = new JScrollPane(jlist);
+        listScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         c.gridx = 1;
         c.gridy = 0;
         c.weightx = 1.0;
         c.anchor = GridBagConstraints.LINE_START;
-        panel.add(dimSpinner, c);
+        panel.add(listScrollPane, c);
 
         // Population size table
         c.gridx = 0;
@@ -253,36 +254,6 @@ public class MigrationModelInputEditor extends InputEditor.Base {
  
 
         // Event handlers
-
-        dimSpinner.addChangeListener((ChangeEvent e) -> {
-            JSpinner spinner = (JSpinner)e.getSource();
-            int newDim = (int)spinner.getValue();
-
-            dimChangeInProgress = true;
-
-            popSizeModel.setColumnCount(newDim);
-            ((RealParameter)migModel.popSizesInput.get()).setDimension(newDim);
-            rateMatrixModel.setColumnCount(newDim);
-            rateMatrixModel.setRowCount(newDim);
-            ((RealParameter)migModel.rateMatrixInput.get()).setDimension(newDim*newDim);
-            for (int i=0; i<newDim; i++) {
-                if (popSizeModel.getValueAt(0, i) == null) {
-                    popSizeModel.setValueAt(1.0, 0, i);
-                }
-                for (int j=0; j<newDim; j++) {
-                    if (i==j)
-                        continue;
-                    if (rateMatrixModel.getValueAt(j, i) == null) {
-                        rateMatrixModel.setValueAt(1.0, j, i);
-                    }
-                }
-            }
-
-            dimChangeInProgress = false;
-
-            saveToMigrationModel();
-        });
-
         popSizeModel.addTableModelListener((TableModelEvent e) -> {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
@@ -309,24 +280,19 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     }
 
     public void loadFromMigrationModel() {
-        nTypesModel.setValue(migModel.getNTypes());
+        migModel.getTypeSet().initAndValidate();
+
         popSizeModel.setRowCount(1);
         popSizeModel.setColumnCount(migModel.getNTypes());
         rateMatrixModel.setRowCount(migModel.getNTypes());
         rateMatrixModel.setColumnCount(migModel.getNTypes()+1);
 
-        List<String> traitNames = null;
-        if (m_beastObject instanceof StructuredCoalescentTreeDensity) {
-            StructuredCoalescentTreeDensity scDensity = (StructuredCoalescentTreeDensity)m_beastObject;
-            StructuredCoalescentMultiTypeTree scTree = (StructuredCoalescentMultiTypeTree)(scDensity.mtTreeInput.get());
-            traitNames = InitMigrationModelConnector.uniqueTraitsInData(scTree);
-            nTypesModel.setMinimum(Math.max(traitNames.size(),2));
-        };
+        List<String> typeNames = migModel.getTypeSet().getTypesAsList();
 
         rowNames.clear();
         for (int i = 0; i < migModel.getNTypes(); i++) {
-        if (traitNames != null && i<traitNames.size())
-            rowNames.add(" " + traitNames.get(i) + " (" + String.valueOf(i) + ") ");
+        if (typeNames != null && i<typeNames.size())
+            rowNames.add(" " + typeNames.get(i) + " (" + String.valueOf(i) + ") ");
         else
             rowNames.add(" (" + String.valueOf(i) + ") ");
         }

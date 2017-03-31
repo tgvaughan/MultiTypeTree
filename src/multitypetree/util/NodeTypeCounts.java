@@ -123,7 +123,7 @@ public class NodeTypeCounts extends CalculationNode implements Function, Loggabl
         String idString = mtTree.getID();
 
         for (int type = 0; type < nTypes; type++)
-            out.print(idString + ".count_" + mtTree.getTypeString(type) + "\t");
+            out.print(idString + ".count_" + mtTree.getTypeSet().getTypeName(type) + "\t");
     }
 
     @Override

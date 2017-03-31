@@ -56,7 +56,7 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
 
         for (int i=0; i<migModel.getNTypes(); i++) {
             if (mtTree != null)
-                out.print(outName + ".popSize_" + mtTree.getTypeString(i) + "\t");
+                out.print(outName + ".popSize_" + migModel.getTypeName(i) + "\t");
             else
                 out.print(outName + ".popSize_" + i + "\t");
         }
@@ -67,7 +67,7 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
                     continue;
                 if (mtTree != null)
                     out.format("%s.rateMatrix_%s_%s\t", outName,
-                        mtTree.getTypeString(i), mtTree.getTypeString(j));
+                        migModel.getTypeName(i), migModel.getTypeName(j));
                 else
                     out.format("%s.rateMatrix_%d_%d\t", outName, i, j);
             }
@@ -80,7 +80,7 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
                         continue;
                     if (mtTree != null)
                         out.format("%s.rateMatrixFlag_%s_%s\t", outName,
-                            mtTree.getTypeString(i), mtTree.getTypeString(j));
+                            migModel.getTypeName(i), migModel.getTypeName(j));
                     else
                         out.format("%s.rateMatrixFlag_%d_%d\t", outName, i, j);
                 }

@@ -39,11 +39,11 @@ public class MRCATypePrior extends MultiTypeTreeDistribution {
                     " parameter must match number of types.");
         } else {
             if (typeNameInput.get() != null) {
-                if (!mtTree.getTypeList().contains(typeNameInput.get()))
-                    throw new IllegalArgumentException("Type list does not contain" +
+                if (!mtTree.getTypeSet().getTypesAsList().contains(typeNameInput.get()))
+                    throw new IllegalArgumentException("Type set does not contain" +
                             " type '" + typeNameInput.get() + "'.");
                 else
-                    type = mtTree.getTypeFromString(typeNameInput.get());
+                    type = mtTree.getTypeSet().getTypeIndex(typeNameInput.get());
             } else {
                 if (typeInput.get() == null)
                     throw new IllegalArgumentException("Must specify typeProbs, " +

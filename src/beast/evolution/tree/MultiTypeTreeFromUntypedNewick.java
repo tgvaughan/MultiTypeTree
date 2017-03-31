@@ -87,7 +87,7 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
         if (getTypeTrait() != null) {
             for (int i=0; i<flatTree.getLeafNodeCount(); i++) {
                 MultiTypeNode typedNode = typedNodes[i];
-                typedNode.setNodeType(getTypeList().indexOf(
+                typedNode.setNodeType(migrationModel.getTypeSet().getTypeIndex(
                         getTypeTrait().getStringValue(typedNode.getID())));
             }
         } else {

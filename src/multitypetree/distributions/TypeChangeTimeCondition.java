@@ -107,7 +107,7 @@ public class TypeChangeTimeCondition extends MultiTypeTreeDistribution {
             fromTypes.addAll(Arrays.asList(fromTypesInput.get().getValues()));
         } else {
             for (String typeName : fromTypeNamesInput.get().split(",")) {
-                int type = mtTree.getTypeFromString(typeName.trim());
+                int type = mtTree.getTypeSet().getTypeIndex(typeName.trim());
                 if (type<0)
                     throw new IllegalArgumentException("Type name '" + typeName
                             + "' specified in input to TypeChangeTimeCondition not found.");
@@ -121,7 +121,7 @@ public class TypeChangeTimeCondition extends MultiTypeTreeDistribution {
             toTypes.addAll(Arrays.asList(toTypesInput.get().getValues()));
         } else {
             for (String typeName : toTypeNamesInput.get().split(",")) {
-                int type = mtTree.getTypeFromString(typeName.trim());
+                int type = mtTree.getTypeSet().getTypeIndex(typeName.trim());
                 if (type<0)
                     throw new IllegalArgumentException("Type name '" + typeName
                             + "' specified in input to TypeChangeTimeCondition not found.");

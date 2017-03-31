@@ -53,17 +53,17 @@ public class MultiTypeTree extends Tree {
     public Input<TraitSet> typeTraitInput = new Input<>(
         "typeTrait", "Type trait set.  Used only by BEAUti.");
 
-    public Input<String> typeTraitValuesInput = new Input<>(
-            "typeTraitValues",
-            "Comma-delimited list of types to be included even when absent " +
-                    "from the sampled taxa.");
+    public Input<TypeSet> typeSetInput = new Input<>(
+            "typeSet", "Type set input."
+    );
 
     /*
      * Non-input fields:
      */
     protected String typeLabel;
     protected TraitSet typeTraitSet;
-    
+    protected TypeSet typeSet;
+
     protected List <String> typeList;
 
     public MultiTypeTree() { };
@@ -190,27 +190,9 @@ public class MultiTypeTree extends Tree {
             }
         }
 
-        if (typeTraitSet != null) {
-
-            Set<String> typeSet = new HashSet<>();
-
-            int nTaxa = typeTraitSet.taxaInput.get().asStringList().size();
-            for (int i = 0; i < nTaxa; i++)
-                typeSet.add(typeTraitSet.getStringValue(i));
-
-            // Include any addittional trait values in type list
-            if (typeTraitValuesInput.get() != null) {
-                for (String typeName : typeTraitValuesInput.get().split(","))
-                    typeSet.add(typeName);
-            }
-
-            typeList = Lists.newArrayList(typeSet);
-            Collections.sort(typeList);
-
-            System.out.println("Type trait with the following types detected:");
-            for (int i = 0; i < typeList.size(); i++)
-                System.out.println(typeList.get(i) + " (" + i + ")");
-
+        if (typeSetInput.get() == null) {
+            TypeSet dummyTypeSet = new TypeSet();
+            typeSet.initByName("typeTraitSet", typeTraitSet);
         }
     }
     
@@ -222,6 +204,16 @@ public class MultiTypeTree extends Tree {
             processTraits(m_traitList.get());
         
         return typeTraitSet;
+    }
+
+    /**
+     * @return type set corresponding to this tree
+     */
+    public TypeSet getTypeSet() {
+        if (!traitsProcessed)
+            processTraits(m_traitList.get());
+
+        return typeSet;
     }
     
     /**
@@ -250,42 +242,6 @@ public class MultiTypeTree extends Tree {
         typeTraitSet = traitSet;
     }
     
-    /**
-     * Retrieve the list of unique types identified by the type trait.
-     * @return List of unique type trait value strings.
-     */
-    public List<String> getTypeList() {
-        if (!traitsProcessed)
-            processTraits(m_traitList.get());
-        
-        return typeList;
-    }
-
-    /**
-     * @param type
-     * @return string name of given type
-     */
-    public String getTypeString(int type) {
-        if (!traitsProcessed)
-            processTraits(m_traitList.get());
-
-        if (type>=typeList.size())
-            return "type_" + type;
-
-        return typeList.get(type);
-    }
-
-    /**
-     * @param typeString
-     * @return integer type corresponding to given type string
-     */
-    public int getTypeFromString(String typeString) {
-        if (!traitsProcessed)
-            processTraits(m_traitList.get());
-
-        return typeList.indexOf(typeString);
-    }
-
     /**
      * @return type label to be used in logging.
      */
@@ -508,7 +464,7 @@ public class MultiTypeTree extends Tree {
                     ((MultiTypeNode)node).getNodeType());
             if(useTypeStrings)
                 startNode.metaDataString = String.format("%s=\"%s\"",
-                    typeLabel, getTypeString(mtNode.getNodeType()));
+                    typeLabel, typeSet.getTypeName(mtNode.getNodeType()));
             else
                 startNode.metaDataString = String.format("%s=%d",
                     typeLabel, mtNode.getNodeType());
@@ -519,7 +475,7 @@ public class MultiTypeTree extends Tree {
                     ((MultiTypeNode)node.getParent()).getNodeType());
             if(useTypeStrings)
                 endNode.metaDataString = String.format("%s=\"%s\"",
-                    typeLabel, getTypeString(((MultiTypeNode)node.getParent()).getNodeType()));
+                    typeLabel, typeSet.getTypeName(((MultiTypeNode)node.getParent()).getNodeType()));
             else
                 endNode.metaDataString = String.format("%s=%d",
                     typeLabel, ((MultiTypeNode)node.getParent()).getNodeType());
@@ -543,7 +499,7 @@ public class MultiTypeTree extends Tree {
                         mtNode.getChangeType(i));
                 if (useTypeStrings)
                     colourChangeNode.metaDataString = String.format("%s=\"%s\"",
-                        typeLabel, getTypeString(mtNode.getChangeType(i)));
+                        typeLabel, typeSet.getTypeName(mtNode.getChangeType(i)));
                 else
                     colourChangeNode.metaDataString = String.format("%s=%d",
                         typeLabel, mtNode.getChangeType(i));
@@ -614,7 +570,7 @@ public class MultiTypeTree extends Tree {
                         try {
                             col = Integer.parseInt((String) typeObject);
                         } catch (NumberFormatException ex) {
-                            col = getTypeFromString((String) typeObject);
+                            col = typeSet.getTypeIndex((String) typeObject);
                         }
                     } else
                         throw new IllegalArgumentException("Unrecognized type metadata.");
@@ -672,7 +628,7 @@ public class MultiTypeTree extends Tree {
                     try {
                         nodeType = Integer.parseInt((String) typeObject);
                     } catch (NumberFormatException ex) {
-                        nodeType = getTypeFromString((String) typeObject);
+                        nodeType = typeSet.getTypeIndex((String) typeObject);
                     }
                 } else
                     throw new IllegalArgumentException("Unrecognised type metadata.");
