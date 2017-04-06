@@ -139,6 +139,7 @@ public class MultiTypeTree extends Tree {
         }
         
         typeLabel = typeLabelInput.get();
+        typeSet = typeSetInput.get();
         
         processTraits(m_traitList.get());
 
@@ -181,17 +182,20 @@ public class MultiTypeTree extends Tree {
                         "traitname", "type",
                         "taxa", getTaxonset(),
                         "value", sb.toString());
-                    dummyTraitSet.setID("typeTraitSet.t:"
+                    dummyTraitSet.setID("typeTraitSetInput.t:"
                         + BeautiDoc.parsePartition(getID()));
                     setTypeTrait(dummyTraitSet);
+
+                    if (typeSet != null)
+                        typeSet.addTypesFromTypeTraitSet(dummyTraitSet);
                 } catch (Exception ex) {
                     System.out.println("Error setting default type trait.");
                 }
             }
         }
 
-        if (typeSetInput.get() == null) {
-            TypeSet dummyTypeSet = new TypeSet();
+        if (typeSet == null) {
+            typeSet = new TypeSet();
             typeSet.initByName("typeTraitSet", typeTraitSet);
         }
     }

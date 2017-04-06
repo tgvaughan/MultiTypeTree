@@ -13,7 +13,7 @@ import java.util.*;
 public class TypeSet extends BEASTObject {
 
     public Input<String> valueInput = new Input<>("value", "Comma-delmited list of types.");
-    public Input<TraitSet> typeTraitSet = new Input<>("typeTraitSet", "Type trait set defining list of types.");
+    public Input<TraitSet> typeTraitSetInput = new Input<>("typeTraitSet", "Type trait set defining list of types.");
 
     protected SortedSet<String> typeNameSet = new TreeSet<>();
 
@@ -24,8 +24,17 @@ public class TypeSet extends BEASTObject {
         if (valueInput.get() != null)
             typeNameSet.addAll(Arrays.asList(valueInput.get().split(",")));
 
-        if (typeTraitSet.get() != null)
-            typeNameSet.addAll(Arrays.asList(typeTraitSet.get().taxonValues));
+        if (typeTraitSetInput.get() != null)
+            addTypesFromTypeTraitSet(typeTraitSetInput.get());
+    }
+
+    /**
+     * Incorporates all of the traits present in the given trait set into the type set.
+     *
+     * @param typeTraitSet
+     */
+    public void addTypesFromTypeTraitSet(TraitSet typeTraitSet) {
+        typeNameSet.addAll(Arrays.asList(typeTraitSet.taxonValues));
     }
 
     /**

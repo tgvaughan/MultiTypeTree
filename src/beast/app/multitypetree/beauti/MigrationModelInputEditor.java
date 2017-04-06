@@ -220,7 +220,6 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             maxWidth = Math.max(maxWidth, metrics.stringWidth(rowName + "M"));
 
         col.setPreferredWidth(maxWidth);
-//        rateMatrixTable.setMaximumSize(new Dimension(100, Short.MAX_VALUE));
 
         c.gridx = 1;
         c.gridy = 2;
