@@ -22,18 +22,17 @@ import beast.core.BEASTInterface;
 import beast.core.Input;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.SCMigrationModel;
-import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
-import multitypetree.distributions.StructuredCoalescentTreeDensity;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +45,10 @@ import java.util.List;
 public class MigrationModelInputEditor extends InputEditor.Base {
 
     DefaultTableModel popSizeModel, rateMatrixModel;
-    DefaultListModel<String> typeListModel;
+    DefaultListModel<String> fullTypeListModel, additionalTypeListModel;
     SCMigrationModel migModel;
+
+    JButton addTypeButton, remTypeButton;
 
     JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
 
@@ -79,7 +80,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         // Create component models and fill them with data from input
         migModel = (SCMigrationModel) input.get();
-        typeListModel = new DefaultListModel<>();
+        fullTypeListModel = new DefaultListModel<>();
+        additionalTypeListModel = new DefaultListModel<>();
         popSizeModel = new DefaultTableModel();
         rateMatrixModel = new DefaultTableModel() {
             @Override
@@ -103,16 +105,40 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.gridy = 0;
         c.weightx = 0.0;
         c.anchor = GridBagConstraints.LINE_END;
-        panel.add(new JLabel("<html><body>Additional types to<br>always include:</body></html>"), c);
+        panel.add(new JLabel("<html><body>Type list:</body></html>"), c);
 
-        JList<String> jlist = new JList<>(typeListModel);
+        JList<String> jlist;
+
+        Box tlBox = Box.createHorizontalBox();
+        Box tlBoxLeft = Box.createVerticalBox();
+        JLabel labelLeft = new JLabel("All types");
+        tlBoxLeft.add(labelLeft);
+        jlist = new JList<>(fullTypeListModel);
         JScrollPane listScrollPane = new JScrollPane(jlist);
         listScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        tlBoxLeft.add(listScrollPane);
+        tlBox.add(tlBoxLeft);
+
+        Box tlBoxRight = Box.createVerticalBox();
+        JLabel labelRight = new JLabel("Additional types");
+        tlBoxRight.add(labelRight);
+        jlist = new JList<>(additionalTypeListModel);
+        listScrollPane = new JScrollPane(jlist);
+        listScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        tlBoxRight.add(listScrollPane);
+        Box addRemBox = Box.createHorizontalBox();
+        addTypeButton = new JButton("+");
+        remTypeButton = new JButton("-");
+        addRemBox.add(addTypeButton);
+        addRemBox.add(remTypeButton);
+        tlBoxRight.add(addRemBox);
+        tlBox.add(tlBoxRight);
+
         c.gridx = 1;
         c.gridy = 0;
         c.weightx = 1.0;
         c.anchor = GridBagConstraints.LINE_START;
-        panel.add(listScrollPane, c);
+        panel.add(tlBox, c);
 
         // Population size table
         c.gridx = 0;
@@ -276,10 +302,25 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixEstCheckBox.addItemListener((ItemEvent e) -> {
             saveToMigrationModel();
         });
+
+        addTypeButton.addActionListener(e -> {
+            String newTypeName = JOptionPane.showInputDialog("Name of type");
+
+            if (newTypeName != null) {
+                additionalTypeListModel.add(0, newTypeName);
+                saveToMigrationModel();
+            }
+        });
     }
 
     public void loadFromMigrationModel() {
         migModel.getTypeSet().initAndValidate();
+
+        additionalTypeListModel.clear();
+        if (migModel.getTypeSet().valueInput.get() != null) {
+            for (String typeName : migModel.getTypeSet().valueInput.get().split(","))
+                additionalTypeListModel.add(0, typeName);
+        }
 
         popSizeModel.setRowCount(1);
         popSizeModel.setColumnCount(migModel.getNTypes());
@@ -287,6 +328,9 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixModel.setColumnCount(migModel.getNTypes()+1);
 
         List<String> typeNames = migModel.getTypeSet().getTypesAsList();
+        fullTypeListModel.removeAllElements();
+        for (String typeName : typeNames)
+            fullTypeListModel.insertElementAt(typeName,0);
 
         rowNames.clear();
         for (int i = 0; i < migModel.getNTypes(); i++) {
@@ -312,25 +356,40 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     }
 
     public void saveToMigrationModel() {
+
+        StringBuilder sbAdditionalTypes = new StringBuilder();
+        for (int i=0; i<additionalTypeListModel.size(); i++) {
+            if (i > 0)
+                sbAdditionalTypes.append(",");
+            sbAdditionalTypes.append(additionalTypeListModel.get(i));
+        }
+
+        if (!sbAdditionalTypes.toString().isEmpty()) {
+            migModel.typeSetInput.get().valueInput.setValue(
+                    sbAdditionalTypes.toString(),
+                    migModel.typeSetInput.get());
+            migModel.typeSetInput.get().initAndValidate();
+        }
+
         StringBuilder sbPopSize = new StringBuilder();
-        for (int i=0; i<popSizeModel.getColumnCount(); i++) {
+        for (int i=0; i<migModel.getNTypes(); i++) {
             if (i>0)
                 sbPopSize.append(" ");
 
-            if (popSizeModel.getValueAt(0, i) != null)
+            if (i < popSizeModel.getColumnCount() && popSizeModel.getValueAt(0, i) != null)
                 sbPopSize.append(popSizeModel.getValueAt(0, i));
             else
                 sbPopSize.append("1.0");
         }
-        ((RealParameter)migModel.popSizesInput.get()).setDimension(popSizeModel.getColumnCount());
+        ((RealParameter)migModel.popSizesInput.get()).setDimension(migModel.getNTypes());
         ((RealParameter)migModel.popSizesInput.get()).valuesInput.setValue(
             sbPopSize.toString(),
                 (RealParameter)migModel.popSizesInput.get());
 
         StringBuilder sbRateMatrix = new StringBuilder();
         boolean first = true;
-        for (int i=0; i<rateMatrixModel.getRowCount(); i++) {
-            for (int j=0; j<rateMatrixModel.getColumnCount()-1; j++) {
+        for (int i=0; i<migModel.getNTypes(); i++) {
+            for (int j=0; j<migModel.getNTypes(); j++) {
                 if (i == j)
                     continue;
 
@@ -339,14 +398,14 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                 else
                     sbRateMatrix.append(" ");
 
-                if (rateMatrixModel.getValueAt(i, j) != null)
+                if (i<rateMatrixModel.getRowCount() && j<rateMatrixModel.getColumnCount()-1 && rateMatrixModel.getValueAt(i, j) != null)
                     sbRateMatrix.append(rateMatrixModel.getValueAt(i, j));
                 else
                     sbRateMatrix.append("1.0");
             }
         }
         ((RealParameter)migModel.rateMatrixInput.get()).setDimension(
-            popSizeModel.getColumnCount()*(popSizeModel.getColumnCount()-1));
+            migModel.getNTypes()*(migModel.getNTypes()-1));
         ((RealParameter)migModel.rateMatrixInput.get()).valuesInput.setValue(
             sbRateMatrix.toString(),
                 (RealParameter)migModel.rateMatrixInput.get());
