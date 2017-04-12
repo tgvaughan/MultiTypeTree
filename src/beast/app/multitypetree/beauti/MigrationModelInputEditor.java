@@ -51,6 +51,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     SCMigrationModel migModel;
 
     JButton addTypeButton, remTypeButton, addTypesFromFileButton;
+    JButton loadPopSizesFromFileButton, loadMigRatesFromFileButton;
 
     JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
 
@@ -157,7 +158,11 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.gridy = 1;
         c.weightx = 0.0;
         c.anchor = GridBagConstraints.LINE_END;
-        panel.add(new JLabel("Population sizes: "), c);
+        Box  psBox = Box.createVerticalBox();
+        psBox.add(new JLabel("Population sizes: "), c);
+        loadPopSizesFromFileButton = new JButton("Load from file...");
+        psBox.add(loadPopSizesFromFileButton);
+        panel.add(psBox, c);
 
         JTable popSizeTable = new JTable(popSizeModel) {
             @Override
@@ -198,7 +203,12 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.gridy = 2;
         c.weightx = 0.0;
         c.anchor = GridBagConstraints.LINE_END;
-        panel.add(new JLabel("Migration rates: "), c);
+        Box mrBox = Box.createVerticalBox();
+        mrBox.add(new JLabel("Migration rates: "), c);
+        loadMigRatesFromFileButton = new JButton("Load from file...");
+        mrBox.add(loadMigRatesFromFileButton);
+        panel.add(mrBox, c);
+
         JTable rateMatrixTable = new JTable(rateMatrixModel) {
             @Override
             public TableCellRenderer getCellRenderer(int row, int column) {
