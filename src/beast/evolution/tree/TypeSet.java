@@ -21,8 +21,11 @@ public class TypeSet extends BEASTObject {
     public void initAndValidate() {
         typeNameSet.clear();
 
-        if (valueInput.get() != null)
-            typeNameSet.addAll(Arrays.asList(valueInput.get().split(",")));
+        if (valueInput.get() != null) {
+            for (String typeName : valueInput.get().split(","))
+                if (!typeName.isEmpty())
+                    typeNameSet.add(typeName);
+        }
 
         if (typeTraitSetInput.get() != null)
             addTypesFromTypeTraitSet(typeTraitSetInput.get());

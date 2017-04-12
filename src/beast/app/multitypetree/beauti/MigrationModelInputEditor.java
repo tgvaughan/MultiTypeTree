@@ -46,6 +46,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
     DefaultTableModel popSizeModel, rateMatrixModel;
     DefaultListModel<String> fullTypeListModel, additionalTypeListModel;
+    ListSelectionModel additionalTypeListSelectionModel;
     SCMigrationModel migModel;
 
     JButton addTypeButton, remTypeButton;
@@ -114,6 +115,12 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         JLabel labelLeft = new JLabel("All types");
         tlBoxLeft.add(labelLeft);
         jlist = new JList<>(fullTypeListModel);
+        jlist.setSelectionModel(new DefaultListSelectionModel() {
+            @Override
+            public void setSelectionInterval(int index0, int index1) {
+                super.setSelectionInterval(-1, -1);
+            }
+        });
         JScrollPane listScrollPane = new JScrollPane(jlist);
         listScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         tlBoxLeft.add(listScrollPane);
@@ -123,12 +130,14 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         JLabel labelRight = new JLabel("Additional types");
         tlBoxRight.add(labelRight);
         jlist = new JList<>(additionalTypeListModel);
+        additionalTypeListSelectionModel = jlist.getSelectionModel();
         listScrollPane = new JScrollPane(jlist);
         listScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         tlBoxRight.add(listScrollPane);
         Box addRemBox = Box.createHorizontalBox();
         addTypeButton = new JButton("+");
         remTypeButton = new JButton("-");
+        remTypeButton.setEnabled(false);
         addRemBox.add(addTypeButton);
         addRemBox.add(remTypeButton);
         tlBoxRight.add(addRemBox);
@@ -311,6 +320,24 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                 saveToMigrationModel();
             }
         });
+
+        additionalTypeListSelectionModel.addListSelectionListener(e -> {
+            if (additionalTypeListSelectionModel.getMinSelectionIndex()<0)
+                remTypeButton.setEnabled(false);
+            else
+                remTypeButton.setEnabled(true);
+        });
+
+        remTypeButton.addActionListener(e -> {
+            int selectionMin = additionalTypeListSelectionModel.getMinSelectionIndex();
+            int selectionMax = additionalTypeListSelectionModel.getMaxSelectionIndex();
+
+            additionalTypeListModel.removeRange(selectionMin, selectionMax);
+
+            additionalTypeListSelectionModel.clearSelection();
+
+            saveToMigrationModel();
+        });
     }
 
     public void loadFromMigrationModel() {
@@ -318,8 +345,10 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         additionalTypeListModel.clear();
         if (migModel.getTypeSet().valueInput.get() != null) {
+            int i = 0;
             for (String typeName : migModel.getTypeSet().valueInput.get().split(","))
-                additionalTypeListModel.add(0, typeName);
+                if (!typeName.isEmpty())
+                    additionalTypeListModel.add(i++, typeName);
         }
 
         popSizeModel.setRowCount(1);
@@ -364,12 +393,10 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             sbAdditionalTypes.append(additionalTypeListModel.get(i));
         }
 
-        if (!sbAdditionalTypes.toString().isEmpty()) {
-            migModel.typeSetInput.get().valueInput.setValue(
-                    sbAdditionalTypes.toString(),
-                    migModel.typeSetInput.get());
-            migModel.typeSetInput.get().initAndValidate();
-        }
+        migModel.typeSetInput.get().valueInput.setValue(
+                sbAdditionalTypes.toString(),
+                migModel.typeSetInput.get());
+        migModel.typeSetInput.get().initAndValidate();
 
         StringBuilder sbPopSize = new StringBuilder();
         for (int i=0; i<migModel.getNTypes(); i++) {
