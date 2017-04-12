@@ -70,6 +70,14 @@ public class TypeSet extends BEASTObject {
     }
 
     /**
+     * @param typeName name of type
+     * @return true iff this TypeSet contains a type with name typeName.
+     */
+    public boolean containsTypeWithName(String typeName) {
+        return typeNameSet.contains(typeName);
+    }
+
+    /**
      * @return list of type names ordered according to type index
      */
     public List<String> getTypesAsList() {

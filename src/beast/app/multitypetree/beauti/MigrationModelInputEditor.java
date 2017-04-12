@@ -34,6 +34,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     ListSelectionModel additionalTypeListSelectionModel;
     SCMigrationModel migModel;
 
-    JButton addTypeButton, remTypeButton;
+    JButton addTypeButton, remTypeButton, addTypesFromFileButton;
 
     JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
 
@@ -138,8 +139,10 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         addTypeButton = new JButton("+");
         remTypeButton = new JButton("-");
         remTypeButton.setEnabled(false);
+        addTypesFromFileButton = new JButton("Add from file...");
         addRemBox.add(addTypeButton);
         addRemBox.add(remTypeButton);
+        addRemBox.add(addTypesFromFileButton);
         tlBoxRight.add(addRemBox);
         tlBox.add(tlBoxRight);
 
@@ -316,8 +319,43 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             String newTypeName = JOptionPane.showInputDialog("Name of type");
 
             if (newTypeName != null) {
-                additionalTypeListModel.add(0, newTypeName);
-                saveToMigrationModel();
+                if (migModel.getTypeSet().containsTypeWithName(newTypeName)) {
+                    JOptionPane.showMessageDialog(panel, "Type with this name already present.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    additionalTypeListModel.add(additionalTypeListModel.size(), newTypeName);
+                    saveToMigrationModel();
+                }
+            }
+        });
+
+        addTypesFromFileButton.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Choose file containing type names (one per line)");
+            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fc.setMultiSelectionEnabled(false);
+            int result = fc.showDialog(panel, "Load");
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+
+                    String line = null;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (!line.isEmpty())
+                            additionalTypeListModel.add(additionalTypeListModel.size(), line);
+                    }
+
+                    saveToMigrationModel();
+
+                } catch (IOException e1) {
+                    JOptionPane.showMessageDialog(panel,
+                            "Error reading from file: " + e1.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
@@ -345,10 +383,9 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         additionalTypeListModel.clear();
         if (migModel.getTypeSet().valueInput.get() != null) {
-            int i = 0;
             for (String typeName : migModel.getTypeSet().valueInput.get().split(","))
                 if (!typeName.isEmpty())
-                    additionalTypeListModel.add(i++, typeName);
+                    additionalTypeListModel.add(additionalTypeListModel.size(), typeName);
         }
 
         popSizeModel.setRowCount(1);
@@ -359,7 +396,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         List<String> typeNames = migModel.getTypeSet().getTypesAsList();
         fullTypeListModel.removeAllElements();
         for (String typeName : typeNames)
-            fullTypeListModel.insertElementAt(typeName,0);
+            fullTypeListModel.add(fullTypeListModel.size(), typeName);
 
         rowNames.clear();
         for (int i = 0; i < migModel.getNTypes(); i++) {
