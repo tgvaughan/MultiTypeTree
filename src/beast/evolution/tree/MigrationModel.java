@@ -1,11 +1,12 @@
 package beast.evolution.tree;
 
+import beast.core.BEASTInterface;
 import org.jblas.DoubleMatrix;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public interface MigrationModel {
+public interface MigrationModel extends BEASTInterface {
     int getNTypes();
 
     String getTypeName(int typeIdx);

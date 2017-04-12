@@ -66,14 +66,18 @@ public class InitMigrationModelConnector {
             String rateMatrixStr = getParameterString((RealParameter)migModel.rateMatrixInput.get());
             String popSizesStr = getParameterString((RealParameter)migModel.popSizesInput.get());
 
-            // Ensure model has minimum number of demes
+            // Ensure model has appropriate number of demes
+
             int uniqueTraitCount = uniqueTraitsInData(tree).size();
             StringBuilder rateMatrixStrBuilder = new StringBuilder();
             StringBuilder popSizesStrBuilder = new StringBuilder();
-            if (migModel.getNTypes()<uniqueTraitCount) {
-                for (int i=0; i<uniqueTraitCount; i++) {
+
+            migModel.getTypeSet().initAndValidate();
+
+            if (migModel.popSizesInput.get().getDimension() != migModel.getNTypes()) {
+                for (int i=0; i<migModel.getNTypes(); i++) {
                     popSizesStrBuilder.append(" 1.0");
-                    for (int j=0; j<uniqueTraitCount; j++) {
+                    for (int j=0; j<migModel.getNTypes(); j++) {
                         if (j == i)
                             continue;
 
@@ -84,11 +88,11 @@ public class InitMigrationModelConnector {
                 popSizesStr = popSizesStrBuilder.toString();
                 rateMatrixStr = rateMatrixStrBuilder.toString();
 
-                ((RealParameter)migModel.popSizesInput.get()).setDimension(uniqueTraitCount);
+                ((RealParameter)migModel.popSizesInput.get()).setDimension(migModel.getNTypes());
                 ((RealParameter)migModel.popSizesInput.get()).valuesInput.setValue(popSizesStr,
                         (RealParameter)migModel.popSizesInput.get());
 
-                ((RealParameter)migModel.rateMatrixInput.get()).setDimension(uniqueTraitCount*(uniqueTraitCount-1));
+                ((RealParameter)migModel.rateMatrixInput.get()).setDimension(migModel.getNTypes()*(migModel.getNTypes()-1));
                 ((RealParameter)migModel.rateMatrixInput.get()).valuesInput.setValue(rateMatrixStr,
                         (RealParameter)migModel.rateMatrixInput.get());
 
