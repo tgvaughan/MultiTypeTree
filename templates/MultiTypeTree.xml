@@ -164,7 +164,9 @@
                 <typeSet spec="beast.evolution.tree.TypeSet" id="typeSet.t:$(n)"/>
                 <migrationModel spec='beast.evolution.tree.SCMigrationModel' id="migModelInit.t:$(n)">
                     <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" estimate="false"/>
+                    <rateMatrixScaleFactor spec="parameter.RealParameter" value="1.0" estimate="false"/>
                     <popSizes spec='parameter.RealParameter' value="1.0 1.0" estimate="false"/>
+                    <popSizesScaleFactor spec="parameter.RealParameter" value="1.0" estimate="false"/>
                     <typeSet idref="typeSet.t:$(n)"/>
                 </migrationModel>
                 <taxonset spec='beast.evolution.alignment.TaxonSet' id="taxonsSet.t:$(n)">
@@ -193,7 +195,9 @@
                 <multiTypeTree idref="Tree.t:$(n)"/>
                 <migrationModel spec='beast.evolution.tree.SCMigrationModel' id="migModel.t:$(n)">
                     <rateMatrix spec='parameter.RealParameter' value="1.0 1.0" id="rateMatrix.t:$(n)" estimate="false"/>
+                    <rateMatrixScaleFactor spec="parameter.RealParameter" value="1.0" id="rateMatrixScaleFactor.t:$(n)" estimate="false"/>
                     <popSizes spec='parameter.RealParameter' value="1.0 1.0" id="popSizes.t:$(n)" estimate="false"/>
+                    <popSizesScaleFactor spec="parameter.RealParameter" value="1.0" id="popSizesScaleFactor.t:$(n)" estimate="false"/>
                     <typeSet idref="typeSet.t:$(n)"/>
                 </migrationModel>
 
@@ -221,9 +225,18 @@
                 <distr spec="beast.math.distributions.OneOnX"/>
             </prior>
 
+            <prior id='popSizesScaleFactorPrior.t:$(n)' x='@popSizesScaleFactor.t:$(n)'>
+                <distr spec="beast.math.distributions.OneOnX"/>
+            </prior>
+
             <prior id='rateMatrixPrior.t:$(n)' x='@rateMatrix.t:$(n)'>
                 <distr spec="beast.math.distributions.OneOnX"/>
             </prior>
+
+            <prior id='rateMatrixScaleFactorPrior.t:$(n)' x='@rateMatrixScaleFactor.t:$(n)'>
+                <distr spec="beast.math.distributions.OneOnX"/>
+            </prior>
+
 
             <!-- Parameter operators -->
             
@@ -232,7 +245,9 @@
             <operator id='gammaShapeScaler.s:$(n)' spec='ScaleOperator' scaleFactor="0.5" weight="0.1" parameter="@gammaShape.s:$(n)"/>
 
             <operator id='popSizesScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.8" weight="1" parameter="@popSizes.t:$(n)"/>
+            <operator id='popSizesScaleFactorScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.8" weight="1" parameter="@popSizesScaleFactor.t:$(n)"/>
             <operator id='rateMatrixScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.8" weight="1" parameter="@rateMatrix.t:$(n)"/>
+            <operator id='rateMatrixScaleFactorScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.8" weight="1" parameter="@rateMatrixScaleFactor.t:$(n)"/>
 
             <!-- Multi-type tree operators -->
 
@@ -249,6 +264,11 @@
             </operator>
 
             <operator spec="multitypetree.operators.MultiTypeTreeScale" id="MTTUpDown.t:$(n)"
+                weight="10" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)"
+                scaleFactor="0.98" useOldTreeScaler="true">
+            </operator>
+
+            <operator spec="multitypetree.operators.MultiTypeTreeScale" id="MTTUpDownScaleFactors.t:$(n)"
                 weight="10" multiTypeTree="@Tree.t:$(n)" migrationModel="@migModel.t:$(n)"
                 scaleFactor="0.98" useOldTreeScaler="true">
             </operator>
@@ -288,7 +308,9 @@
             <connect srcID='mutationRate.s:$(n)' targetID='state' inputName='stateNode' if='inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'/>
             <connect srcID='gammaShape.s:$(n)' targetID='state' inputName='stateNode' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'/>
             <connect srcID='rateMatrix.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
+            <connect srcID='rateMatrixScaleFactor.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(rateMatrixScaleFactor.t:$(n)) and rateMatrixScaleFactor.t:$(n)/estimate=true'/>
             <connect srcID='popSizes.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
+            <connect srcID='popSizesScaleFactor.t:$(n)' targetID='state' inputName='stateNode' if='inposterior(popSizesScaleFactor.t:$(n)) and popSizesScaleFactor.t:$(n)/estimate=true'/>
 
             <connect srcID='treeLikelihood.$(n)' targetID='likelihood' inputName='distribution' if="isInitializing"/>
             <connect srcID='structuredCoalescent.t:$(n)' targetID='prior' inputName='distribution' if="Tree.t:$(n)/estimate=true"/>
@@ -297,13 +319,17 @@
             <connect srcID='GammaShapePrior.s:$(n)'           targetID='prior' inputName='distribution' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'>Prior on gamma shape for partition s:$(n)</connect>
             <connect srcID='PropInvariantPrior.s:$(n)'        targetID='prior' inputName='distribution' if='inlikelihood(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'>Prior on proportion invariant for partition s:$(n)</connect>
             <connect srcID='rateMatrixPrior.t:$(n)' targetID='prior' inputName='distribution' if='inposterior(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
+            <connect srcID='rateMatrixScaleFactorPrior.t:$(n)' targetID='prior' inputName='distribution' if='inposterior(rateMatrixScaleFactor.t:$(n)) and rateMatrixScaleFactor.t:$(n)/estimate=true'/>
             <connect srcID='popSizesPrior.t:$(n)' targetID='prior' inputName='distribution' if='inposterior(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
+            <connect srcID='popSizesScaleFactorPrior.t:$(n)' targetID='prior' inputName='distribution' if='inposterior(popSizesScaleFactor.t:$(n)) and popSizesScaleFactor.t:$(n)/estimate=true'/>
 
             <connect srcID='proportionInvariantScaler.s:$(n)' targetID='mcmc' inputName='operator' if='inlikelihood(proportionInvariant.s:$(n)) and proportionInvariant.s:$(n)/estimate=true'>Scales proportion of invariant sites parameter of partition $(n)</connect>
             <connect srcID='mutationRateScaler.s:$(n)' targetID='mcmc' inputName='operator' if='nooperator(FixMeanMutationRatesOperator) and inlikelihood(mutationRate.s:$(n)) and mutationRate.s:$(n)/estimate=true'>Scales mutation rate of partition s:$(n)</connect>
             <connect srcID='gammaShapeScaler.s:$(n)' targetID='mcmc' inputName='operator' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'>Scales gamma shape parameter of partition s:$(n)</connect>
             <connect srcID='rateMatrixScaler.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(rateMatrix.t:$(n)) and rateMatrix.t:$(n)/estimate=true'/>
+            <connect srcID='rateMatrixScaleFactorScaler.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(rateMatrixScaleFactor.t:$(n)) and rateMatrixScaleFactor.t:$(n)/estimate=true'/>
             <connect srcID='popSizesScaler.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(popSizes.t:$(n)) and popSizes.t:$(n)/estimate=true'/>
+            <connect srcID='popSizesScaleFactorScaler.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(popSizesScaleFactor.t:$(n)) and popSizesScaleFactor.t:$(n)/estimate=true'/>
             <connect srcID='STX.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='TWB.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='NR.t:$(n)' targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
@@ -314,6 +340,9 @@
             <connect srcID='MTTUpDown.t:$(n)' targetID='mcmc' inputName='operator' if='Tree.t:$(n)/estimate=true'/>
             <connect srcID='popSizes.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameter' if='Tree.t:$(n)/estimate=true and popSizes.t:$(n)/estimate=true'/>
             <connect srcID='rateMatrix.t:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameterInverse' if='Tree.t:$(n)/estimate=true and rateMatrix.t:$(n)/estimate=true'/>
+            <connect srcID='MTTUpDownScaleFactors.t:$(n)' targetID='mcmc' inputName='operator' if='Tree.t:$(n)/estimate=true'/>
+            <connect srcID='popSizesScaleFactor.t:$(n)' targetID='MTTUpDownScaleFactors.t:$(n)' inputName='parameter' if='Tree.t:$(n)/estimate=true and popSizesScaleFactor.t:$(n)/estimate=true'/>
+            <connect srcID='rateMatrixScaleFactor.t:$(n)' targetID='MTTUpDownScaleFactors.t:$(n)' inputName='parameterInverse' if='Tree.t:$(n)/estimate=true and rateMatrixScaleFactor.t:$(n)/estimate=true'/>
 
             <connect srcID='treelog.t:$(n)' targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='maptreelog.t:$(n)' targetID='mcmc' inputName='logger' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>

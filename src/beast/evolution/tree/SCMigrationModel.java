@@ -40,20 +40,18 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
             "Migration rate matrix.",
             Validate.REQUIRED);
 
-    public Input<Function> rateMatrixScalerInput = new Input<>(
-            "rateMatrixScaler",
-            "Scale factor for migration rates.",
-            Validate.OPTIONAL);
+    public Input<Function> rateMatrixScaleFactorInput = new Input<>(
+            "rateMatrixScaleFactor",
+            "Scale factor for migration rates.");
 
     public Input<Function> popSizesInput = new Input<>(
             "popSizes",
             "Deme population sizes.",
             Validate.REQUIRED);
 
-    public Input<Function> popSizesScalerInput = new Input<>(
-            "popSizesScaler",
-            "Scale factor for population sizes.",
-            Validate.OPTIONAL);
+    public Input<Function> popSizesScaleFactorInput = new Input<>(
+            "popSizesScaleFactor",
+            "Scale factor for population sizes.");
 
     public Input<BooleanParameter> rateMatrixFlagsInput = new Input<>(
             "rateMatrixFlags",
@@ -66,7 +64,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
 
     protected TypeSet typeSet;
     protected Function rateMatrix, popSizes;
-    protected Function rateMatrixScaler, popSizesScaler;
+    protected Function rateMatrixScaleFactor, popSizesScaleFactor;
     protected BooleanParameter rateMatrixFlags;
     protected double mu, muSym;
     protected int nTypes;
@@ -98,11 +96,11 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
         popSizes = popSizesInput.get();
         rateMatrix = rateMatrixInput.get();
 
-        if (popSizesScalerInput.get() != null)
-            popSizesScaler = popSizesScalerInput.get();
+        if (popSizesScaleFactorInput.get() != null)
+            popSizesScaleFactor = popSizesScaleFactorInput.get();
 
-        if (rateMatrixScalerInput.get() != null)
-            rateMatrixScaler = rateMatrixScalerInput.get();
+        if (rateMatrixScaleFactorInput.get() != null)
+            rateMatrixScaleFactor = rateMatrixScaleFactorInput.get();
 
         if (rateMatrixFlagsInput.get() != null)
             rateMatrixFlags = rateMatrixFlagsInput.get();
@@ -235,7 +233,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      * @return rate matrix scale factor
      */
     public double getRateScaleFactor() {
-        return rateMatrixScaler != null ? rateMatrixScaler.getArrayValue() : 1.0;
+        return rateMatrixScaleFactor != null ? rateMatrixScaleFactor.getArrayValue() : 1.0;
     }
 
     /**
@@ -256,7 +254,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
                 && !rateMatrixFlagsInput.get().getValue(offset))
             return 0.0;
         else
-            return rateMatrix.getArrayValue(offset);
+            return getRateScaleFactor()*rateMatrix.getArrayValue(offset);
     }
     
     /**
@@ -322,18 +320,8 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
             }
         }
     }
-    
-    /**
-     * Obtain effective population size of particular type/deme.
-     *
-     * @param i deme index
-     * @return Effective population size.
-     */
-    public double getPopSize(int i) {
-        return popSizes.getArrayValue(i);
-    }
 
-    /**
+     /**
      * Retrieve effective population size of type/deme.  This method
      * is intended to be used for logging only.  It does not include
      * the effect of a scale factor if defined.  (Logged population sizes
@@ -350,7 +338,17 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      * @return population size scale factor
      */
     public double getPopSizeScaleFactor() {
-        return popSizesScaler != null ?  popSizesScaler.getArrayValue() : 1.0;
+        return popSizesScaleFactor != null ?  popSizesScaleFactor.getArrayValue() : 1.0;
+    }
+
+    /**
+     * Obtain effective population size of particular type/deme.
+     *
+     * @param i deme index
+     * @return Effective population size.
+     */
+    public double getPopSize(int i) {
+        return getPopSizeScaleFactor()*popSizes.getArrayValue(i);
     }
 
     @Override

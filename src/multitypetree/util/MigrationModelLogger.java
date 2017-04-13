@@ -101,7 +101,7 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
         out.print(migModel.getPopSizeScaleFactor() + "\t");
 
         for (int i=0; i<migModel.getNTypes(); i++) {
-            out.print(migModel.getPopSize(i) + "\t");
+            out.print(migModel.getPopSizeForLog(i) + "\t");
         }
 
         out.print(migModel.getRateScaleFactor() + "\t");

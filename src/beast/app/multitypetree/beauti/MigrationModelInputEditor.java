@@ -31,7 +31,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ItemEvent;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,16 +42,16 @@ import java.util.List;
  */
 public class MigrationModelInputEditor extends InputEditor.Base {
 
-    DefaultTableModel popSizeModel, rateMatrixModel;
-    DefaultListModel<String> fullTypeListModel, additionalTypeListModel;
-    ListSelectionModel additionalTypeListSelectionModel;
-    SCMigrationModel migModel;
+    private DefaultTableModel popSizeModel, rateMatrixModel;
+    private DefaultListModel<String> fullTypeListModel, additionalTypeListModel;
+    private ListSelectionModel additionalTypeListSelectionModel;
+    private SCMigrationModel migModel;
 
-    JButton addTypeButton, remTypeButton, addTypesFromFileButton;
-    JButton loadPopSizesFromFileButton, loadMigRatesFromFileButton;
+    private JButton addTypeButton, remTypeButton, addTypesFromFileButton;
+    private JButton loadPopSizesFromFileButton, loadMigRatesFromFileButton;
 
-    JCheckBox popSizeEstCheckBox, popSizeScaleFactorEstCheckBox;
-    JCheckBox rateMatrixEstCheckBox, rateMatrixScaleFactorEstCheckBox;
+    private JCheckBox popSizeEstCheckBox, popSizeScaleFactorEstCheckBox;
+    private JCheckBox rateMatrixEstCheckBox, rateMatrixScaleFactorEstCheckBox;
 
     boolean fileLoadInProgress = false;
 
@@ -192,6 +191,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         panel.add(popSizeTable, c);
 
         popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
+        popSizeScaleFactorEstCheckBox.setSelected(((RealParameter)migModel.popSizesScaleFactorInput.get()).isEstimatedInput.get());
         c.gridx = 2;
         c.gridy = 1;
         c.anchor = GridBagConstraints.LINE_END;
@@ -237,7 +237,6 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                                     Component c = super.getTableCellRendererComponent(
                                         table, value, isSelected, hasFocus, row, column);
 
-                                    JComponent jc = (JComponent)c;
                                     if (column == migModel.getNTypes()) {
                                         c.setBackground(panel.getBackground());
                                         c.setForeground(Color.gray);
@@ -280,6 +279,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         panel.add(rateMatrixTable, c);
 
         rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
+        rateMatrixScaleFactorEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixScaleFactorInput.get()).isEstimatedInput.get());
         c.gridx = 2;
         c.gridy = 2;
         c.anchor = GridBagConstraints.LINE_END;
@@ -308,7 +308,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
  
 
         // Event handlers
-        popSizeModel.addTableModelListener((TableModelEvent e) -> {
+        popSizeModel.addTableModelListener(e -> {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
             
@@ -316,11 +316,11 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                 saveToMigrationModel();
         });
 
-        popSizeEstCheckBox.addItemListener((ItemEvent e) -> {
-            saveToMigrationModel();
-        });
+        popSizeEstCheckBox.addItemListener(e -> saveToMigrationModel());
 
-        rateMatrixModel.addTableModelListener((TableModelEvent e) -> {
+        popSizeScaleFactorEstCheckBox.addItemListener(e -> saveToMigrationModel());
+
+        rateMatrixModel.addTableModelListener(e -> {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
 
@@ -328,9 +328,9 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                 saveToMigrationModel();
         });
 
-        rateMatrixEstCheckBox.addItemListener((ItemEvent e) -> {
-            saveToMigrationModel();
-        });
+        rateMatrixEstCheckBox.addItemListener(e -> saveToMigrationModel());
+
+        rateMatrixScaleFactorEstCheckBox.addItemListener(e -> saveToMigrationModel());
 
         addTypeButton.addActionListener(e -> {
             String newTypeName = JOptionPane.showInputDialog("Name of type");
@@ -359,7 +359,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                 try {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 
-                    String line = null;
+                    String line;
                     while ((line = reader.readLine()) != null) {
                         line = line.trim();
                         if (!line.isEmpty())
@@ -408,7 +408,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
 
                     List<Double> popSizes = new ArrayList<>();
-                    String line = null;
+                    String line;
                     while ((line = reader.readLine()) != null) {
                         line = line.trim();
                         if (!line.isEmpty())
@@ -512,7 +512,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         });
     }
 
-    public void loadFromMigrationModel() {
+    private void loadFromMigrationModel() {
         migModel.getTypeSet().initAndValidate();
 
         additionalTypeListModel.clear();
@@ -534,7 +534,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         rowNames.clear();
         for (int i = 0; i < migModel.getNTypes(); i++) {
-        if (typeNames != null && i<typeNames.size())
+        if (i < typeNames.size())
             rowNames.add(" " + typeNames.get(i) + " (" + String.valueOf(i) + ") ");
         else
             rowNames.add(" (" + String.valueOf(i) + ") ");
@@ -555,7 +555,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
     }
 
-    public void saveToMigrationModel() {
+    private void saveToMigrationModel() {
 
         StringBuilder sbAdditionalTypes = new StringBuilder();
         for (int i=0; i<additionalTypeListModel.size(); i++) {
@@ -610,8 +610,12 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         ((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.setValue(
             popSizeEstCheckBox.isSelected(), (RealParameter)migModel.popSizesInput.get());
+        ((RealParameter)migModel.popSizesScaleFactorInput.get()).isEstimatedInput.setValue(
+                popSizeScaleFactorEstCheckBox.isSelected(), (RealParameter)migModel.popSizesScaleFactorInput.get());
         ((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.setValue(
             rateMatrixEstCheckBox.isSelected(), (RealParameter)migModel.rateMatrixInput.get());
+        ((RealParameter)migModel.rateMatrixScaleFactorInput.get()).isEstimatedInput.setValue(
+                rateMatrixScaleFactorEstCheckBox.isSelected(), (RealParameter)migModel.rateMatrixScaleFactorInput.get());
 
         try {
             ((RealParameter)migModel.rateMatrixInput.get()).initAndValidate();

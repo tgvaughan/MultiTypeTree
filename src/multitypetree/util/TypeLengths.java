@@ -42,8 +42,6 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
     private MultiTypeTree mtTree;
     private MigrationModel migModel;
 
-    private int nTypes;
-
     private double[] typeLengths;
 
     public TypeLengths() { }
@@ -53,7 +51,7 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
         mtTree = multiTypeTreeInput.get();
         migModel = migrationModelInput.get();
 
-        typeLengths = new double[nTypes];
+        typeLengths = new double[migModel.getNTypes()];
         
         update();
     }

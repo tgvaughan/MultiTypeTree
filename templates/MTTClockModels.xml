@@ -31,6 +31,9 @@
             </connect>
             <connect srcID='clockRate.c:$(n)' targetID='MTTUpDown.t:$(n)' inputName='parameterInverse'
                 if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true and Tree.t:$(n)/estimate=true'/>
+
+            <connect srcID='clockRate.c:$(n)' targetID='MTTUpDownScaleFactors.t:$(n)' inputName='parameterInverse'
+                     if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true and Tree.t:$(n)/estimate=true'/>
         </subtemplate>
 
         <!-- Relaxed clock exponential -->
