@@ -16,6 +16,7 @@
  */
 package multitypetree.operators;
 
+import beast.evolution.tree.TypeSet;
 import multitypetree.util.UtilMethods;
 import beast.core.MCMC;
 import beast.core.Operator;
@@ -53,7 +54,8 @@ public class STX_NR_MTU_TS_Test {
         SCMigrationModel migModel = new SCMigrationModel();
         migModel.initByName(
                 "rateMatrix", rateMatrix,
-                "popSizes", popSizes);
+                "popSizes", popSizes,
+                "typeSet", new TypeSet("A", "B"));
         
         // Assemble initial MultiTypeTree
         MultiTypeTree mtTree = new StructuredCoalescentMultiTypeTree();

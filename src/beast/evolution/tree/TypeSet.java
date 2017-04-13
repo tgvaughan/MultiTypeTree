@@ -17,6 +17,18 @@ public class TypeSet extends BEASTObject {
 
     protected SortedSet<String> typeNameSet = new TreeSet<>();
 
+    public TypeSet() {}
+
+    /**
+     * Constructor to produce type set containing types provided as arguments.
+     * Useful for testing.
+     *
+     * @param typeNames varargs array of type names to include
+     */
+    public TypeSet(String ... typeNames) {
+        typeNameSet.addAll(Arrays.asList(typeNames));
+    }
+
     @Override
     public void initAndValidate() {
         typeNameSet.clear();

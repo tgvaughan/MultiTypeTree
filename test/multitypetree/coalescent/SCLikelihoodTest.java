@@ -17,6 +17,7 @@
 package multitypetree.coalescent;
 
 import beast.core.parameter.RealParameter;
+import beast.evolution.tree.TypeSet;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.MultiTypeTreeFromNewick;
@@ -55,7 +56,8 @@ public class SCLikelihoodTest {
 		SCMigrationModel migrationModel = new SCMigrationModel();
 		migrationModel.initByName(
                         "rateMatrix", rateMatrix,
-                        "popSizes", popSizes);
+                        "popSizes", popSizes,
+				"typeSet", new TypeSet("A", "B"));
 
 		// Set up likelihood instance:
 		StructuredCoalescentTreeDensity likelihood = new StructuredCoalescentTreeDensity();

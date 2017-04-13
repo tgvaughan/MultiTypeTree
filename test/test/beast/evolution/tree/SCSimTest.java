@@ -19,6 +19,7 @@ package test.beast.evolution.tree;
 import beast.core.parameter.IntegerParameter;
 import beast.core.parameter.RealParameter;
 import beast.evolution.tree.SCMigrationModel;
+import beast.evolution.tree.TypeSet;
 import beast.math.statistic.DiscreteStatistics;
 import beast.util.Randomizer;
 import org.junit.Assert;
@@ -48,7 +49,8 @@ public class SCSimTest {
         SCMigrationModel migrationModel = new SCMigrationModel();
         migrationModel.initByName(
                 "rateMatrix", rateMatrix,
-                "popSizes", popSizes);
+                "popSizes", popSizes,
+                "typeSet", new TypeSet("A", "B"));
 
         // Specify leaf types:
         IntegerParameter leafTypes = new IntegerParameter();

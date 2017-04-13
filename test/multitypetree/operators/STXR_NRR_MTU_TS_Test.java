@@ -20,6 +20,7 @@ import beast.core.MCMC;
 import beast.core.Operator;
 import beast.core.State;
 import beast.core.parameter.RealParameter;
+import beast.evolution.tree.TypeSet;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
 import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.MultiTypeTree;
@@ -48,8 +49,9 @@ public class STXR_NRR_MTU_TS_Test {
         SCMigrationModel migModel = new SCMigrationModel();
         migModel.initByName(
                 "rateMatrix", rateMatrix,
-                "popSizes", popSizes);
-        
+                "popSizes", popSizes,
+                "typeSet", new TypeSet("A", "B"));
+
         // Assemble initial MultiTypeTree
         MultiTypeTree mtTree = new StructuredCoalescentMultiTypeTree();
         mtTree.initByName(
