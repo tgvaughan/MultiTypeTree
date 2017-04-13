@@ -64,8 +64,6 @@ public class MultiTypeTree extends Tree {
     protected TraitSet typeTraitSet;
     protected TypeSet typeSet;
 
-    protected List <String> typeList;
-
     public MultiTypeTree() { };
     
     public MultiTypeTree(Node rootNode) {

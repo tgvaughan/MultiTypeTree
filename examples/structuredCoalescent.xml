@@ -543,6 +543,7 @@ t128=3">
    <migrationModel spec='SCMigrationModel' id='migModel'>
      <rateMatrix spec='RealParameter' value="1.0" dimension="2" id="rateMatrix"/>
      <popSizes spec='RealParameter' value="1.0" dimension="2" id="popSizes"/>
+     <typeSet id="typeSet" spec='TypeSet' typeTraitSet="@typeTraitSet"/>
    </migrationModel>
  
    <!-- Parameter priors -->
@@ -583,9 +584,11 @@ t128=3">
          <migrationModel spec='SCMigrationModel'>
              <rateMatrix spec='RealParameter' value="1.0" dimension="2"/>
              <popSizes spec='RealParameter' value="1.0" dimension="2"/>
+             <typeSet idref="typeSet"/>
          </migrationModel>
          <trait idref='typeTraitSet'/>
          <trait idref='timeTraitSet'/>
+         <typeSet idref="typeSet"/>
      </init>
 
      <state>
