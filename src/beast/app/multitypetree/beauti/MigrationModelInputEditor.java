@@ -433,6 +433,74 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                 }
             }
         });
+
+        loadMigRatesFromFileButton.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Choose CSV file containing migration rate matrix (diagonal ignored)");
+            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fc.setMultiSelectionEnabled(false);
+            int result = fc.showDialog(panel, "Load");
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+
+                    List<Double> migRates = new ArrayList<>();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        for (String field : line.split(",")) {
+                            if (!field.isEmpty())
+                                migRates.add(Double.parseDouble(field));
+                        }
+                    }
+
+                    boolean diagonalsPresent = (migRates.size() == migModel.getNTypes()*migModel.getNTypes());
+                    if (diagonalsPresent || migRates.size() == migModel.getNTypes()*(migModel.getNTypes()-1)) {
+
+                        fileLoadInProgress = true;
+
+                        for (int i=0; i<migModel.getNTypes(); i++) {
+                            for (int j=0; j<migModel.getNTypes(); j++) {
+                                if (i==j)
+                                    continue;
+
+                                int offset;
+                                if (diagonalsPresent)
+                                    offset = i*migModel.getNTypes() + j;
+                                else {
+                                    offset = i * (migModel.getNTypes() - 1) + j;
+                                    if (j>i)
+                                        offset -= 1;
+                                }
+
+                                rateMatrixModel.setValueAt(migRates.get(offset), i, j);
+                            }
+                        }
+
+                        fileLoadInProgress = false;
+
+                        saveToMigrationModel();
+                    } else {
+                        JOptionPane.showMessageDialog(panel,
+                                "<html>CSV file must contain a square matrix with exactly one<br>" +
+                                        "row for each type/deme.</html>",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(panel,
+                            "Error reading from file: " + ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(panel,
+                            "<html>CSV file contains non-numeric element.</html",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
     }
 
     public void loadFromMigrationModel() {
