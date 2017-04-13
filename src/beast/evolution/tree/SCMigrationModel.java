@@ -37,14 +37,24 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
 
     public Input<Function> rateMatrixInput = new Input<>(
             "rateMatrix",
-            "Migration rate matrix",
+            "Migration rate matrix.",
             Validate.REQUIRED);
+
+    public Input<Function> rateMatrixScalerInput = new Input<>(
+            "rateMatrixScaler",
+            "Scale factor for migration rates.",
+            Validate.OPTIONAL);
 
     public Input<Function> popSizesInput = new Input<>(
             "popSizes",
             "Deme population sizes.",
             Validate.REQUIRED);
-    
+
+    public Input<Function> popSizesScalerInput = new Input<>(
+            "popSizesScaler",
+            "Scale factor for population sizes.",
+            Validate.OPTIONAL);
+
     public Input<BooleanParameter> rateMatrixFlagsInput = new Input<>(
             "rateMatrixFlags",
             "Optional boolean parameter specifying which rates to use."
@@ -56,6 +66,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
 
     protected TypeSet typeSet;
     protected Function rateMatrix, popSizes;
+    protected Function rateMatrixScaler, popSizesScaler;
     protected BooleanParameter rateMatrixFlags;
     protected double mu, muSym;
     protected int nTypes;
@@ -86,6 +97,12 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
 
         popSizes = popSizesInput.get();
         rateMatrix = rateMatrixInput.get();
+
+        if (popSizesScalerInput.get() != null)
+            popSizesScaler = popSizesScalerInput.get();
+
+        if (rateMatrixScalerInput.get() != null)
+            rateMatrixScaler = rateMatrixScalerInput.get();
 
         if (rateMatrixFlagsInput.get() != null)
             rateMatrixFlags = rateMatrixFlagsInput.get();
@@ -188,20 +205,13 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
         return typeSet.getNTypes();
     }
 
-
-    /**
-     * @return name for given type index
-     */
-    public String getTypeName(int typeIdx) {
-        return typeSet.getTypeName(typeIdx);
-    }
-
     /**
      * @return corresponding type set
      */
     public TypeSet getTypeSet() {
         return typeSet;
     }
+
 
     /**
      * Obtain element of rate matrix for migration model.  Unlike getRate(),
@@ -219,6 +229,13 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
 
         return rateMatrix.getArrayValue(getArrayOffset(i, j));
         
+    }
+
+    /**
+     * @return rate matrix scale factor
+     */
+    public double getRateScaleFactor() {
+        return rateMatrixScaler != null ? rateMatrixScaler.getArrayValue() : 1.0;
     }
 
     /**
@@ -314,6 +331,26 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      */
     public double getPopSize(int i) {
         return popSizes.getArrayValue(i);
+    }
+
+    /**
+     * Retrieve effective population size of type/deme.  This method
+     * is intended to be used for logging only.  It does not include
+     * the effect of a scale factor if defined.  (Logged population sizes
+     * will be relative to that global effective population size.)
+     *
+     * @param i deme index
+     * @return (Relative) effective population size
+     */
+    public double getPopSizeForLog(int i) {
+        return popSizes.getArrayValue(i);
+    }
+
+    /**
+     * @return population size scale factor
+     */
+    public double getPopSizeScaleFactor() {
+        return popSizesScaler != null ?  popSizesScaler.getArrayValue() : 1.0;
     }
 
     @Override

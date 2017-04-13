@@ -9,8 +9,6 @@ import org.jblas.DoubleMatrix;
 public interface MigrationModel extends BEASTInterface {
     int getNTypes();
 
-    String getTypeName(int typeIdx);
-
     TypeSet getTypeSet();
 
     double getBackwardRate(int i, int j);

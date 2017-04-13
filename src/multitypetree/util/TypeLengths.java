@@ -52,8 +52,7 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
     public void initAndValidate() {
         mtTree = multiTypeTreeInput.get();
         migModel = migrationModelInput.get();
-        nTypes = migModel.getNTypes();
-        
+
         typeLengths = new double[nTypes];
         
         update();
@@ -91,7 +90,7 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
     
     @Override
     public int getDimension() {
-        return nTypes*(nTypes-1);
+        return migModel.getNTypes()*(migModel.getNTypes()-1);
     }
 
     @Override
@@ -114,15 +113,15 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
         
         String idString = mtTree.getID();
 
-        for (int type = 0; type < nTypes; type++)
-            out.print(idString + ".length_" + migModel.getTypeName(type) + "\t");
+        for (int type = 0; type < migModel.getNTypes(); type++)
+            out.print(idString + ".length_" + migModel.getTypeSet().getTypeName(type) + "\t");
     }
 
     @Override
     public void log(int nSample, PrintStream out) {
         update();
         
-        for (int type = 0; type < nTypes; type++) {
+        for (int type = 0; type < migModel.getNTypes(); type++) {
             out.print(typeLengths[type] + "\t");
         }
     }

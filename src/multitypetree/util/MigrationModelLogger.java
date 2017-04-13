@@ -22,6 +22,8 @@ import beast.core.Input.Validate;
 import beast.core.Loggable;
 import beast.evolution.tree.SCMigrationModel;
 import beast.evolution.tree.MultiTypeTree;
+import beast.evolution.tree.TypeSet;
+
 import java.io.PrintStream;
 
 /**
@@ -48,18 +50,23 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
     @Override
     public void init(PrintStream out) {
         String outName;
+        TypeSet typeSet = migModel.getTypeSet();
+
         if (migModel.getID() == null || migModel.getID().matches("\\s*"))
             outName = "migModel";
         else
             outName = migModel.getID();
-        
+
+        out.print(outName + ".popSizeScaleFactor\t");
 
         for (int i=0; i<migModel.getNTypes(); i++) {
             if (mtTree != null)
-                out.print(outName + ".popSize_" + migModel.getTypeName(i) + "\t");
+                out.print(outName + ".popSize_" + typeSet.getTypeName(i) + "\t");
             else
                 out.print(outName + ".popSize_" + i + "\t");
         }
+
+        out.print(outName + ".rateMatrixScaleFactor\t");
 
         for (int i=0; i<migModel.getNTypes(); i++) {
             for (int j=0; j<migModel.getNTypes(); j++) {
@@ -67,7 +74,7 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
                     continue;
                 if (mtTree != null)
                     out.format("%s.rateMatrix_%s_%s\t", outName,
-                        migModel.getTypeName(i), migModel.getTypeName(j));
+                        typeSet.getTypeName(i), typeSet.getTypeName(j));
                 else
                     out.format("%s.rateMatrix_%d_%d\t", outName, i, j);
             }
@@ -80,7 +87,7 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
                         continue;
                     if (mtTree != null)
                         out.format("%s.rateMatrixFlag_%s_%s\t", outName,
-                            migModel.getTypeName(i), migModel.getTypeName(j));
+                            typeSet.getTypeName(i), typeSet.getTypeName(j));
                     else
                         out.format("%s.rateMatrixFlag_%d_%d\t", outName, i, j);
                 }
@@ -90,10 +97,14 @@ public class MigrationModelLogger extends BEASTObject implements Loggable {
 
     @Override
     public void log(int nSample, PrintStream out) {
-                        
+
+        out.print(migModel.getPopSizeScaleFactor() + "\t");
+
         for (int i=0; i<migModel.getNTypes(); i++) {
             out.print(migModel.getPopSize(i) + "\t");
         }
+
+        out.print(migModel.getRateScaleFactor() + "\t");
 
         for (int i=0; i<migModel.getNTypes(); i++) {
             for (int j=0; j<migModel.getNTypes(); j++) {

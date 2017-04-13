@@ -51,7 +51,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     JButton addTypeButton, remTypeButton, addTypesFromFileButton;
     JButton loadPopSizesFromFileButton, loadMigRatesFromFileButton;
 
-    JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
+    JCheckBox popSizeEstCheckBox, popSizeScaleFactorEstCheckBox;
+    JCheckBox rateMatrixEstCheckBox, rateMatrixScaleFactorEstCheckBox;
 
     boolean fileLoadInProgress = false;
 
@@ -90,8 +91,10 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                 return row != column && column != migModel.getNTypes();
             }
         };
-        popSizeEstCheckBox = new JCheckBox("estimate");
-        rateMatrixEstCheckBox = new JCheckBox("estimate");
+        popSizeEstCheckBox = new JCheckBox("estimate pop. sizes");
+        rateMatrixEstCheckBox = new JCheckBox("estimate mig. rates");
+        popSizeScaleFactorEstCheckBox = new JCheckBox("estimate scale factor");
+        rateMatrixScaleFactorEstCheckBox = new JCheckBox("estimate scale factor");
         loadFromMigrationModel();
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -187,13 +190,16 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.weightx = 1.0;
         c.anchor = GridBagConstraints.LINE_START;
         panel.add(popSizeTable, c);
-        popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
 
+        popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
         c.gridx = 2;
         c.gridy = 1;
         c.anchor = GridBagConstraints.LINE_END;
         c.weightx = 1.0;
-        panel.add(popSizeEstCheckBox, c);
+        Box estBox = Box.createVerticalBox();
+        estBox.add(popSizeEstCheckBox);
+        estBox.add(popSizeScaleFactorEstCheckBox);
+        panel.add(estBox, c);
 
         // Migration rate table
         // (Uses custom cell renderer to grey out diagonal elements.)
@@ -278,7 +284,10 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         c.gridy = 2;
         c.anchor = GridBagConstraints.LINE_END;
         c.weightx = 1.0;
-        panel.add(rateMatrixEstCheckBox, c);
+        estBox = Box.createVerticalBox();
+        estBox.add(rateMatrixEstCheckBox);
+        estBox.add(rateMatrixScaleFactorEstCheckBox);
+        panel.add(estBox, c);
 
         c.gridx = 1;
         c.gridy = 3;
