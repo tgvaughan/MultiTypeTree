@@ -1,0 +1,8 @@
+<packages>
+    <package name='MultiTypeTree' version='7.0.0-pre'
+        url="https://github.com/tgvaughan/MultiTypeTree/releases/download/v7.0.0-pre/MultiTypeTree.v7.0.0-pre.zip"
+        description="Structured coalescent inference"
+        projectURL="http://tgvaughan.github.io/MultiTypeTree" >
+        <depends on='BEAST' atleast='2.4.0' />
+    </package>
+</packages>
