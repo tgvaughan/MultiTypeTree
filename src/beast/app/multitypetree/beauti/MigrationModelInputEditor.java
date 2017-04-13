@@ -31,8 +31,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.io.*;
 import java.util.ArrayList;
@@ -55,7 +53,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
     JCheckBox popSizeEstCheckBox, rateMatrixEstCheckBox;
 
-    boolean dimChangeInProgress = false;
+    boolean fileLoadInProgress = false;
 
     List<String> rowNames = new ArrayList<>();
 
@@ -305,7 +303,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
             
-            if (!dimChangeInProgress)
+            if (!fileLoadInProgress)
                 saveToMigrationModel();
         });
 
@@ -317,7 +315,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             if (e.getType() != TableModelEvent.UPDATE)
                 return;
 
-            if (!dimChangeInProgress)
+            if (!fileLoadInProgress)
                 saveToMigrationModel();
         });
 
@@ -385,6 +383,55 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             additionalTypeListSelectionModel.clearSelection();
 
             saveToMigrationModel();
+        });
+
+        loadPopSizesFromFileButton.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Choose file containing population sizes (one per line)");
+            fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fc.setMultiSelectionEnabled(false);
+            int result = fc.showDialog(panel, "Load");
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+
+                    List<Double> popSizes = new ArrayList<>();
+                    String line = null;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (!line.isEmpty())
+                            popSizes.add(Double.parseDouble(line));
+                    }
+
+                    if (popSizes.size() == migModel.getNTypes()) {
+                        fileLoadInProgress = true;
+
+                        for (int i=0; i<popSizes.size(); i++)
+                            popSizeModel.setValueAt(popSizes.get(i), 0, i);
+
+                        fileLoadInProgress = false;
+
+                        saveToMigrationModel();
+                    } else {
+                        JOptionPane.showMessageDialog(panel,
+                                "<html>File must contain exactly one population<br> size for each type/deme.</html>",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(panel,
+                            "Error reading from file: " + ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(panel,
+                            "<html>File contains non-numeric line. " +
+                                    "Every line must contain<br> exactly one population size.</html>",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         });
     }
 
