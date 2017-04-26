@@ -1,14 +1,14 @@
-branches:
-  only:
-    - master
-
 sudo: require
 
 services:
     - docker
 
+branches:
+  only:
+    - master
+
 before_install:
-    - docker pull tgvaughan/travis
+    - docker build -t tgvaughan/travis .
 
 script:
-    - docker run tgvaughan/travis /bin/bash -c 'cd /root; git clone http://github.com/tgvaughan/MultiTypeTree.git; cd MultiTypeTree; ant test'
+    - docker run tgvaughan/travis /bin/bash -c 'cd /root; ant test'
