@@ -8,7 +8,7 @@ branches:
     - master
 
 before_install:
-    - docker build -t tgvaughan/travis .
+    - docker build -t docker-image .
 
 script:
-    - docker run tgvaughan/travis /bin/bash -c 'cd /root; ant test'
+    - docker run docker-image
