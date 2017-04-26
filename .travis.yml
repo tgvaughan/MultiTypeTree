@@ -1,10 +1,14 @@
-language: java
-
-jdk:
-  - oraclejdk8
-
 branches:
   only:
     - master
 
-sudo: false
+sudo: require
+
+services:
+    - docker
+
+before_install:
+    - docker pull tgvaughan/travis
+
+script:
+    - docker run tgvaughan/travis /bin/bash -c 'cd /root; git clone http://github.com/tgvaughan/MultiTypeTree.git; cd MultiTypeTree; ant test'
