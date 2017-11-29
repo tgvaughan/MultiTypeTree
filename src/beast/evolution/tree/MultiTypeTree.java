@@ -756,10 +756,7 @@ public class MultiTypeTree extends Tree {
         StackTraceElement[] ste = Thread.currentThread().getStackTrace();
         if (ste[2].getMethodName().equals("toXML")) {            
             // Use toShortNewick to generate Newick string without taxon labels
-            String string = getFlattenedTree(false).getRoot().toShortNewick(true);
-            
-            // Sanitize ampersands if this is destined for a state file.
-            return string.replaceAll("&", "&amp;");
+            return getFlattenedTree(false).getRoot().toShortNewick(true);
         } else{
             return getFlattenedTree(true).getRoot().toSortedNewick(new int[1], true);
         }
