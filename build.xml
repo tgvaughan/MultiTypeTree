@@ -10,7 +10,7 @@
 
     <!-- BEAST 2 currently uses Java 1.8 -->
     <property name="sourceVersion" value="1.8"/>
-    <property name="targetVersion" value="1.8"/>
+    <property name="targetVersion" value="1.9"/>
 
     <!-- Directories necessary for all BEAST 2 packages -->
     <property name="doc" location="doc"/>

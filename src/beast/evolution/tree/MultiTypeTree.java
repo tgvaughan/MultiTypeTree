@@ -811,7 +811,7 @@ public class MultiTypeTree extends Tree {
     }
 
     @Override
-    public void log(int i, PrintStream printStream) {
+    public void log(long i, PrintStream printStream) {
         printStream.print("tree STATE_"+i+" = ");
         printStream.print(toString());
         printStream.print(";");
