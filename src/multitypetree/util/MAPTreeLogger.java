@@ -60,7 +60,7 @@ public class MAPTreeLogger extends Tree {
     }
 
     @Override
-    public void log(int nSample, PrintStream out) {
+    public void log(long nSample, PrintStream out) {
         if (posteriorInput.get().getCurrentLogP()>maxPosterior) {
             maxPosterior = posteriorInput.get().getCurrentLogP();
             currentMAPTree.assignFrom(multiTypeTreeInput.get());

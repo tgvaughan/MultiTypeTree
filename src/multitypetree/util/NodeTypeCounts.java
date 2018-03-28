@@ -127,7 +127,7 @@ public class NodeTypeCounts extends CalculationNode implements Function, Loggabl
     }
 
     @Override
-    public void log(int nSample, PrintStream out) {
+    public void log(long nSample, PrintStream out) {
         update();
         
         for (int type = 0; type < nTypes; type++)

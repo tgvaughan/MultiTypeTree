@@ -156,7 +156,7 @@ public class TypeChangeCounts extends CalculationNode implements Function, Logga
     }
 
     @Override
-    public void log(int nSample, PrintStream out) {
+    public void log(long nSample, PrintStream out) {
         update();
         
         for (int type = 0; type < nTypes; type++) {

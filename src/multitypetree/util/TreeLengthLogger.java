@@ -56,7 +56,7 @@ public class TreeLengthLogger extends CalculationNode implements Loggable, Funct
     }
 
     @Override
-    public void log(int nSample, PrintStream out) {
+    public void log(long nSample, PrintStream out) {
         Tree tree = treeInput.get();
         out.print(getSubTreeLength(tree.getRoot()) + "\t");
     }

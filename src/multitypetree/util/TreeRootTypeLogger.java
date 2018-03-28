@@ -60,7 +60,7 @@ public class TreeRootTypeLogger extends CalculationNode implements Loggable, Fun
     }
 
     @Override
-    public void log(int nSample, PrintStream out) {
+    public void log(long nSample, PrintStream out) {
         if (logStringTypesInput.get())
             out.print(mtTree.getTypeSet().getTypeName(((MultiTypeNode)mtTree.getRoot()).getNodeType()) + "\t");
         else

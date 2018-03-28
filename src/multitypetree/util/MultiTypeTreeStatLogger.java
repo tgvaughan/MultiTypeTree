@@ -66,7 +66,7 @@ public class MultiTypeTreeStatLogger extends Logger {
     }
 
     @Override
-    public void log(int nSample) {
+    public void log(long nSample) {
         
         if ((nSample < 0) || (nSample % logEvery > 0))
             return;

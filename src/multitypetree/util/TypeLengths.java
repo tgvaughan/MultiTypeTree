@@ -116,7 +116,7 @@ public class TypeLengths extends CalculationNode implements Function, Loggable {
     }
 
     @Override
-    public void log(int nSample, PrintStream out) {
+    public void log(long nSample, PrintStream out) {
         update();
         
         for (int type = 0; type < migModel.getNTypes(); type++) {
