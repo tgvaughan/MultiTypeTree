@@ -1,5 +1,5 @@
-<addon name="MultiTypeTree" version="7.0.0">
-  <depends on="beast2" atleast="2.5.0" atmost="2.5.9"/>
+<addon name="MultiTypeTree" version="7.0.1">
+  <depends on="beast2" atleast="2.6.0" atmost="2.6.9"/>
 
   <!-- Add other dependencies as necessary. -->
 </addon>
