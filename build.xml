@@ -72,7 +72,7 @@
         <get src="https://github.com/CompEvol/beast2/archive/${beast-branch}.zip" dest="${build-beast}/beast.zip"/>
         <unzip src="${build-beast}/beast.zip" dest="${build-beast}"/>
         <mkdir dir="${build-beast}/beast2-${beast-version}/build"/>
-        <javac target="${targetVersion}" source="${sourceVersion}"
+        <javac target="${targetVersion}" source="${sourceVersion}" encoding="utf-8"
             srcdir="${build-beast}/beast2-${beast-version}/src"
             destdir="${build-beast}/beast2-${beast-version}/build" includeantruntime="false">
             <classpath>
@@ -94,7 +94,7 @@
         <property name="build-beast" location="build-beast"/>
         <mkdir dir="${build-beast}"/>
 
-        <javac target="${targetVersion}" source="${sourceVersion}"
+        <javac target="${targetVersion}" source="${sourceVersion}" encoding="utf-8"
             srcdir="${beastDir}/src"
             destdir="${build-beast}" includeantruntime="false">
             <classpath>
@@ -114,7 +114,7 @@
 
     <!-- Compile -->
     <target name="compile" depends="build-beast">
-        <javac target="${targetVersion}" source="${sourceVersion}" srcdir="${src}" destdir="${build}" includeantruntime="false">
+        <javac target="${targetVersion}" source="${sourceVersion}" srcdir="${src}" destdir="${build}" includeantruntime="false" encoding="utf-8">
             <classpath>
                 <pathelement path="${classpath}"/>
                 <fileset dir="${build-lib}" includes="*.jar"/>
@@ -138,7 +138,7 @@
 
     <!-- Compile unit tests -->
     <target name="compile-test" depends="init-test,compile,copy-resources">
-        <javac target="${targetVersion}" source="${sourceVersion}" srcdir="${test}" destdir="${build-test}" includeantruntime="false">
+        <javac target="${targetVersion}" source="${sourceVersion}" srcdir="${test}" destdir="${build-test}" includeantruntime="false" encoding="utf-8">
             <classpath>
                 <pathelement path="${classpath}"/>
                 <pathelement path="${build}" />
