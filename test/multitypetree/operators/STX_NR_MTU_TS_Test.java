@@ -134,7 +134,10 @@ public class STX_NR_MTU_TS_Test {
                 new IntegerParameter("1 1 0 0"));
         double simHeightMean = DiscreteStatistics.mean(heights);
         double simHeightVar = DiscreteStatistics.variance(heights);
-        
+
+        System.out.format("sim height mean = %s\n", simHeightMean);
+        System.out.format("sim height var = %s\n", simHeightVar);
+
         // Compare analysis results with truth:        
         boolean withinTol = (logger.getHeightESS()>500)
                 && (Math.abs(logger.getHeightMean()-simHeightMean)<2.0)
