@@ -350,7 +350,7 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
         }
 
         // Colour any internal nodes between last migration time and end time
-        while (nextNode.getHeight() <= endTime) {
+        while (nextNode != null && nextNode.getHeight() <= endTime) {
             nextNode.setNodeType(prevType);
 
             nextNode = (MultiTypeNode) nextNode.getParent();
