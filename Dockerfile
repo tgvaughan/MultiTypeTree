@@ -2,7 +2,11 @@
 
 FROM debian:stable
 
-RUN apt-get update && apt-get install -y openjdk-8-jdk git ant libgfortran3
+RUN apt-get update
+RUN apt-get install -y openjdk-11-jdk
+RUN apt-get install -y git
+RUN apt-get install -y ant
+RUN apt-get install -y libgfortran4
 
 WORKDIR /root
 
