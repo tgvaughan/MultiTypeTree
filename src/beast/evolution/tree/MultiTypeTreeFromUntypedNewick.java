@@ -333,14 +333,14 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
         MultiTypeNode nextNode = (MultiTypeNode) startNode.getParent();
         for (int i = 0; i<nVirt; i++) {
 
-            if (types[i] != prevType) {
+            // Colour any internal nodes we pass:
+            while (times[i] > nextNode.getHeight()) {
+                nextNode.setNodeType(prevType);
+                prevNode = nextNode;
+                nextNode = (MultiTypeNode) nextNode.getParent();
+            }
 
-                // Colour any internal nodes we pass:
-                while (times[i] > nextNode.getHeight()) {
-                    nextNode.setNodeType(prevType);
-                    prevNode = nextNode;
-                    nextNode = (MultiTypeNode) nextNode.getParent();
-                }
+            if (types[i] != prevType) {
 
                 // Add change to branch:
                 prevNode.addChange(types[i], times[i]);
@@ -350,7 +350,7 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
         }
 
         // Colour any internal nodes between last migration time and end time
-        while (nextNode.getHeight() < endTime) {
+        while (nextNode.getHeight() <= endTime) {
             nextNode.setNodeType(prevType);
 
             nextNode = (MultiTypeNode) nextNode.getParent();
