@@ -150,7 +150,7 @@
 
     <!-- Run unit tests -->
     <target name="test" depends="compile-test">
-        <junit printsummary="yes" failureproperty="testFailed" showoutput="true">
+        <junit printsummary="yes" failureproperty="testFailed" showoutput="true" maxmemory="3G">
             <classpath>
                 <pathelement path="${classpath}"/>
                 <pathelement path="${build}" />
@@ -168,7 +168,6 @@
 
         <fail if="testFailed" status="1" message="Unit test failed."/>
     </target>
-
 
     <!-- Create BEAST 2 package -->
     <target name="build" depends="compile,copy-resources">

@@ -73,6 +73,9 @@ public class SCSimTest {
 
         double meanHeights = DiscreteStatistics.mean(heights);
         double varHeights = DiscreteStatistics.variance(heights);
+
+        System.out.format("sim height mean = %s\n", meanHeights);
+        System.out.format("sim height var = %s\n", varHeights);
         
         boolean withinTol = (Math.abs(meanHeights-19.2)<0.2)
                 && (Math.abs(varHeights-310)<20);

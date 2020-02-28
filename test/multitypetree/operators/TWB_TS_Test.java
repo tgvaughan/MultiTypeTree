@@ -120,6 +120,9 @@ public class TWB_TS_Test {
                 new IntegerParameter("0 0 0"));
         double simHeightMean = DiscreteStatistics.mean(heights);
         double simHeightVar = DiscreteStatistics.variance(heights);
+
+        System.out.format("sim height mean = %s\n", simHeightMean);
+        System.out.format("sim height var = %s\n", simHeightVar);
         
         // Compare results with simulation results:        
         boolean withinTol = (logger.getHeightESS()>400)
@@ -210,6 +213,9 @@ public class TWB_TS_Test {
                 new IntegerParameter("1 0 0"));
         double simHeightMean = DiscreteStatistics.mean(heights);
         double simHeightVar = DiscreteStatistics.variance(heights);
+
+        System.out.format("sim height mean = %s\n", simHeightMean);
+        System.out.format("sim height var = %s\n", simHeightVar);
         
         // Compare analysis results with truth:        
         boolean withinTol = (logger.getHeightESS()>400)
