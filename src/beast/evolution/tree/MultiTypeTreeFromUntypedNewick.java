@@ -29,7 +29,7 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
 
     public Input<Boolean> adjustTipHeightsInput = new Input<>(
             "adjustTipHeights",
-            "Adjust tip heights in tree? Default true.",
+            "Adjust tip heights in tree? Default false.",
             false);
 
     public Input<SCMigrationModel> migrationModelInput = new Input<>(
