@@ -62,6 +62,11 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
             "Type set defining names of types present in model.",
             Validate.REQUIRED);
 
+    public Input<Boolean> useForwardMigrationRatesInput = new Input<>("useForwardMigrationRateMatrix",
+            "If true, supplied rateMatrix represents a forward-time " +
+                    "migration rate matrix", false);
+
+    protected Boolean useForwardMigrationRateMatrix;
     protected TypeSet typeSet;
     protected Function rateMatrix, popSizes;
     protected Function rateMatrixScaleFactor, popSizesScaleFactor;
@@ -88,6 +93,8 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
 
     @Override
     public void initAndValidate() {
+
+        useForwardMigrationRateMatrix = !useForwardMigrationRatesInput.get();
 
         typeSet = typeSetInput.get();
 
@@ -248,13 +255,19 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
     public double getBackwardRate(int i, int j) {
         if (i==j)
             return 0;
-        
-        int offset = getArrayOffset(i, j);
-        if (rateMatrixFlagsInput.get() != null
-                && !rateMatrixFlagsInput.get().getValue(offset))
-            return 0.0;
-        else
-            return getRateScaleFactor()*rateMatrix.getArrayValue(offset);
+
+        if (useForwardMigrationRateMatrix){
+            return getForwardRate(j, i) * getPopSize(j) / getPopSize(i);
+
+        }else{
+            int offset = getArrayOffset(i, j);
+            if (rateMatrixFlagsInput.get() != null
+                    && !rateMatrixFlagsInput.get().getValue(offset))
+                return 0.0;
+            else
+                return getRateScaleFactor()*rateMatrix.getArrayValue(offset);
+        }
+
     }
     
     /**
@@ -288,7 +301,18 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
         if (i==j)
             return 0.0;
 
-        return getBackwardRate(j, i)*getPopSize(j)/getPopSize(i);
+        if (useForwardMigrationRateMatrix) {
+
+            int offset = getArrayOffset(i, j);
+            if (rateMatrixFlagsInput.get() != null
+                    && !rateMatrixFlagsInput.get().getValue(offset))
+                return 0.0;
+            else
+                return getRateScaleFactor()*rateMatrix.getArrayValue(offset);
+
+        }else{
+            return getBackwardRate(j, i) * getPopSize(j) / getPopSize(i);
+        }
     }
     
     /**
