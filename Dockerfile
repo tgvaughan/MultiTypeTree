@@ -14,4 +14,4 @@ ADD . ./
 RUN rm lib/jblas-1.2.4.jar
 RUN ln -s /usr/share/java/jblas.jar lib/jblas.jar
 
-#ENTRYPOINT ant test
+ENTRYPOINT ant test
