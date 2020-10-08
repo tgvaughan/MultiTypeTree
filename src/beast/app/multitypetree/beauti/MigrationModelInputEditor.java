@@ -51,7 +51,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     private JButton loadPopSizesFromFileButton, loadMigRatesFromFileButton;
 
     private JCheckBox popSizeEstCheckBox, popSizeScaleFactorEstCheckBox;
-    private JCheckBox rateMatrixEstCheckBox, rateMatrixScaleFactorEstCheckBox;
+    private JCheckBox rateMatrixEstCheckBox, rateMatrixScaleFactorEstCheckBox, rateMatrixForwardTimeCheckBox;
 
     boolean fileLoadInProgress = false;
 
@@ -94,6 +94,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixEstCheckBox = new JCheckBox("estimate mig. rates");
         popSizeScaleFactorEstCheckBox = new JCheckBox("estimate scale factor");
         rateMatrixScaleFactorEstCheckBox = new JCheckBox("estimate scale factor");
+        rateMatrixForwardTimeCheckBox = new JCheckBox("forward-time rate matrix");
         loadFromMigrationModel();
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -280,6 +281,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
         rateMatrixScaleFactorEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixScaleFactorInput.get()).isEstimatedInput.get());
+        rateMatrixForwardTimeCheckBox.setSelected(migModel.useForwardMigrationRatesInput.get());
         c.gridx = 2;
         c.gridy = 2;
         c.anchor = GridBagConstraints.LINE_END;
@@ -287,6 +289,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         estBox = Box.createVerticalBox();
         estBox.add(rateMatrixEstCheckBox);
         estBox.add(rateMatrixScaleFactorEstCheckBox);
+        estBox.add(rateMatrixForwardTimeCheckBox);
         panel.add(estBox, c);
 
         c.gridx = 1;
@@ -331,6 +334,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixEstCheckBox.addItemListener(e -> saveToMigrationModel());
 
         rateMatrixScaleFactorEstCheckBox.addItemListener(e -> saveToMigrationModel());
+
+        rateMatrixForwardTimeCheckBox.addItemListener(e -> saveToMigrationModel());
 
         addTypeButton.addActionListener(e -> {
             String newTypeName = JOptionPane.showInputDialog("Name of type");
@@ -553,6 +558,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
         rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
+        rateMatrixForwardTimeCheckBox.setSelected(migModel.useForwardMigrationRatesInput.get());
     }
 
     private void saveToMigrationModel() {
@@ -616,6 +622,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             rateMatrixEstCheckBox.isSelected(), (RealParameter)migModel.rateMatrixInput.get());
         ((RealParameter)migModel.rateMatrixScaleFactorInput.get()).isEstimatedInput.setValue(
                 rateMatrixScaleFactorEstCheckBox.isSelected(), (RealParameter)migModel.rateMatrixScaleFactorInput.get());
+        migModel.useForwardMigrationRatesInput.setValue(
+                rateMatrixForwardTimeCheckBox.isSelected(), migModel);
 
         try {
             ((RealParameter)migModel.rateMatrixInput.get()).initAndValidate();
