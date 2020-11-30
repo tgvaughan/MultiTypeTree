@@ -1,0 +1,5 @@
+name: 'Unit Tests'
+description: 'Run unit tests for MultiTypeTree'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
