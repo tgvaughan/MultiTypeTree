@@ -16,15 +16,24 @@
  */
 package multitypetree.app.beauti;
 
-import beastfx.app.inputeditor.BeautiDoc;
-import beastfx.app.inputeditor.GuessPatternDialog;
-import beastfx.app.inputeditor.InputEditor;
 import beast.base.core.BEASTInterface;
 import beast.base.core.Input;
 import beast.base.evolution.alignment.TaxonSet;
 import beast.base.evolution.tree.TraitSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import beastfx.app.inputeditor.BeautiDoc;
+import beastfx.app.inputeditor.GuessPatternDialog;
+import beastfx.app.inputeditor.InputEditor;
+import beastfx.app.util.FXUtils;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 /**
  * BEAUti input editor for MultiTypeTree type traits.
@@ -33,8 +42,9 @@ import java.util.logging.Logger;
  */
 public class TypeTraitSetInputEditor extends InputEditor.Base {
 
-    TypeTraitTableModel tableModel;
-    TraitSet traitSet;
+//    TypeTraitTableModel tableModel;
+    private ObservableList<Location> data;
+    TraitSet traitSet; // TODO seem to duplicate with ObservableList<Location>
     TaxonSet taxonSet;
 
     public TypeTraitSetInputEditor(BeautiDoc doc) {
@@ -52,11 +62,28 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
 
         traitSet = (TraitSet)input.get();
         taxonSet = traitSet.taxaInput.get();
-        tableModel = new TypeTraitTableModel(traitSet);
-        JTable table = new JTable(tableModel);
+//        tableModel = new TypeTraitTableModel(traitSet);
+        TableView<Location> table = new TableView<>();
+        TableColumn<Location, String> column1 = new TableColumn<>("Name");
+        column1.setCellValueFactory(new PropertyValueFactory<>("name"));
+        TableColumn<Location, String> column2 =new TableColumn<>("Location");
+        column2.setCellValueFactory(new PropertyValueFactory<>("location"));
 
-        JButton guessButton = new JButton("Guess");
-        guessButton.addActionListener((ActionEvent e) -> {
+        column2.setEditable(true);
+        column2.setCellFactory(TextFieldTableCell.forTableColumn());
+        column2.setOnEditCommit(
+                t -> t.getTableView().getItems().
+                        get(t.getTablePosition().getRow()).
+                        setLocation(t.getNewValue())
+                //TODO set traitSet
+        );
+        table.getColumns().addAll(column1, column2);
+
+        data = FXCollections.observableArrayList();
+        table.setItems(data);
+
+        Button guessButton = new Button("Guess");
+        guessButton.setOnAction(e -> {
             GuessPatternDialog dlg = new GuessPatternDialog(null,
                 ".*(\\d\\d\\d\\d).*");
             
@@ -90,11 +117,17 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
             } catch (Exception ex) {
                 System.err.println("Error setting type trait.");
             }
+
+            for (String taxon : traitSet.taxaInput.get().getTaxaNames()) {
+                String loc = traitSet.getStringValue(taxon);
+                data.add(new Location(taxon, loc));
+            }
+
             refreshPanel();
         });
 
-        JButton clearButton = new JButton("Clear");
-        clearButton.addActionListener((ActionEvent e) -> {
+        Button clearButton = new Button("Clear");
+        clearButton.setOnAction(e -> {
             StringBuilder traitStringBuilder = new StringBuilder();
             for (String taxonName : taxonSet.asStringList()) {
                 if (traitStringBuilder.length()>0)
@@ -107,21 +140,57 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
             } catch (Exception ex) {
                 System.err.println("Error clearing type trait.");
             }
+
+            for (String taxon : traitSet.taxaInput.get().getTaxaNames()) {
+                String loc = traitSet.getStringValue(taxon);
+                data.add(new Location(taxon, loc));
+            }
+
             refreshPanel();
         });
 
-        Box boxVert = Box.createVerticalBox();
+        VBox boxVert = FXUtils.newVBox();
 
-        Box boxHoriz = Box.createHorizontalBox();
-        boxHoriz.add(Box.createHorizontalGlue());
-        boxHoriz.add(guessButton);
-        boxHoriz.add(clearButton);
-        boxVert.add(boxHoriz);
-        boxVert.add(new JScrollPane(table));
+        HBox boxHoriz = FXUtils.newHBox();
+        boxHoriz.getChildren().add(guessButton);
+        boxHoriz.getChildren().add(clearButton);
 
-        add(boxVert);
+        boxVert.getChildren().add(boxHoriz);
+        boxVert.getChildren().add(new ScrollPane(table));
+
+        pane.getChildren().add(boxVert);
     }
-    
+
+    /**
+     * Table model
+     */
+    class Location {
+        String name;
+        String location;
+
+        public Location(String name, String location) {
+            this.name = name;
+            this.location = location;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        public void setLocation(String location) {
+            this.location = location;
+        }
+    }
+
+    /**
     class TypeTraitTableModel extends AbstractTableModel {
 
         TraitSet typeTraitSet;
@@ -195,5 +264,5 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
                     return null;
             }
         }
-    }
+    }*/
 }
