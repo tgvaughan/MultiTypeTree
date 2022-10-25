@@ -14,27 +14,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package multitypetree.operators;
+package test.multitypetree.operators;
 
-import beast.core.MCMC;
-import beast.core.Operator;
-import beast.core.State;
-import beast.core.parameter.RealParameter;
-import beast.evolution.tree.TypeSet;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
-import beast.evolution.tree.SCMigrationModel;
-import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
-import beast.util.Randomizer;
+import multitypetree.evolution.tree.MultiTypeTree;
+import multitypetree.evolution.tree.SCMigrationModel;
+import multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree;
+import multitypetree.evolution.tree.TypeSet;
+import multitypetree.operators.NodeShiftRetype;
+import junit.framework.TestCase;
 import multitypetree.util.MultiTypeTreeStatLogger;
 import org.junit.Assert;
 import org.junit.Test;
+
+import beast.base.inference.MCMC;
+import beast.base.inference.Operator;
+import beast.base.inference.State;
+import beast.base.inference.parameter.RealParameter;
+import beast.base.util.Randomizer;
 
 /**
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class NSR_Test {
+public class NSR_Test extends TestCase {
  
     @Test
     public void test() throws Exception {

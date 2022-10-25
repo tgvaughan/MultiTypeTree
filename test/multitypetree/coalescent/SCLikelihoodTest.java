@@ -14,22 +14,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package multitypetree.coalescent;
+package test.multitypetree;
 
-import beast.core.parameter.RealParameter;
-import beast.evolution.tree.TypeSet;
+import org.junit.Test;
+
+import beast.base.inference.parameter.RealParameter;
+import junit.framework.TestCase;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
-import beast.evolution.tree.SCMigrationModel;
-import beast.evolution.tree.MultiTypeTreeFromNewick;
-import org.junit.*;
-import static org.junit.Assert.*;
+import multitypetree.evolution.tree.MultiTypeTreeFromNewick;
+import multitypetree.evolution.tree.SCMigrationModel;
+import multitypetree.evolution.tree.TypeSet;
 
 /**
  * Tests for StructuredCoalescentLikelihood class methods.
  *
  * @author Tim Vaughan
  */
-public class SCLikelihoodTest {
+public class SCLikelihoodTest extends TestCase {
 
 	/**
 	 * Test of calculateLogP method, of class StructuredCoalescentLikelihood.
@@ -70,6 +71,9 @@ public class SCLikelihoodTest {
 
 		System.out.println(result);
 		assertEquals(expResult, result, 1e-5);
+		
+		
+		
 	}
 
 }

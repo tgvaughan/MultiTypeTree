@@ -14,22 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package test.beast.evolution.tree;
+package test.multitypetree;
 
-import beast.core.parameter.IntegerParameter;
-import beast.core.parameter.RealParameter;
-import beast.evolution.tree.SCMigrationModel;
-import beast.evolution.tree.TypeSet;
-import beast.math.statistic.DiscreteStatistics;
-import beast.util.Randomizer;
+import multitypetree.evolution.tree.SCMigrationModel;
+import multitypetree.evolution.tree.TypeSet;
+
 import org.junit.Assert;
 import org.junit.Test;
+
+import beast.base.inference.parameter.IntegerParameter;
+import beast.base.inference.parameter.RealParameter;
+import beast.base.util.DiscreteStatistics;
+import beast.base.util.Randomizer;
+import junit.framework.TestCase;
 
 /**
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class SCSimTest {
+public class SCSimTest extends TestCase {
     
     @Test
     public void test() throws Exception {
@@ -62,8 +65,8 @@ public class SCSimTest {
         double[] heights = new double[reps];
 
         for (int i = 0; i < reps; i++) {
-            beast.evolution.tree.StructuredCoalescentMultiTypeTree sctree;
-            sctree = new beast.evolution.tree.StructuredCoalescentMultiTypeTree();
+            multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree sctree;
+            sctree = new multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree();
             sctree.initByName(
                     "migrationModel", migrationModel,
                     "leafTypes", leafTypes);
