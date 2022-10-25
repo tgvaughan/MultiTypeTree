@@ -16,9 +16,10 @@
  */
 package multitypetree.operators;
 
-import beast.core.Description;
-import beast.evolution.tree.MultiTypeNode;
-import beast.util.Randomizer;
+import beast.base.core.Description;
+import beast.base.util.Randomizer;
+import multitypetree.evolution.tree.MultiTypeNode;
+
 import java.util.HashSet;
 import java.util.Set;
 

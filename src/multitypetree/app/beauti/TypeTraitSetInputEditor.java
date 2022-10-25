@@ -14,24 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.app.multitypetree.beauti;
+package multitypetree.app.beauti;
 
-import beast.app.beauti.BeautiDoc;
-import beast.app.beauti.GuessPatternDialog;
-import beast.app.draw.InputEditor;
-import beast.core.BEASTInterface;
-import beast.core.Input;
-import beast.evolution.alignment.TaxonSet;
-import beast.evolution.tree.TraitSet;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import beastfx.app.inputeditor.BeautiDoc;
+import beastfx.app.inputeditor.GuessPatternDialog;
+import beastfx.app.inputeditor.InputEditor;
+import beast.base.core.BEASTInterface;
+import beast.base.core.Input;
+import beast.base.evolution.alignment.TaxonSet;
+import beast.base.evolution.tree.TraitSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
 
 /**
  * BEAUti input editor for MultiTypeTree type traits.

@@ -1,9 +1,15 @@
 package multitypetree.distributions;
 
-import beast.core.Input;
-import beast.core.parameter.IntegerParameter;
-import beast.evolution.tree.*;
-import beast.util.Randomizer;
+import beast.base.core.Input;
+import beast.base.evolution.tree.Node;
+import beast.base.evolution.tree.TraitSet;
+import beast.base.evolution.tree.Tree;
+import beast.base.evolution.tree.TreeDistribution;
+import beast.base.inference.parameter.IntegerParameter;
+import beast.base.util.Randomizer;
+import multitypetree.evolution.tree.MigrationModel;
+import multitypetree.evolution.tree.SCMigrationModel;
+
 import org.jblas.MatrixFunctions;
 
 import java.util.*;

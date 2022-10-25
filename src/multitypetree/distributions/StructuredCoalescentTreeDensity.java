@@ -16,14 +16,16 @@
  */
 package multitypetree.distributions;
 
-import beast.core.*;
-import beast.core.Input.Validate;
-import beast.core.parameter.RealParameter;
-import beast.evolution.tree.SCMigrationModel;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.MultiTypeTreeFromNewick;
-import beast.evolution.tree.Node;
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.inference.parameter.RealParameter;
+import beast.base.evolution.tree.Node;
+import multitypetree.evolution.tree.MultiTypeNode;
+import multitypetree.evolution.tree.MultiTypeTree;
+import multitypetree.evolution.tree.MultiTypeTreeFromNewick;
+import multitypetree.evolution.tree.SCMigrationModel;
+
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;

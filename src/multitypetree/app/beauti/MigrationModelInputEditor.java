@@ -14,23 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.app.multitypetree.beauti;
+package multitypetree.app.beauti;
 
-import beast.app.beauti.BeautiDoc;
-import beast.app.draw.InputEditor;
-import beast.core.BEASTInterface;
-import beast.core.Input;
-import beast.core.parameter.RealParameter;
-import beast.evolution.tree.SCMigrationModel;
+import beastfx.app.inputeditor.BeautiDoc;
+import beastfx.app.inputeditor.InputEditor;
+import beast.base.core.BEASTInterface;
+import beast.base.core.Input;
+import beast.base.inference.parameter.RealParameter;
+import multitypetree.evolution.tree.SCMigrationModel;
 
-import javax.swing.*;
-import javax.swing.border.EtchedBorder;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -265,12 +257,11 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         rateMatrixTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         TableColumn col = rateMatrixTable.getColumnModel().getColumn(migModel.getNTypes());
 
-
+        
         FontMetrics metrics = new Canvas().getFontMetrics(getFont());
         int maxWidth = 0;
         for (String rowName : rowNames)
             maxWidth = Math.max(maxWidth, metrics.stringWidth(rowName + "M"));
-
         col.setPreferredWidth(maxWidth);
 
         c.gridx = 1;

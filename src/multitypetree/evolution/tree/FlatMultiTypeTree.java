@@ -14,9 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.*;
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.evolution.tree.Tree;
 
 /**
  * A plugin useful for interpreting ColouredTree objects as standard BEAST

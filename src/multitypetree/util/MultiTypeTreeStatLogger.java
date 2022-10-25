@@ -16,12 +16,13 @@
  */
 package multitypetree.util;
 
-import beast.core.Input;
-import beast.core.Input.Validate;
-import beast.core.Logger;
-import beast.core.util.ESS;
-import beast.evolution.tree.MultiTypeTree;
-import beast.math.statistic.DiscreteStatistics;
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.inference.Logger;
+import beast.base.inference.util.ESS;
+import beast.base.util.DiscreteStatistics;
+import multitypetree.evolution.tree.MultiTypeTree;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;

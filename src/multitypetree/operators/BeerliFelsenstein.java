@@ -17,12 +17,13 @@
 
 package multitypetree.operators;
 
-import beast.core.Citation;
-import beast.core.Description;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.Node;
-import beast.evolution.tree.SCMigrationModel;
-import beast.util.Randomizer;
+import beast.base.core.Citation;
+import beast.base.core.Description;
+import beast.base.evolution.tree.Node;
+import beast.base.util.Randomizer;
+import multitypetree.evolution.tree.MultiTypeNode;
+import multitypetree.evolution.tree.SCMigrationModel;
+
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.Comparator;

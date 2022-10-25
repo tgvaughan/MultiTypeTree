@@ -17,8 +17,8 @@
 
 package multitypetree.util;
 
-import beast.core.parameter.IntegerParameter;
-import beast.evolution.tree.SCMigrationModel;
+import beast.base.inference.parameter.IntegerParameter;
+import multitypetree.evolution.tree.SCMigrationModel;
 
 /**
  *
@@ -34,8 +34,8 @@ public class UtilMethods {
         double[] heights = new double[reps];
 
         for (int i = 0; i < reps; i++) {
-            beast.evolution.tree.StructuredCoalescentMultiTypeTree sctree;
-            sctree = new beast.evolution.tree.StructuredCoalescentMultiTypeTree();
+            multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree sctree;
+            sctree = new multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree();
             sctree.initByName(
                     "migrationModel", migrationModel,
                     "leafTypes", leafTypes);

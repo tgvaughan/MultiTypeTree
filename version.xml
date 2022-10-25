@@ -1,5 +1,57 @@
-<addon name="MultiTypeTree" version="7.0.2">
-  <depends on="beast2" atleast="2.6.0" atmost="2.6.9"/>
+<addon name="MultiTypeTree" version="7.1.0">
+  <depends on='BEAST.base' atleast='2.7.2'/>
+  <depends on='BEAST.app' atleast='2.7.0'/>
 
-  <!-- Add other dependencies as necessary. -->
+  
+
+    <service type="beast.base.core.BEASTInterface">
+        <provider classname="multitypetree.distributions.ExcludablePrior"/>
+        <provider classname="multitypetree.distributions.MRCATypePrior"/>
+        <provider classname="multitypetree.distributions.PriorWithPole"/>
+        <provider classname="multitypetree.distributions.StructuredCoalescentTreeDensity"/>
+        <provider classname="multitypetree.distributions.StructuredCoalescentUntypedTreeDensity"/>
+        <provider classname="multitypetree.distributions.TypeChangeTimeCondition"/>
+        <provider classname="multitypetree.evolution.tree.FlatMultiTypeTree"/>
+        <provider classname="multitypetree.evolution.tree.MultiTypeNode"/>
+        <provider classname="multitypetree.evolution.tree.MultiTypeTree"/>
+        <provider classname="multitypetree.evolution.tree.MultiTypeTreeFromFlatTree"/>
+        <provider classname="multitypetree.evolution.tree.MultiTypeTreeFromNewick"/>
+        <provider classname="multitypetree.evolution.tree.MultiTypeTreeFromUntypedNewick"/>
+        <provider classname="multitypetree.evolution.tree.RandomMultiTypeTree"/>
+        <provider classname="multitypetree.evolution.tree.SCMigrationModel"/>
+        <provider classname="multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree"/>
+        <provider classname="multitypetree.evolution.tree.StructuredCoalescentUntypedTree"/>
+        <provider classname="multitypetree.evolution.tree.TypeSet"/>
+        <provider classname="multitypetree.operators.BeerliFelsenstein"/>
+        <provider classname="multitypetree.operators.MultiTypeTreeScale"/>
+        <provider classname="multitypetree.operators.MultiTypeUniform"/>
+        <provider classname="multitypetree.operators.NodeRetype"/>
+        <provider classname="multitypetree.operators.NodeRetypeRandom"/>
+        <provider classname="multitypetree.operators.NodeShiftRetype"/>
+        <provider classname="multitypetree.operators.NodeShiftRetypeRandom"/>
+        <provider classname="multitypetree.operators.SpecialTypeBirthDeath"/>
+        <provider classname="multitypetree.operators.TypeBirthDeath"/>
+        <provider classname="multitypetree.operators.TypedSubtreeExchange"/>
+        <provider classname="multitypetree.operators.TypedSubtreeExchangeEasy"/>
+        <provider classname="multitypetree.operators.TypedSubtreeExchangeRandom"/>
+        <provider classname="multitypetree.operators.TypedWilsonBalding"/>
+        <provider classname="multitypetree.operators.TypedWilsonBaldingEasy"/>
+        <provider classname="multitypetree.operators.TypedWilsonBaldingRandom"/>
+        <provider classname="multitypetree.operators.TypeMergeSplit"/>
+        <provider classname="multitypetree.operators.TypeMergeSplitExtended"/>
+        <provider classname="multitypetree.operators.TypePairBirthDeath"/>
+        <provider classname="multitypetree.operators.ZeroJump"/>
+        <provider classname="multitypetree.util.MAPTreeLogger"/>
+        <provider classname="multitypetree.util.MigrationModelLogger"/>
+        <provider classname="multitypetree.util.MultiTypeTreeStatLogger"/>
+        <provider classname="multitypetree.util.NodeTypeCounts"/>
+        <provider classname="multitypetree.util.TreeLengthLogger"/>
+        <provider classname="multitypetree.util.TreeRootTypeLogger"/>
+        <provider classname="multitypetree.util.TypeChangeCounts"/>
+        <provider classname="multitypetree.util.TypedNodeTreeLogger"/>
+        <provider classname="multitypetree.util.TypeLengths"/>
+    </service>
+
+
+  
 </addon>

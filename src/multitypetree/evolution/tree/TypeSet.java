@@ -1,7 +1,8 @@
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.BEASTObject;
-import beast.core.Input;
+import beast.base.core.BEASTObject;
+import beast.base.core.Input;
+import beast.base.evolution.tree.TraitSet;
 
 import java.util.*;
 
@@ -49,7 +50,7 @@ public class TypeSet extends BEASTObject {
      * @param typeTraitSet
      */
     public void addTypesFromTypeTraitSet(TraitSet typeTraitSet) {
-        typeNameSet.addAll(Arrays.asList(typeTraitSet.taxonValues));
+        typeNameSet.addAll(Arrays.asList(typeTraitSet.getTaxonValues()));
     }
 
     /**

@@ -1,13 +1,15 @@
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.Description;
-import beast.core.Input;
-import beast.core.Input.Validate;
-import beast.core.StateNode;
-import beast.core.StateNodeInitialiser;
-import beast.core.util.Log;
-import beast.util.Randomizer;
-import beast.util.TreeParser;
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.inference.StateNode;
+import beast.base.inference.StateNodeInitialiser;
+import beast.base.core.Log;
+import beast.base.util.Randomizer;
+import beast.base.evolution.tree.Node;
+import beast.base.evolution.tree.Tree;
+import beast.base.evolution.tree.TreeParser;
 import org.jblas.MatrixFunctions;
 
 import java.util.Arrays;
@@ -75,8 +77,11 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
             else
                 typedNode.setParent(typedNodes[node.getParent().getNr()]);
 
-            while (typedNode.children.size() < node.getChildCount())
-                typedNode.children.add(null);
+            while (typedNode.getChildrenMutable().size() < node.getChildCount()) {
+            	//typedNode.addChild(null);
+                typedNode.getChildrenMutable().add(null);
+            }
+            	
 
             for (int c=0; c<node.getChildCount(); c++) {
                 typedNode.setChild(c, typedNodes[node.getChild(c).getNr()]);
@@ -129,7 +134,7 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
         // Construct MTT
 
         root = typedNodes[typedNodes.length-1];
-        root.parent = null;
+        root.setParent(null);
         nodeCount = root.getNodeCount();
         internalNodeCount = root.getInternalNodeCount();
         leafNodeCount = root.getLeafNodeCount();

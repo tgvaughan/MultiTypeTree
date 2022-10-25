@@ -14,17 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.Description;
-import beast.core.Input;
-import beast.core.Input.Validate;
-import beast.core.StateNode;
-import beast.core.StateNodeInitialiser;
-import beast.core.parameter.IntegerParameter;
-import beast.core.parameter.RealParameter;
-import beast.math.statistic.DiscreteStatistics;
-import beast.util.Randomizer;
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.evolution.tree.Node;
+import beast.base.inference.StateNode;
+import beast.base.inference.StateNodeInitialiser;
+import beast.base.inference.parameter.IntegerParameter;
+import beast.base.inference.parameter.RealParameter;
+import beast.base.util.DiscreteStatistics;
+import beast.base.util.Randomizer;
 import com.google.common.collect.Lists;
 
 import java.io.FileNotFoundException;
@@ -162,7 +163,7 @@ public class StructuredCoalescentMultiTypeTree extends MultiTypeTree implements 
 
         // Construct tree
         this.root = simulateTree();
-        this.root.parent = null;
+        this.root.setParent(null);
         this.nodeCount = this.root.getNodeCount();
         this.internalNodeCount = this.root.getInternalNodeCount();
         this.leafNodeCount = this.root.getLeafNodeCount();

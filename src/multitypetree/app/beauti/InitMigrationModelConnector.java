@@ -14,18 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.app.multitypetree.beauti;
+package multitypetree.app.beauti;
 
-import beast.app.beauti.BeautiDoc;
-import beast.core.BEASTInterface;
-import beast.core.parameter.Parameter;
-import beast.core.parameter.RealParameter;
-import beast.evolution.likelihood.TreeLikelihood;
-import beast.evolution.tree.SCMigrationModel;
-import beast.evolution.tree.StructuredCoalescentMultiTypeTree;
-import beast.evolution.tree.TraitSet;
+import beastfx.app.inputeditor.BeautiDoc;
+import beast.base.core.BEASTInterface;
+import beast.base.inference.parameter.Parameter;
+import beast.base.inference.parameter.RealParameter;
+import beast.base.evolution.likelihood.TreeLikelihood;
+import beast.base.evolution.tree.TraitSet;
+import multitypetree.evolution.tree.SCMigrationModel;
+import multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree;
 
 import java.util.*;
+
 
 
 /**

@@ -1,6 +1,6 @@
-<beast version='2.0' namespace='beast.evolution.alignment:beast.core:beast.core.parameter:beast.evolution.tree:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.evolution.likelihood:beast.evolution.migrationmodel:beast.math.distributions:multitypetree.distributions:multitypetree.operators:multitypetree.util'>
+<beast version='2.0' namespace='beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.pkgmgmt:beast.base.core:beast.base.inference.parameter:beast.base.evolution.tree:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.evolution.migrationmodel:beast.base.inference.distribution:multitypetree.distributions:multitypetree.operators:multitypetree.util'>
 
-   <alignment spec="beast.evolution.alignment.Alignment" id="alignment"
+   <alignment spec="beast.base.evolution.alignment.Alignment" id="alignment"
 	      dataType="nucleotide">
 
     <sequence taxon='t97' value='GGTCCGCCGTACAAGTCTCTGCCGATCGCACCTGAGTCCAGAAGGTACATCCAGTCTTTGACAGCGATCACCCTCTACCTCTTTTCGGCCGGTCAGACCCAAGTCTCGTCCATGCCCAACTAAAGAAGATGATGATTACTTACCAGCGGCCGTGCACGTCTCTGTACCATTCGACTTTTATAGCAGGTAAAGAACTTCGATTTTGAATTCGAAGACAGTTTAGTCGGTTAGAGAGGCGTTGCACTTGAAGACGTCTTTCCCCTTCGTCAAAGTTAGTTGCATGTGTTTTGCGCACCGGCACTGCAGGTGGCAGCCGCTAGGTTGGAGTTCACGAGACGCGGGAAGCCCAATTCTTGTTATTCGAGGTAGTATTGTCTACTCACAGCCCCCTTAGCAAACCGAAGTGAGGGGTAGCAACAATGTGGCTACAACATGGTGATCATGTTGCTCGCTTAGAGACGGCCATCGGATGACGTACTTTACCGTCAATTACAACTCACATAGCTGCTGCAACACATTATCTGGATTTAGCACAGTCGAGAGCACTTTCGTCAGGCGCACCAAGCTTACATCATTTATTCAGCTACAGAGTGTAGAGGGCGTATTCCCGTAATGTTGAGCTAGCGGTGGCGGTCTAACGACCCCGCGTGGATGCATTGCGGAGCGGGTAAGTGGCGCAGGTACGGTGTCTTTACGCGCAACTGTCGCTTCTCTGCTTGCGATAAAATATTGTTACCTCCTACCCGATTCACGTATTCCCTGTTCCCCTCTCTCGGGTACGTCCTTATCATTGAAGTGTAGACCGTTTCGTTTGGGAGATCGCTCGTCACAGTTCAACTTTCGTAAGACCTACCCCACGCGGCACTGGGCTCATAGGCTCGCACACCAGCTAGCTTTCGGGCGCTCAACCAAGATATGAGTGTAGTCGGACTCACCGTAGAGGACTCAGCTGGTGACGGAGCCATCGTTAATATGTTAACCAGGTATTAGTTAAAATTATAGAGTTGCCTATCATACGTAGTTATAGCGTACGGAGTGGCATCCGAGGAGTAACCTCCAGGGGAGTAATTCCTTGATGGGCAGGGCCACTTGAAAGCTGCTTATCGTTAATTCGTATACAGCTCCTAGGTGCGCACTTGCAGAAAGAATACGGTTGTCGCCGGCCAGTCAGTCCGTTAACAATACAACAAATAACCAGAAGGCTATACATGGTGCGTGCTTGGGTAATTGGGGTTCATCAACTGACCCTTCACACATCCACACTCACAGGAAAAAGACGGGAGGTGACCGAGGATGCCCCCTGTGCTTAGCGGCATTCAACGTATTTGGACAGTGTTGGAGTAATAGTCATCCAGCTGTGAAAATCATACCGCGGTCATTTTCACATCCATCTGATCACTTGGGAACTTGCGATAAATATTAACTCCTGAGGCCCGGAAGTGTCCGGCTTTCCTCGAGTGATTCACAAAGGGATTTTAGCCAGATTTTCCTGGATCCGTGGGCATATTGATGATTCTGAGGGCCACAGTAGATGAGGGTACAGCGTCTCTCTCCGCTAGTATAATCTAGTCTCCGTAACGTTGGGATATTAGGAACGTCTAACTATTGCATACACTATTACCCAGCTAGAGGCTTTAGTACACCGCTCTTCAGGAATTAGCCCGTTTCGGGAGGTCAACTAAATGCCCGACGGAGTTCATTCATGTCATTACTCGGTAGTAGGACGCTCGGTACCCTGATCTCTGGGTAACTAGCCTAGCGATAGTTTGCGTCTGTATGTTCCTTCTTTGCCTCGCTATCCTGACACCGACGCGTTCTTGTACATTGACTGGAGTGTATGGGACTGTCGGTTTGGTACGCCAACCGTTGTCTCGAGGCATATGGAAGGCCAGGGACAACAGGGAGACTCTCTATCCTATATGAGACGCTCTGGTCAATCGACGGCAGGAGTACAGGCAAGAAAACGCGCGGGTAGATTGGCTGGGCATCGGAATACGAAA'/>
@@ -540,26 +540,26 @@ t128=3">
    </siteModel>
  
    <!-- Migration model -->
-   <migrationModel spec='SCMigrationModel' id='migModel'>
+   <migrationModel spec='multitypetree.evolution.tree.SCMigrationModel' id='migModel'>
      <rateMatrix spec='RealParameter' value="1.0" dimension="2" id="rateMatrix"/>
      <popSizes spec='RealParameter' value="1.0" dimension="2" id="popSizes"/>
-     <typeSet id="typeSet" spec='TypeSet' typeTraitSet="@typeTraitSet"/>
+     <typeSet id="typeSet" spec='multitypetree.evolution.tree.TypeSet' typeTraitSet="@typeTraitSet"/>
    </migrationModel>
  
    <!-- Parameter priors -->
    <input spec='CompoundDistribution' id='parameterPriors'>
-     <distribution spec='beast.math.distributions.Prior' x="@mutationRate">
+     <distribution spec='beast.base.inference.distribution.Prior' x="@mutationRate">
        <distr spec='LogNormalDistributionModel' M="0.0" S="4.0"/>
      </distribution>
 
-     <distribution spec='beast.math.distributions.Prior' x="@hky.kappa">
+     <distribution spec='beast.base.inference.distribution.Prior' x="@hky.kappa">
        <distr spec='LogNormalDistributionModel' M="0.0" S="4.0"/>
      </distribution>
 
-     <distribution spec='beast.math.distributions.Prior' x="@rateMatrix">
+     <distribution spec='beast.base.inference.distribution.Prior' x="@rateMatrix">
        <distr spec='LogNormalDistributionModel' M="0.0" S="4.0"/>
      </distribution>
-     <distribution spec='beast.math.distributions.Prior' x="@popSizes">
+     <distribution spec='beast.base.inference.distribution.Prior' x="@popSizes">
        <distr spec="LogNormalDistributionModel"  M="0.0" S="4.0"/>
      </distribution>
    </input>
@@ -580,8 +580,8 @@ t128=3">
 
    <run spec="MCMC" id="mcmc" chainLength="100000000" storeEvery="10000">
 
-     <init spec='StructuredCoalescentMultiTypeTree' id='tree'>
-         <migrationModel spec='SCMigrationModel'>
+     <init spec='multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree' id='tree'>
+         <migrationModel spec='multitypetree.evolution.tree.SCMigrationModel'>
              <rateMatrix spec='RealParameter' value="1.0" dimension="2"/>
              <popSizes spec='RealParameter' value="1.0" dimension="2"/>
              <typeSet idref="typeSet"/>
@@ -698,10 +698,10 @@ t128=3">
        <log spec='TreeLengthLogger' tree='@tree'/>
        <log spec='TypeLengths' multiTypeTree="@tree"
             migrationModel="@migModel" id="typeLengths" />
-       <log spec='Sum' arg="@typeLengths" id="totalLength" />
+       <log spec='beast.base.evolution.Sum' arg="@typeLengths" id="totalLength" />
        <log spec='TypeChangeCounts' multiTypeTree="@tree"
             migrationModel="@migModel" id="typeChangeCounts" />
-       <log spec='Sum' arg="@typeChangeCounts" id="totalTypeChanges" />
+       <log spec='beast.base.evolution.Sum' arg="@typeChangeCounts" id="totalTypeChanges" />
        <log spec='NodeTypeCounts' multiTypeTree="@tree"
             migrationModel="@migModel" />
        <log spec='TreeRootTypeLogger' multiTypeTree="@tree"/>
@@ -722,7 +722,7 @@ t128=3">
        <log idref="treeLikelihood"/>
        <log idref="treePrior"/>
        <log idref="totalTypeChanges"/>
-       <ESS spec='ESS' name='log' arg="@treePrior"/>
+       <ESS spec='beast.base.inference.util.ESS' name='log' arg="@treePrior"/>
      </logger>
    </run>
    

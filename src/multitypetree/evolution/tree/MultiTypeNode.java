@@ -14,9 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.Description;
+import beast.base.core.Description;
+import beast.base.evolution.tree.Node;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -267,8 +269,8 @@ public class MultiTypeNode extends Node {
      */
     @Override
     public void assignFrom(Node[] nodes, Node node) {
-        height = node.height;
-        labelNr = node.labelNr;
+        height = node.getHeight();
+        labelNr = node.getNr();
         metaDataString = node.metaDataString;
         parent = null;
         ID = node.getID();
@@ -284,11 +286,11 @@ public class MultiTypeNode extends Node {
         if (node.getLeft()!=null) {
             setLeft(nodes[node.getLeft().getNr()]);
             getLeft().assignFrom(nodes, node.getLeft());
-            getLeft().parent = this;
+            getLeft().setParent(this);
             if (node.getRight()!=null) {
                 setRight(nodes[node.getRight().getNr()]);
                 getRight().assignFrom(nodes, node.getRight());
-                getRight().parent = this;
+                getRight().setParent(this);
             }
         }
     }

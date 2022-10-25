@@ -14,15 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.CalculationNode;
-import beast.core.Description;
-import beast.core.Function;
-import beast.core.Input;
-import beast.core.Input.Validate;
-import beast.core.parameter.BooleanParameter;
-import beast.core.parameter.RealParameter;
+import beast.base.inference.CalculationNode;
+import beast.base.core.Description;
+import beast.base.core.Function;
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.inference.parameter.BooleanParameter;
+import beast.base.inference.parameter.RealParameter;
 
 import java.util.ArrayList;
 import java.util.List;

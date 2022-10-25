@@ -16,11 +16,15 @@
  */
 package multitypetree.operators;
 
-import beast.core.Description;
-import beast.core.Input;
-import beast.core.Input.Validate;
-import beast.core.Operator;
-import beast.evolution.tree.*;
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.evolution.tree.Node;
+import beast.base.evolution.tree.Tree;
+import beast.base.inference.Operator;
+import multitypetree.evolution.tree.MigrationModel;
+import multitypetree.evolution.tree.MultiTypeNode;
+import multitypetree.evolution.tree.MultiTypeTree;
 
 /**
  * Abstract base class for all operators on ColouredTree objects.

@@ -7,10 +7,11 @@
 
     <!-- Location to check for local copy of beast2 repository -->
     <property name="beastDir" location="../beast2"/>
+    <property name="libBeast2" location="${beastDir}/lib" />
 
-    <!-- BEAST 2 currently uses Java 1.8 -->
-    <property name="sourceVersion" value="1.8"/>
-    <property name="targetVersion" value="1.8"/>
+    <!-- BEAST 2 currently uses Java 17 -->
+    <property name="sourceVersion" value="17"/>
+    <property name="targetVersion" value="17"/>
 
     <!-- Directories necessary for all BEAST 2 packages -->
     <property name="doc" location="doc"/>
@@ -53,6 +54,7 @@
 
         <copy todir="${build-lib}" failonerror="false">
             <fileset dir="${lib}" includes="*.jar"/>
+            <fileset dir="${libBeast2}/junit" includes="junit-platform-console-standalone-1.8.2.jar"/>
         </copy>
     </target>
 
@@ -100,6 +102,7 @@
             <classpath>
                 <pathelement path="${classpath}"/>
                 <fileset dir="${beastDir}/lib" includes="*.jar"/>
+                <pathelement path="../BeastFX/build"/>
             </classpath>
         </javac>
         <jar jarfile="${build-lib}/beast2.jar" basedir="${build-beast}" />
@@ -118,6 +121,7 @@
             <classpath>
                 <pathelement path="${classpath}"/>
                 <fileset dir="${build-lib}" includes="*.jar"/>
+                <pathelement path="../BeastFX/build"/>
             </classpath>
         </javac>
     </target>

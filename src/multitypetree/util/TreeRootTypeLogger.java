@@ -16,14 +16,14 @@
  */
 package multitypetree.util;
 
-import beast.core.CalculationNode;
-import beast.core.Description;
-import beast.core.Input;
-import beast.core.Function;
-import beast.core.Input.Validate;
-import beast.core.Loggable;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.MultiTypeTree;
+import beast.base.inference.CalculationNode;
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.core.Function;
+import beast.base.core.Input.Validate;
+import multitypetree.evolution.tree.MultiTypeNode;
+import multitypetree.evolution.tree.MultiTypeTree;
+import beast.base.core.Loggable;
 
 import java.io.PrintStream;
 

@@ -1,7 +1,10 @@
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.*;
-import beast.util.Randomizer;
+import beast.base.core.Description;
+import beast.base.evolution.tree.Node;
+import beast.base.inference.StateNode;
+import beast.base.inference.StateNodeInitialiser;
+import beast.base.util.Randomizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,9 +81,13 @@ public class RandomMultiTypeTree extends MultiTypeTree implements StateNodeIniti
             }
         }
     }
+    
 
-    @Override
-    public void getInitialisedStateNodes(List<StateNode> stateNodeList) {
-        stateNodeList.add(this);
-    }
+
+	@Override
+	public void getInitialisedStateNodes(List<StateNode> stateNodes) {
+		stateNodes.add(this);
+	}
+
+
 }

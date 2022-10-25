@@ -1,10 +1,16 @@
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.*;
-import beast.core.Input.Validate;
-import beast.util.TreeParser;
+
+
 import java.util.ArrayList;
 import java.util.List;
+
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.evolution.tree.TreeParser;
+import beast.base.inference.StateNode;
+import beast.base.inference.StateNodeInitialiser;
 
 /**
  * @author dkuh004
@@ -39,8 +45,9 @@ public class MultiTypeTreeFromNewick extends MultiTypeTree implements StateNodeI
     @Override
     public void initStateNodes() { }
 
-    @Override
-    public void getInitialisedStateNodes(List<StateNode> stateNodeList) {
-        stateNodeList.add(this);
-    }
+
+	@Override
+	public void getInitialisedStateNodes(List<StateNode> stateNodes) {
+		stateNodes.add(this);
+	}
 }

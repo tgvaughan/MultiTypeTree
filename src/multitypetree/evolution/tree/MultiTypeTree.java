@@ -14,15 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.app.beauti.BeautiDoc;
-import beast.core.Citation;
-import beast.core.Description;
-import beast.core.Input;
-import beast.core.StateNode;
-import beast.core.StateNodeInitialiser;
-import beast.util.TreeParser;
+import beastfx.app.inputeditor.BeautiDoc;
+import beast.base.core.Citation;
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.inference.StateNode;
+import beast.base.inference.StateNodeInitialiser;
+import beast.base.evolution.tree.Node;
+import beast.base.evolution.tree.TraitSet;
+import beast.base.evolution.tree.Tree;
+import beast.base.evolution.tree.TreeParser;
 import com.google.common.collect.Lists;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -98,20 +101,20 @@ public class MultiTypeTree extends Tree {
                 // make a caterpillar
                 List<String> sTaxa = m_taxonset.get().asStringList();
                 Node left = new MultiTypeNode();
-                left.labelNr = 0;
-                left.height = 0;
+                left.setNr(0);
+                left.setHeight(0);
                 left.setID(sTaxa.get(0));
                 for (int i = 1; i < sTaxa.size(); i++) {
                     Node right = new MultiTypeNode();
-                    right.labelNr = i;
-                    right.height = 0;
+                    right.setNr(i);
+                    right.setHeight(0);
                     right.setID(sTaxa.get(i));
                     Node parent = new MultiTypeNode();
-                    parent.labelNr = sTaxa.size() + i - 1;
-                    parent.height = i;
-                    left.parent = parent;
+                    parent.setNr(sTaxa.size() + i - 1);
+                    parent.setHeight(i);
+                    left.setParent(parent);
                     parent.setLeft(left);
-                    right.parent = parent;
+                    right.setParent(parent);
                     parent.setRight(right);
                     left = parent;
                 }
@@ -123,9 +126,8 @@ public class MultiTypeTree extends Tree {
             } else {
                 // make dummy tree with a single root node
                 root = new MultiTypeNode();
-                root.labelNr = 0;
-                root.labelNr = 0;
-                root.m_tree = this;
+                root.setNr(0);
+                root.setTree(this);
                 nodeCount = 1;
                 internalNodeCount = 0;
                 leafNodeCount = 1;
@@ -252,7 +254,7 @@ public class MultiTypeTree extends Tree {
     }
 
     @Override
-    protected final void initArrays() {
+    public final void initArrays() {
         // initialise tree-as-array representation + its stored variant
         m_nodes = new MultiTypeNode[nodeCount];
         listNodes((MultiTypeNode)root, (MultiTypeNode[])m_nodes);
@@ -269,11 +271,11 @@ public class MultiTypeTree extends Tree {
      */
     private void listNodes(MultiTypeNode node, MultiTypeNode[] nodes) {
         nodes[node.getNr()] = node;
-        node.m_tree = this;
+        node.setTree(this);
         if (!node.isLeaf()) {
-            listNodes(node.getLeft(), nodes);
+            listNodes((MultiTypeNode)node.getLeft(), nodes);
             if (node.getRight()!=null)
-                listNodes(node.getRight(), nodes);
+                listNodes((MultiTypeNode)node.getRight(), nodes);
         }
     }
 
@@ -311,7 +313,7 @@ public class MultiTypeTree extends Tree {
         ID = mtTree.ID;
         root = mtNodes[mtTree.root.getNr()];
         root.assignFrom(mtNodes, mtTree.root);
-        root.parent = null;
+        root.setParent(null);
 
         nodeCount = mtTree.nodeCount;
         internalNodeCount = mtTree.internalNodeCount;
@@ -334,8 +336,9 @@ public class MultiTypeTree extends Tree {
         Node[] otherNodes = mtTree.m_nodes;
         int iRoot = root.getNr();
         assignFromFragileHelper(0, iRoot, otherNodes);
-        root.height = otherNodes[iRoot].height;
-        root.parent = null;
+        
+        root.setHeight(otherNodes[iRoot].getHeight());
+        root.setParent(null);
         
         MultiTypeNode mtRoot = (MultiTypeNode)root;
         mtRoot.nodeType = ((MultiTypeNode)(otherNodes[iRoot])).nodeType;
@@ -363,8 +366,9 @@ public class MultiTypeTree extends Tree {
         for (int i = iStart; i < iEnd; i++) {
             MultiTypeNode sink = (MultiTypeNode)m_nodes[i];
             MultiTypeNode src = (MultiTypeNode)otherNodes[i];
-            sink.height = src.height;
-            sink.parent = m_nodes[src.parent.getNr()];
+            
+            sink.setHeight(src.getHeight());
+            sink.setParent(m_nodes[src.getParent().getNr()]);
             
             sink.nTypeChanges = src.nTypeChanges;
             sink.changeTimes.clear();
@@ -730,8 +734,8 @@ public class MultiTypeTree extends Tree {
 
         storeNodes(0, iRoot);
         
-        storedRoot.height = m_nodes[iRoot].height;
-        storedRoot.parent = null;
+        storedRoot.setHeight( m_nodes[iRoot].getHeight());
+        storedRoot.setParent(null);
 
         if (root.getLeft()!=null)
             storedRoot.setLeft(m_storedNodes[root.getLeft().getNr()]);
@@ -762,8 +766,10 @@ public class MultiTypeTree extends Tree {
         for (int i = iStart; i<iEnd; i++) {
             MultiTypeNode sink = (MultiTypeNode)m_storedNodes[i];
             MultiTypeNode src = (MultiTypeNode)m_nodes[i];
-            sink.height = src.height;
-            sink.parent = m_storedNodes[src.parent.getNr()];
+            
+            sink.setHeight( src.getHeight());
+            sink.setParent(m_storedNodes[src.getParent().getNr()]);
+            
             if (src.getLeft()!=null) {
                 sink.setLeft(m_storedNodes[src.getLeft().getNr()]);
                 if (src.getRight()!=null)

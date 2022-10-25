@@ -16,10 +16,11 @@
  */
 package multitypetree.distributions;
 
-import beast.core.*;
-import beast.core.Input.Validate;
-import beast.evolution.tree.MultiTypeTree;
-import beast.evolution.tree.MultiTypeTree;
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.inference.Distribution;
+import beast.base.inference.State;
+import multitypetree.evolution.tree.MultiTypeTree;
 
 import java.util.ArrayList;
 import java.util.List;

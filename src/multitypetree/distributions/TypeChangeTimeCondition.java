@@ -1,11 +1,11 @@
 package multitypetree.distributions;
 
-import beast.core.Description;
-import beast.core.Input;
-import beast.core.parameter.IntegerParameter;
-import beast.core.parameter.RealParameter;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.Node;
+import beast.base.core.Description;
+import beast.base.core.Input;
+import beast.base.inference.parameter.IntegerParameter;
+import beast.base.inference.parameter.RealParameter;
+import beast.base.evolution.tree.Node;
+import multitypetree.evolution.tree.MultiTypeNode;
 
 import java.util.Arrays;
 import java.util.HashSet;

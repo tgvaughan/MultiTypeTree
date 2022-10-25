@@ -1,6 +1,6 @@
-package beast.evolution.tree;
+package multitypetree.evolution.tree;
 
-import beast.core.BEASTInterface;
+import beast.base.core.BEASTInterface;
 import org.jblas.DoubleMatrix;
 
 /**

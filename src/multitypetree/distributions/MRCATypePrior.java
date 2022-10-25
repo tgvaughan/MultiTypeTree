@@ -1,11 +1,11 @@
 package multitypetree.distributions;
 
-import beast.core.Input;
-import beast.core.parameter.RealParameter;
-import beast.evolution.alignment.TaxonSet;
-import beast.evolution.tree.MigrationModel;
-import beast.evolution.tree.MultiTypeNode;
-import beast.evolution.tree.TreeUtils;
+import beast.base.core.Input;
+import beast.base.inference.parameter.RealParameter;
+import beast.base.evolution.alignment.TaxonSet;
+import beast.base.evolution.tree.TreeUtils;
+import multitypetree.evolution.tree.MigrationModel;
+import multitypetree.evolution.tree.MultiTypeNode;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>

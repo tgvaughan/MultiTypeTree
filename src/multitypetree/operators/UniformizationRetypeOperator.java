@@ -16,11 +16,16 @@
  */
 package multitypetree.operators;
 
-import beast.core.Input;
-import beast.core.State;
-import beast.core.parameter.RealParameter;
-import beast.evolution.tree.*;
-import beast.util.Randomizer;
+import beast.base.core.Input;
+import beast.base.evolution.tree.Node;
+import beast.base.inference.State;
+import beast.base.inference.parameter.RealParameter;
+import beast.base.util.Randomizer;
+import multitypetree.evolution.tree.MigrationModel;
+import multitypetree.evolution.tree.MultiTypeNode;
+import multitypetree.evolution.tree.MultiTypeTreeFromNewick;
+import multitypetree.evolution.tree.SCMigrationModel;
+
 import java.io.PrintStream;
 import java.util.Arrays;
 import org.jblas.MatrixFunctions;
