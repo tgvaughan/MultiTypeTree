@@ -16,7 +16,7 @@
     <!-- Directories necessary for all BEAST 2 packages -->
     <property name="doc" location="doc"/>
     <property name="examples" location="examples"/>
-    <property name="templates" location="templates"/>
+    <property name="templates" location="fxtemplates"/>
 
     <!-- BEAST branch and version to build against
          (only different for version tags because of
@@ -205,7 +205,7 @@
         </copy>
 
         <mkdir dir="${templates}" />
-        <copy todir="${pack}/templates">
+        <copy todir="${pack}/fxtemplates">
             <fileset dir="${templates}" includes="*.xml" />
         </copy>
 
