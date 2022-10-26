@@ -26,6 +26,7 @@ import beastfx.app.inputeditor.InputEditor;
 import beastfx.app.util.FXUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingNode;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
@@ -159,7 +160,13 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
         boxVert.getChildren().add(new ScrollPane(table));
 
         this.pane = FXUtils.newHBox();
+        getChildren().add(pane);
+        
+        
+        //SwingNode n = new SwingNode();
+       // n.setContent(boxVert);
         pane.getChildren().add(boxVert);
+        
     }
 
     /**
