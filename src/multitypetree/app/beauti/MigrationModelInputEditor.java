@@ -74,6 +74,9 @@ public class MigrationModelInputEditor extends InputEditor.Base {
     public void init(Input<?> input, BEASTInterface beastObject, int itemNr,
         ExpandOption bExpandOption, boolean bAddButtons) {
 
+    	this.pane = FXUtils.newHBox();
+    	
+    	
         // Set up fields
         m_bAddButtons = bAddButtons;
         m_input = input;

@@ -158,6 +158,7 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
         boxVert.getChildren().add(boxHoriz);
         boxVert.getChildren().add(new ScrollPane(table));
 
+        this.pane = FXUtils.newHBox();
         pane.getChildren().add(boxVert);
     }
 
