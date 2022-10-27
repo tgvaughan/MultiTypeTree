@@ -16,22 +16,22 @@
  */
 package multitypetree.app.beauti;
 
-import beastfx.app.inputeditor.BeautiDoc;
-import beastfx.app.inputeditor.InputEditor;
 import beast.base.core.BEASTInterface;
 import beast.base.core.Input;
 import beast.base.inference.parameter.RealParameter;
+import beastfx.app.inputeditor.BEASTObjectInputEditor;
+import beastfx.app.inputeditor.BeautiDoc;
+import beastfx.app.inputeditor.InputEditor;
 import beastfx.app.util.Alert;
 import beastfx.app.util.FXUtils;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
-import javafx.stage.FileChooser;
+import javafx.scene.paint.Color;
 import multitypetree.evolution.tree.SCMigrationModel;
 
 import java.io.*;
@@ -43,7 +43,7 @@ import java.util.List;
  *
  * @author Tim Vaughan (tgvaughan@gmail.com)
  */
-public class MigrationModelInputEditor extends InputEditor.Base {
+public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extends InputEditor.Base {
 
     private ObservableList<Double> popSize;
     private ObservableList<double[]> rateMatrix;
@@ -72,16 +72,18 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
     @Override
     public void init(Input<?> input, BEASTInterface beastObject, int itemNr,
-        ExpandOption bExpandOption, boolean bAddButtons) {
+        ExpandOption isExpandOption, boolean addButtons) {
+        // TODO too much works to do if not call super
+        super.init(input, beastObject, itemNr, ExpandOption.TRUE, addButtons);
 
-    	this.pane = FXUtils.newHBox();
-    	
-    	
+        pane = new HBox();
+        pane.setPadding(new Insets(5));
+
         // Set up fields
-        m_bAddButtons = bAddButtons;
-        m_input = input;
-        m_beastObject = beastObject;
-		this.itemNr = itemNr;
+//        m_bAddButtons = addButtons;
+//        m_input = input;
+//        m_beastObject = beastObject;
+//		this.itemNr = itemNr;
 
         // Adds label to left of input editor
         addInputLabel();
@@ -102,13 +104,13 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         popSizeScaleFactorEstCheckBox = new CheckBox("estimate scale factor");
         rateMatrixScaleFactorEstCheckBox = new CheckBox("estimate scale factor");
         rateMatrixForwardTimeCheckBox = new CheckBox("forward-time rate matrix");
-        loadFromMigrationModel();
 
         Label label = new Label("<html><body>Type list:</body></html>");
         label.setPadding(new Insets(3, 3, 3, 3));
 
-        GridPane panel = new GridPane();
+//        GridPane panel = new GridPane();
 //        panel.setBorder(new EtchedBorder());
+        VBox box = new VBox();
 
         HBox tlBox = FXUtils.newHBox();
         VBox tlBoxLeft = FXUtils.newVBox();
@@ -162,8 +164,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 //        c.gridy = 0;
 //        c.weightx = 1.0;
 //        c.anchor = GridBagConstraints.LINE_START;
-        panel.add(tlBox, 1, 0);
-
+//        panel.add(tlBox, 1, 0);
+        box.getChildren().add(tlBox);
         // Population size table
 //        c.gridx = 0;
 //        c.gridy = 1;
@@ -173,24 +175,27 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         psBox.getChildren().add(new Label("Population sizes: "));
         loadPopSizesFromFileButton = new Button("Load from file...");
         psBox.getChildren().add(loadPopSizesFromFileButton);
-        panel.add(psBox, 0, 1);
+//        panel.add(psBox, 0, 1);
+        box.getChildren().add(psBox);
 
-        TableView<ObservableList<Double>> popSizeTable = new TableView<>();
+        TableView<Double> popSizeTable = new TableView<>();
         popSizeTable.setEditable(true);
         popSizeTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        Pane header = (Pane) popSizeTable.lookup("TableHeaderRow");
-        header.setVisible(false);
-        popSizeTable.setLayoutY(-header.getHeight());
-        popSizeTable.autosize();
 
         popSize = FXCollections.observableArrayList(List.of(1.0, 1.0));//TODO
         // add columns
         for (int i = 0; i < popSize.size(); i++) {
-            TableColumn<ObservableList<Double>, Double> column = new TableColumn<>();
+            TableColumn<Double, Object> column = new TableColumn<>();
             popSizeTable.getColumns().add(column);
         }
         // add data
-        popSizeTable.getItems().add(popSize);
+        popSizeTable.setItems(popSize);
+
+//        Pane header = (Pane) popSizeTable.lookup("TableHeaderRow");
+//        header.setVisible(false);
+//        popSizeTable.setLayoutY(-header.getHeight());
+//        popSizeTable.autosize();
+
 
 //            @Override
 //            public TableCellRenderer getCellRenderer(int row, int column) {
@@ -215,7 +220,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 //        c.gridy = 1;
 //        c.weightx = 1.0;
 //        c.anchor = GridBagConstraints.LINE_START;
-        panel.add(popSizeTable, 1, 1);
+//        panel.add(popSizeTable, 1, 1);
+        box.getChildren().add(popSizeTable);
 
         popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
         popSizeScaleFactorEstCheckBox.setSelected(((RealParameter)migModel.popSizesScaleFactorInput.get()).isEstimatedInput.get());
@@ -226,7 +232,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         VBox estBox = FXUtils.newVBox();
         estBox.getChildren().add(popSizeEstCheckBox);
         estBox.getChildren().add(popSizeScaleFactorEstCheckBox);
-        panel.add(estBox, 2, 1);
+//        panel.add(estBox, 2, 1);
+        box.getChildren().add(estBox);
 
         // Migration rate table
         // (Uses custom cell renderer to grey out diagonal elements.)
@@ -238,15 +245,16 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         mrBox.getChildren().add(new Label("Migration rates: "));
         loadMigRatesFromFileButton = new Button("Load from file...");
         mrBox.getChildren().add(loadMigRatesFromFileButton);
-        panel.add(mrBox, 0, 2);
+//        panel.add(mrBox, 0, 2);
+        box.getChildren().add(mrBox);
 
         TableView<double[]> rateMatrixTable = new TableView<>();
         rateMatrixTable.setEditable(true);
         rateMatrixTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        header = (Pane) rateMatrixTable.lookup("TableHeaderRow");
-        header.setVisible(false);
-        rateMatrixTable.setLayoutY(-header.getHeight());
-        rateMatrixTable.autosize();
+//        header = (Pane) rateMatrixTable.lookup("TableHeaderRow");
+//        header.setVisible(false);
+//        rateMatrixTable.setLayoutY(-header.getHeight());
+//        rateMatrixTable.autosize();
 
         //TODO
         rateMatrix = FXCollections.observableArrayList();
@@ -269,6 +277,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             // add data
             rateMatrixTable.getItems().add(rateMatrix.get(i));
         }
+
+        loadFromMigrationModel();
 
 //            @Override
 //            public TableCellRenderer getCellRenderer(int row, int column) {
@@ -328,7 +338,8 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 //        c.gridy = 2;
 //        c.anchor = GridBagConstraints.LINE_START;
 //        c.weightx = 1.0;
-        panel.add(rateMatrixTable, 1, 2);
+//        panel.add(rateMatrixTable, 1, 2);
+        box.getChildren().add(rateMatrixTable);
 
         rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
         rateMatrixScaleFactorEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixScaleFactorInput.get()).isEstimatedInput.get());
@@ -341,25 +352,33 @@ public class MigrationModelInputEditor extends InputEditor.Base {
         estBox.getChildren().add(rateMatrixEstCheckBox);
         estBox.getChildren().add(rateMatrixScaleFactorEstCheckBox);
         estBox.getChildren().add(rateMatrixForwardTimeCheckBox);
-        panel.add(estBox, 2,2);
+//        panel.add(estBox, 2,2);
+        box.getChildren().add(estBox);
 
 //        c.gridx = 1;
 //        c.gridy = 3;
 //        c.anchor = GridBagConstraints.LINE_START;
 //        c.weightx = 1.0;
-        panel.add(new Label("Rows: sources, columns: sinks (backwards in time)"), 1,3);
+        Label l = new Label("Rows: sources, columns: sinks (backwards in time)");
+//        panel.add(l, 1,3);
+        box.getChildren().add(l);
 
 //        c.gridx = 1;
 //        c.gridy = 4;
 //        c.anchor = GridBagConstraints.LINE_START;
 //        c.weightx = 1.0;
-        Label multilineLabel = new Label();
-        multilineLabel.setText("<html><body>Correspondence between row/col indices<br>"
+        Label multilineLabel = new Label("<html><body>Correspondence between row/col indices<br>"
                 + "and deme names shown to right of matrix.</body></html>");
-        panel.add(multilineLabel, 1, 4);
+//        panel.add(multilineLabel, 1, 4);
+        box.getChildren().add(multilineLabel);
 
-        getChildren().add(panel);
- 
+        box.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1))));
+        HBox.setHgrow(box, Priority.ALWAYS);
+        pane.getChildren().add(box);
+        getChildren().add(pane);
+//        pane.getChildren().add(panel);
+//        m_expansionBox = box;
+
 
         // Event handlers
 //        popSizeTable.addTableModelListener(e -> {
@@ -393,7 +412,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
             dialog.setTitle("Name of type");
             dialog.showAndWait().ifPresent(newTypeName -> {
                 if (migModel.getTypeSet().containsTypeWithName(newTypeName)) {
-                    Alert.showMessageDialog(panel,
+                    Alert.showMessageDialog(pane,
                             "Type with this name already present.",
                             "Error",
                             Alert.ERROR_MESSAGE);
@@ -420,7 +439,7 @@ public class MigrationModelInputEditor extends InputEditor.Base {
                     saveToMigrationModel();
 
                 } catch (IOException e1) {
-                    Alert.showMessageDialog(panel,
+                    Alert.showMessageDialog(pane,
                             "<html>Error reading from file:<br>" + e1.getMessage() + "</html>",
                             "Error",
                             Alert.ERROR_MESSAGE);
@@ -460,19 +479,19 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
                         saveToMigrationModel();
                     } else {
-                        Alert.showMessageDialog(panel,
+                        Alert.showMessageDialog(pane,
                                 "<html>File must contain exactly one population<br> size for each type/deme.</html>",
                                 "Error",
                                 Alert.ERROR_MESSAGE);
                     }
 
                 } catch (IOException ex) {
-                    Alert.showMessageDialog(panel,
+                    Alert.showMessageDialog(pane,
                             "<html>Error reading from file:<br>" + ex.getMessage() + "</html>",
                             "Error",
                             Alert.ERROR_MESSAGE);
                 } catch (NumberFormatException ex) {
-                    Alert.showMessageDialog(panel,
+                    Alert.showMessageDialog(pane,
                             "<html>File contains non-numeric line. Every line must contain<br> exactly one population size.</html>",
                             "Error",
                             Alert.ERROR_MESSAGE);
@@ -525,17 +544,17 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
                         saveToMigrationModel();
                     } else {
-                        Alert.showMessageDialog(panel,
+                        Alert.showMessageDialog(pane,
                                 "<html>CSV file must contain a square matrix with exactly one<br>" +
                                         "row for each type/deme.</html>", "Error",
                                 Alert.ERROR_MESSAGE);
                     }
                 } catch (IOException ex) {
-                    Alert.showMessageDialog(panel,
+                    Alert.showMessageDialog(pane,
                             "<html>Error reading from file:<br>" + ex.getMessage() + "</html>",
                             "Error", Alert.ERROR_MESSAGE);
                 } catch (NumberFormatException ex) {
-                    Alert.showMessageDialog(panel,
+                    Alert.showMessageDialog(pane,
                             "<html>CSV file contains non-numeric element.</html>", "Error",
                             Alert.ERROR_MESSAGE);
                 }
@@ -665,6 +684,17 @@ public class MigrationModelInputEditor extends InputEditor.Base {
 
         refreshPanel();
     }
+
+//    private void registerAsListener(Node node) {
+//        if (node instanceof InputEditor) {
+//            ((InputEditor)node).addValidationListener(_this);
+//        }
+//        if (node instanceof Pane) {
+//            for (Node child : ((Pane)node).getChildren()) {
+//                registerAsListener(child);
+//            }
+//        }
+//    }
 
     class PopSize {
         double popSize;

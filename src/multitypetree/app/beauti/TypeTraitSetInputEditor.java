@@ -43,7 +43,7 @@ import javafx.scene.layout.VBox;
 public class TypeTraitSetInputEditor extends InputEditor.Base {
 
 //    TypeTraitTableModel tableModel;
-    private ObservableList<Location> locations;
+    private ObservableList<Location> locations = FXCollections.observableArrayList();
     TraitSet traitSet; // TODO seem to duplicate with ObservableList<Location>
     TaxonSet taxonSet;
 
@@ -82,11 +82,7 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
         );
         table.getColumns().addAll(column1, column2);
 
-        locations = FXCollections.observableArrayList();
-        // add data
-        for (String taxonName : taxonSet.asStringList()) {
-            locations.add(new Location(taxonName, ""));
-        }
+        traitSetToLocations();
         table.setItems(locations);
 
         Button guessButton = new Button("Guess");
@@ -125,11 +121,7 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
                 System.err.println("Error setting type trait.");
             }
 
-            locations.clear();
-            for (String taxon : traitSet.taxaInput.get().getTaxaNames()) {
-                String loc = traitSet.getStringValue(taxon);
-                locations.add(new Location(taxon, loc));
-            }
+            traitSetToLocations();
             table.refresh();
             refreshPanel();
         });
@@ -149,11 +141,8 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
                 System.err.println("Error clearing type trait.");
             }
 
-            for (String taxon : traitSet.taxaInput.get().getTaxaNames()) {
-                String loc = traitSet.getStringValue(taxon);
-                locations.add(new Location(taxon, loc));
-            }
-
+            traitSetToLocations();
+            table.refresh();
             refreshPanel();
         });
 
@@ -170,6 +159,15 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
         getChildren().add(pane);
 
         pane.getChildren().add(boxVert);
+    }
+
+    private void traitSetToLocations() {
+        locations.clear();
+        // add data
+        for (String taxonName : taxonSet.asStringList()) {
+            String loc = traitSet.getStringValue(taxonName);
+            locations.add(new Location(taxonName, loc));
+        }
     }
 
     /**
