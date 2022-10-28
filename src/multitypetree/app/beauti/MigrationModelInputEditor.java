@@ -24,13 +24,13 @@ import beastfx.app.inputeditor.BeautiDoc;
 import beastfx.app.util.Alert;
 import beastfx.app.util.FXUtils;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import multitypetree.evolution.tree.SCMigrationModel;
 
@@ -46,11 +46,10 @@ import java.util.List;
 public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extends InputEditor.Base {
 
     private List<TextField> popSizeTFs, rateMatrixTFs;
+    private ListView<String> listAllTypes, listAdditional;
 
-//    private ObservableList<double[]> popSize;
-//    private ObservableList<double[]> rateMatrix;
-    private ObservableList<String> fullTypeListModel, additionalTypeListModel;
-    private MultipleSelectionModel<String> additionalTypeListSelectionModel;
+    VBox rateMatrixBox;
+
     private SCMigrationModel migModel;
 
     private Button addTypeButton, remTypeButton, addTypesFromFileButton;
@@ -91,8 +90,8 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 
         // Create component models and fill them with data from input
         migModel = (SCMigrationModel) input.get();
-        fullTypeListModel = FXCollections.observableArrayList();;
-        additionalTypeListModel = FXCollections.observableArrayList();
+//        ObservableList<String> fullTypeList = FXCollections.observableArrayList();
+//        ObservableList<String> additionalTypeList = FXCollections.observableArrayList();
 //        popSizeModel =  popSizeTable.getSelectionModel();
 //        rateMatrixModel = new DefaultTableModel() {
 //            @Override
@@ -114,7 +113,7 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 //        label.setPadding(new Insets(3, 3, 3, 3));
 
         GridPane gridPane = new GridPane();
-        gridPane.setHgap(5);
+        gridPane.setVgap(10);
 //        panel.setBorder(new EtchedBorder());
 //        VBox box4All = FXUtils.newVBox();
 
@@ -124,27 +123,36 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         VBox tlBoxLeft = FXUtils.newVBox();
         Label labelLeft = new Label("All types");
         tlBoxLeft.getChildren().add(labelLeft);
-        ListView<String> jlist = new ListView<>();
-        jlist.setOrientation(Orientation.HORIZONTAL);
-        jlist.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        listAllTypes = new ListView<>();
+        listAllTypes.setPrefSize(200, 250);
+        listAllTypes.setOrientation(Orientation.VERTICAL);
+        listAllTypes.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 //        jlist.setSelectionModel(new DefaultListSelectionModel() {
 //            @Override
 //            public void setSelectionInterval(int index0, int index1) {
 //                super.setSelectionInterval(-1, -1);
 //            }
 //        });
-        ScrollPane listScrollPane = new ScrollPane(jlist);
+        ScrollPane listScrollPane = new ScrollPane(listAllTypes);
         listScrollPane.vbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.ALWAYS);
         tlBoxLeft.getChildren().add(listScrollPane);
 
         VBox tlBoxRight = FXUtils.newVBox();
         Label labelRight = new Label("Additional types");
         tlBoxRight.getChildren().add(labelRight);
-        ListView<String> jlistAdditional = new ListView<>();
-        jlistAdditional.setOrientation(Orientation.HORIZONTAL);
-        jlistAdditional.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        additionalTypeListSelectionModel = jlistAdditional.getSelectionModel();
+        listAdditional = new ListView<>();
+        listAdditional.setPrefSize(200, 200);
+        listAdditional.setOrientation(Orientation.VERTICAL);
+        listAdditional.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+//        listAdditional.getItems().addListener((ListChangeListener) change -> {
+//            if (listAdditional.getSelectionModel().isEmpty())
+//                remTypeButton.setDisable(true);
+//            else
+//                remTypeButton.setDisable(false);
+//        });
+
+        MultipleSelectionModel<String> additionalTypeListSelectionModel = listAdditional.getSelectionModel();
         additionalTypeListSelectionModel.selectedItemProperty().addListener(e -> {
             if (additionalTypeListSelectionModel.isEmpty())
                 remTypeButton.setDisable(true);
@@ -152,7 +160,7 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                 remTypeButton.setDisable(false);
         });
 
-        listScrollPane = new ScrollPane(jlistAdditional);
+        listScrollPane = new ScrollPane(listAdditional);
         listScrollPane.vbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.ALWAYS);
         tlBoxRight.getChildren().add(listScrollPane);
         HBox addRemBox = FXUtils.newHBox();
@@ -362,26 +370,8 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 //        panel.add(rateMatrixTable, 1, 2);
 //        box4All.getChildren().add(rateMatrixTable);
 
-        VBox colBox = new VBox();
-        //TODO
-        Paint grey = Color.DARKGREY;
-        for (int i=0; i < migModel.getNTypes(); i++) {
-            HBox rowBox = new HBox();
-            for (int j=0; j < migModel.getNTypes(); j++) {
-                if (i == j) {
-                    TextField tf = new TextField();
-                    tf.setDisable(true);
-                    tf.setPrefWidth(70);
-                    tf.setBackground(new Background(new BackgroundFill(grey, CornerRadii.EMPTY, Insets.EMPTY)));
-                    rowBox.getChildren().add(tf);
-                    continue;
-                }
-                int idx = getRateMatrixIndex(i, j, migModel.getNTypes());
-                rowBox.getChildren().add(rateMatrixTFs.get(idx));
-            }
-            colBox.getChildren().add(rowBox);
-        }
-        gridPane.add(colBox, 1, 2, 2, 1);
+        rateMatrixBox = drawRateMatrixBox();
+        gridPane.add(rateMatrixBox, 1, 2, 2, 1);
 
         rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
         rateMatrixScaleFactorEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixScaleFactorInput.get()).isEstimatedInput.get());
@@ -466,8 +456,11 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                             "Error",
                             Alert.ERROR_MESSAGE);
                 } else {
-                    additionalTypeListModel.add(additionalTypeListModel.size(), newTypeName);
+                    listAdditional.getItems().add(listAdditional.getItems().size(), newTypeName);
                     saveToMigrationModel();
+                    loadFromMigrationModel();
+                    rateMatrixBox = drawRateMatrixBox();
+                    refreshPanel();
                 }
             });
         });
@@ -482,11 +475,11 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                     while ((line = reader.readLine()) != null) {
                         line = line.trim();
                         if (!line.isEmpty())
-                            additionalTypeListModel.add(additionalTypeListModel.size(), line);
+                            listAdditional.getItems().add(listAdditional.getItems().size(), line);
                     }
 
                     saveToMigrationModel();
-
+//TODO
                 } catch (IOException e1) {
                     Alert.showMessageDialog(pane,
                             "<html>Error reading from file:<br>" + e1.getMessage() + "</html>",
@@ -498,8 +491,12 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 
 
         remTypeButton.setOnAction(e -> {
-            additionalTypeListModel.removeAll(additionalTypeListSelectionModel.getSelectedItems());
-            additionalTypeListSelectionModel.clearSelection();
+            List selectedItems = listAdditional.getSelectionModel().getSelectedItems().sorted();
+            listAdditional.getItems().removeAll(selectedItems);
+            //TODO why not working?
+            listAllTypes.getItems().removeAll(selectedItems);
+
+            listAdditional.getSelectionModel().clearSelection();
 
             saveToMigrationModel();
         });
@@ -521,7 +518,15 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                     if (popSizes.size() == migModel.getNTypes()) {
                         fileLoadInProgress = true;
 
-                        fillinPopSizeTextFields();// TODO wrong
+                        RealParameter popSizesParam = (RealParameter) migModel.popSizesInput.get();
+                        if (popSizeTFs == null)
+                            popSizeTFs = new ArrayList<>();
+                        else
+                            popSizeTFs.clear();
+                        for (int i = 0; i < popSizes.size(); i++) {
+                            TextField tf = createATextFieldFrom1DArray(popSizesParam, i, popSizes.get(i), "");
+                            popSizeTFs.add(tf);
+                        }
 
                         fileLoadInProgress = false;
 
@@ -567,26 +572,24 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                     if (diagonalsPresent || migRates.size() == migModel.getNTypes()*(migModel.getNTypes()-1)) {
 
                         fileLoadInProgress = true;
-//TODO
-//                        for (int i=0; i<migModel.getNTypes(); i++) {
-//                            double[] tmp = rateMatrix.get(0);
-//                            for (int j=0; j<migModel.getNTypes(); j++) {
-//                                if (i==j)
-//                                    continue;
-//
-//                                int offset;
-//                                if (diagonalsPresent)
-//                                    offset = i*migModel.getNTypes() + j;
-//                                else {
-//                                    offset = i * (migModel.getNTypes() - 1) + j;
-//                                    if (j>i)
-//                                        offset -= 1;
-//                                }
-//                                tmp[j] = migRates.get(offset);
-//                            }
-//
-//                            rateMatrix.set(i, tmp);
-//                        }
+
+                        RealParameter rateMatrixParam = (RealParameter) migModel.rateMatrixInput.get();
+
+                        if (rateMatrixTFs == null)
+                            rateMatrixTFs = new ArrayList<>();
+                        else
+                            rateMatrixTFs.clear();
+
+                        for (int i=0; i < migModel.getNTypes(); i++) {
+                            for (int j=0; j < migModel.getNTypes(); j++) {
+                                if (i == j)
+                                    continue;
+                                // work out index for flattened array
+                                int idx = getRateMatrixIndex(i, j, migModel.getNTypes(), diagonalsPresent);
+                                TextField tf = createATextFieldFrom1DArray(rateMatrixParam, idx, migRates.get(idx), "");
+                                rateMatrixTFs.add(tf);
+                            }
+                        }
 
                         fileLoadInProgress = false;
 
@@ -610,14 +613,36 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         });
     }
 
+    private VBox drawRateMatrixBox() {
+        VBox colBox = new VBox();
+        // 2-d text fields
+        for (int i=0; i < migModel.getNTypes(); i++) {
+            HBox rowBox = new HBox();
+            for (int j=0; j < migModel.getNTypes(); j++) {
+                if (i == j) {
+                    TextField tf = new TextField();
+                    tf.setDisable(true);
+                    tf.setPrefWidth(70);
+                    tf.setBackground(new Background(new BackgroundFill(Color.DARKGREY, CornerRadii.EMPTY, Insets.EMPTY)));
+                    rowBox.getChildren().add(tf);
+                    continue;
+                }
+                int idx = getRateMatrixIndex(i, j, migModel.getNTypes(), false);
+                rowBox.getChildren().add(rateMatrixTFs.get(idx));
+            }
+            colBox.getChildren().add(rowBox);
+        }
+        return colBox;
+    }
+
     private void loadFromMigrationModel() {
         migModel.getTypeSet().initAndValidate();
 
-        additionalTypeListModel.clear();
+        listAdditional.getItems().clear();
         if (migModel.getTypeSet().valueInput.get() != null) {
             for (String typeName : migModel.getTypeSet().valueInput.get().split(","))
                 if (!typeName.isEmpty())
-                    additionalTypeListModel.add(additionalTypeListModel.size(), typeName);
+                    listAdditional.getItems().add(listAdditional.getItems().size(), typeName);
         }
 
 //        popSizeModel.setRowCount(1);
@@ -626,9 +651,9 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 //        rateMatrixModel.setColumnCount(migModel.getNTypes()+1);
 
         List<String> typeNames = migModel.getTypeSet().getTypesAsList();
-        fullTypeListModel.clear();
+        listAllTypes.getItems().clear();
         for (String typeName : typeNames)
-            fullTypeListModel.add(fullTypeListModel.size(), typeName);
+            listAllTypes.getItems().add(listAllTypes.getItems().size(), typeName);
 
         rowNames.clear();
         for (int i = 0; i < migModel.getNTypes(); i++) {
@@ -654,10 +679,10 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
     private void saveToMigrationModel() {
 
         StringBuilder sbAdditionalTypes = new StringBuilder();
-        for (int i=0; i<additionalTypeListModel.size(); i++) {
+        for (int i = 0; i< listAdditional.getItems().size(); i++) {
             if (i > 0)
                 sbAdditionalTypes.append(",");
-            sbAdditionalTypes.append(additionalTypeListModel.get(i));
+            sbAdditionalTypes.append(listAdditional.getItems().get(i));
         }
 
         migModel.typeSetInput.get().valueInput.setValue(
@@ -693,7 +718,7 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                     sbRateMatrix.append(" ");
 
 //                if (i<rateMatrixModel.getRowCount() && j<rateMatrixModel.getColumnCount()-1 && rateMatrixModel.getValueAt(i, j) != null)
-                int idx = getRateMatrixIndex(i, j, migModel.getNTypes());
+                int idx = getRateMatrixIndex(i, j, migModel.getNTypes(), false);
                 if (idx < rateMatrixTFs.size() && rateMatrixTFs.get(idx) != null)
                     sbRateMatrix.append(rateMatrixTFs.get(idx).getText());
                 else
@@ -742,9 +767,17 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         }
     }
 
-    private int getRateMatrixIndex(int i, int j, int nTypes) {
-        if (i == j) throw new IllegalArgumentException("i != j, but i = " + i + ", j = " + j);
-        return (i * nTypes - 1) + j;
+    private int getRateMatrixIndex(int i, int j, int nTypes, boolean diagonalsPresent) {
+        int idx;
+        if (diagonalsPresent)
+            idx = i*nTypes + j;
+        else {
+            idx = i * (nTypes - 1) + j;
+            if (j>i)
+                idx -= 1;
+        }
+//        System.out.println("i = " + i + ", j = " + j + ", idx = " + idx);
+        return idx;
     }
 
     private void fillinRateMatrixTextFields() {
@@ -760,7 +793,7 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                 if (i == j)
                     continue;
                 // work out index for flattened array
-                int idx = getRateMatrixIndex(i, j, migModel.getNTypes());
+                int idx = getRateMatrixIndex(i, j, migModel.getNTypes(), false);
                 TextField tf = createATextFieldFrom1DArray(rateMatrixParam, idx, migModel.getBackwardRate(i, j), "");
                 rateMatrixTFs.add(tf);
             }
@@ -800,31 +833,6 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         return x;
     }
 
-//    private void registerAsListener(Node node) {
-//        if (node instanceof InputEditor) {
-//            ((InputEditor)node).addValidationListener(_this);
-//        }
-//        if (node instanceof Pane) {
-//            for (Node child : ((Pane)node).getChildren()) {
-//                registerAsListener(child);
-//            }
-//        }
-//    }
 
-    class PopSize {
-        double popSize;
-
-        public PopSize(double popSize) {
-            this.popSize = popSize;
-        }
-
-        public double getPopSize() {
-            return popSize;
-        }
-
-        public void setPopSize(double popSize) {
-            this.popSize = popSize;
-        }
-    }
 
 }
