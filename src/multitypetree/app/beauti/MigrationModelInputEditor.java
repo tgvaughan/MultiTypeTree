@@ -21,17 +21,17 @@ import beast.base.core.Input;
 import beast.base.inference.parameter.RealParameter;
 import beastfx.app.inputeditor.BEASTObjectInputEditor;
 import beastfx.app.inputeditor.BeautiDoc;
-import beastfx.app.inputeditor.InputEditor;
 import beastfx.app.util.Alert;
 import beastfx.app.util.FXUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Text;
 import multitypetree.evolution.tree.SCMigrationModel;
 
 import java.io.*;
@@ -45,8 +45,10 @@ import java.util.List;
  */
 public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extends InputEditor.Base {
 
-    private ObservableList<Double> popSize;
-    private ObservableList<double[]> rateMatrix;
+    private List<TextField> popSizeTFs, rateMatrixTFs;
+
+//    private ObservableList<double[]> popSize;
+//    private ObservableList<double[]> rateMatrix;
     private ObservableList<String> fullTypeListModel, additionalTypeListModel;
     private MultipleSelectionModel<String> additionalTypeListSelectionModel;
     private SCMigrationModel migModel;
@@ -76,8 +78,7 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         // TODO too much works to do if not call super
         super.init(input, beastObject, itemNr, ExpandOption.TRUE, addButtons);
 
-        pane = new HBox();
-        pane.setPadding(new Insets(5));
+        pane = FXUtils.newHBox();
 
         // Set up fields
 //        m_bAddButtons = addButtons;
@@ -99,22 +100,28 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 //                return row != column && column != migModel.getNTypes();
 //            }
 //        };
+
         popSizeEstCheckBox = new CheckBox("estimate pop. sizes");
         rateMatrixEstCheckBox = new CheckBox("estimate mig. rates");
         popSizeScaleFactorEstCheckBox = new CheckBox("estimate scale factor");
         rateMatrixScaleFactorEstCheckBox = new CheckBox("estimate scale factor");
         rateMatrixForwardTimeCheckBox = new CheckBox("forward-time rate matrix");
 
-        Label label = new Label("<html><body>Type list:</body></html>");
-        label.setPadding(new Insets(3, 3, 3, 3));
 
-//        GridPane panel = new GridPane();
+        Text first = new Text("Type list:");
+        first.setStyle("-fx-font-weight: bold");
+//        Label label = new Label("<html><body>Type list:</body></html>");
+//        label.setPadding(new Insets(3, 3, 3, 3));
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(5);
 //        panel.setBorder(new EtchedBorder());
-        VBox box = new VBox();
+//        VBox box4All = FXUtils.newVBox();
 
-        HBox tlBox = FXUtils.newHBox();
+//        HBox tlBox = FXUtils.newHBox();
+//        tlBox.getChildren().add(label);
+
         VBox tlBoxLeft = FXUtils.newVBox();
-
         Label labelLeft = new Label("All types");
         tlBoxLeft.getChildren().add(labelLeft);
         ListView<String> jlist = new ListView<>();
@@ -129,7 +136,6 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         ScrollPane listScrollPane = new ScrollPane(jlist);
         listScrollPane.vbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.ALWAYS);
         tlBoxLeft.getChildren().add(listScrollPane);
-        tlBox.getChildren().add(tlBoxLeft);
 
         VBox tlBoxRight = FXUtils.newVBox();
         Label labelRight = new Label("Additional types");
@@ -158,14 +164,19 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         addRemBox.getChildren().add(remTypeButton);
         addRemBox.getChildren().add(addTypesFromFileButton);
         tlBoxRight.getChildren().add(addRemBox);
-        tlBox.getChildren().add(tlBoxRight);
+
+//        tlBox.getChildren().add(tlBoxLeft);
+//        tlBox.getChildren().add(tlBoxRight);
+        gridPane.add(first, 0, 0, 1, 1);
+        gridPane.add(tlBoxLeft, 1, 0, 1, 1);
+        gridPane.add(tlBoxRight, 2, 0, 1, 1);
 
 //        c.gridx = 1;
 //        c.gridy = 0;
 //        c.weightx = 1.0;
 //        c.anchor = GridBagConstraints.LINE_START;
 //        panel.add(tlBox, 1, 0);
-        box.getChildren().add(tlBox);
+//        box4All.getChildren().add(gridPane);
         // Population size table
 //        c.gridx = 0;
 //        c.gridy = 1;
@@ -176,20 +187,22 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         loadPopSizesFromFileButton = new Button("Load from file...");
         psBox.getChildren().add(loadPopSizesFromFileButton);
 //        panel.add(psBox, 0, 1);
-        box.getChildren().add(psBox);
+//        box4All.getChildren().add(psBox);
+        gridPane.add(psBox, 0, 1, 1, 1);
 
-        TableView<Double> popSizeTable = new TableView<>();
-        popSizeTable.setEditable(true);
-        popSizeTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-
-        popSize = FXCollections.observableArrayList(List.of(1.0, 1.0));//TODO
-        // add columns
-        for (int i = 0; i < popSize.size(); i++) {
-            TableColumn<Double, Object> column = new TableColumn<>();
-            popSizeTable.getColumns().add(column);
-        }
-        // add data
-        popSizeTable.setItems(popSize);
+//        TableView<double[]> popSizeTable = new TableView<>();
+//        popSizeTable.setEditable(true);
+//        popSizeTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+//
+//        popSize = FXCollections.observableArrayList();//TODO
+//        popSize.add(new double[]{1.0, 1.0});
+//        // add columns
+//        for (int i = 0; i < popSize.size(); i++) {
+//            TableColumn<double[], Double> column = new TableColumn<>();
+//            popSizeTable.getColumns().add(column);
+//        }
+//        // add data
+//        popSizeTable.setItems(popSize);
 
 //        Pane header = (Pane) popSizeTable.lookup("TableHeaderRow");
 //        header.setVisible(false);
@@ -221,7 +234,26 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 //        c.weightx = 1.0;
 //        c.anchor = GridBagConstraints.LINE_START;
 //        panel.add(popSizeTable, 1, 1);
-        box.getChildren().add(popSizeTable);
+//        box4All.getChildren().add(popSizeTable);
+
+//        rateMatrix = FXCollections.observableArrayList();
+//        for (int i=0; i < migModel.getNTypes(); i++) {
+//            double[] rate1row = new double[migModel.getNTypes()];
+//            for (int j=0; j < migModel.getNTypes(); j++) {
+//                if (i == j)
+//                    continue;
+//
+//                rate1row[j] = migModel.getBackwardRate(i, j);
+//            }
+//            rateMatrix.add(rate1row);
+//        }
+
+        loadFromMigrationModel(); //TODO
+
+        HBox hb = new HBox();
+        hb.getChildren().addAll(popSizeTFs);
+
+        gridPane.add(hb, 1, 1, 2, 1);
 
         popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
         popSizeScaleFactorEstCheckBox.setSelected(((RealParameter)migModel.popSizesScaleFactorInput.get()).isEstimatedInput.get());
@@ -233,7 +265,8 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         estBox.getChildren().add(popSizeEstCheckBox);
         estBox.getChildren().add(popSizeScaleFactorEstCheckBox);
 //        panel.add(estBox, 2, 1);
-        box.getChildren().add(estBox);
+//        box4All.getChildren().add(estBox);
+        gridPane.add(estBox, 3, 1, 1, 1);
 
         // Migration rate table
         // (Uses custom cell renderer to grey out diagonal elements.)
@@ -246,39 +279,27 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         loadMigRatesFromFileButton = new Button("Load from file...");
         mrBox.getChildren().add(loadMigRatesFromFileButton);
 //        panel.add(mrBox, 0, 2);
-        box.getChildren().add(mrBox);
+//        box4All.getChildren().add(mrBox);
+        gridPane.add(mrBox, 0, 2, 1, 1);
 
-        TableView<double[]> rateMatrixTable = new TableView<>();
-        rateMatrixTable.setEditable(true);
-        rateMatrixTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+//        TableView<double[]> rateMatrixTable = new TableView<>();
+//        rateMatrixTable.setEditable(true);
+//        rateMatrixTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 //        header = (Pane) rateMatrixTable.lookup("TableHeaderRow");
 //        header.setVisible(false);
 //        rateMatrixTable.setLayoutY(-header.getHeight());
 //        rateMatrixTable.autosize();
 
-        //TODO
-        rateMatrix = FXCollections.observableArrayList();
-        for (int i=0; i < migModel.getNTypes(); i++) {
-            double[] rate1row = new double[migModel.getNTypes()];
-            for (int j=0; j < migModel.getNTypes(); j++) {
-                if (i == j)
-                    continue;
-
-                rate1row[j] = migModel.getBackwardRate(i, j);
-            }
-            rateMatrix.add(rate1row);
-        }
-
         // add columns
-        for (int i = 0; i < rateMatrix.size(); i++) {
-            TableColumn<double[], Double> column = new TableColumn<>();
-            rateMatrixTable.getColumns().add(column);
+//        for (int i = 0; i < rateMatrix.size(); i++) {
+//            TableColumn<double[], Double> column = new TableColumn<>();
+//            rateMatrixTable.getColumns().add(column);
+//
+//            // add data
+//            rateMatrixTable.getItems().add(rateMatrix.get(i));
+//        }
 
-            // add data
-            rateMatrixTable.getItems().add(rateMatrix.get(i));
-        }
-
-        loadFromMigrationModel();
+//        loadFromMigrationModel();
 
 //            @Override
 //            public TableCellRenderer getCellRenderer(int row, int column) {
@@ -339,7 +360,28 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 //        c.anchor = GridBagConstraints.LINE_START;
 //        c.weightx = 1.0;
 //        panel.add(rateMatrixTable, 1, 2);
-        box.getChildren().add(rateMatrixTable);
+//        box4All.getChildren().add(rateMatrixTable);
+
+        VBox colBox = new VBox();
+        //TODO
+        Paint grey = Color.DARKGREY;
+        for (int i=0; i < migModel.getNTypes(); i++) {
+            HBox rowBox = new HBox();
+            for (int j=0; j < migModel.getNTypes(); j++) {
+                if (i == j) {
+                    TextField tf = new TextField();
+                    tf.setDisable(true);
+                    tf.setPrefWidth(70);
+                    tf.setBackground(new Background(new BackgroundFill(grey, CornerRadii.EMPTY, Insets.EMPTY)));
+                    rowBox.getChildren().add(tf);
+                    continue;
+                }
+                int idx = getRateMatrixIndex(i, j, migModel.getNTypes());
+                rowBox.getChildren().add(rateMatrixTFs.get(idx));
+            }
+            colBox.getChildren().add(rowBox);
+        }
+        gridPane.add(colBox, 1, 2, 2, 1);
 
         rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
         rateMatrixScaleFactorEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixScaleFactorInput.get()).isEstimatedInput.get());
@@ -353,28 +395,35 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         estBox.getChildren().add(rateMatrixScaleFactorEstCheckBox);
         estBox.getChildren().add(rateMatrixForwardTimeCheckBox);
 //        panel.add(estBox, 2,2);
-        box.getChildren().add(estBox);
+//        box4All.getChildren().add(estBox);
+        gridPane.add(estBox, 3, 2, 1, 1);
 
 //        c.gridx = 1;
 //        c.gridy = 3;
 //        c.anchor = GridBagConstraints.LINE_START;
 //        c.weightx = 1.0;
-        Label l = new Label("Rows: sources, columns: sinks (backwards in time)");
+        Text second = new Text("Rows: sources, columns: sinks (backwards in time)");
 //        panel.add(l, 1,3);
-        box.getChildren().add(l);
+//        box4All.getChildren().add(l);
+        gridPane.add(second, 1, 3, 2, 1);
 
 //        c.gridx = 1;
 //        c.gridy = 4;
 //        c.anchor = GridBagConstraints.LINE_START;
 //        c.weightx = 1.0;
-        Label multilineLabel = new Label("<html><body>Correspondence between row/col indices<br>"
-                + "and deme names shown to right of matrix.</body></html>");
+        Label multilineLabel = new Label("Correspondence between row/col indices"
+                + "and deme names shown to right of matrix.");
+        multilineLabel.setWrapText(true);
+        multilineLabel.setMaxWidth(500);
 //        panel.add(multilineLabel, 1, 4);
-        box.getChildren().add(multilineLabel);
+//        box4All.getChildren().add(multilineLabel);
+        gridPane.add(multilineLabel, 1, 4, 2, 1);
 
-        box.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1))));
-        HBox.setHgrow(box, Priority.ALWAYS);
-        pane.getChildren().add(box);
+//        box4All.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1))));
+//        HBox.setHgrow(box4All, Priority.ALWAYS);
+//        box4All.getChildren().add(gridPane);
+
+        pane.getChildren().add(gridPane);
         getChildren().add(pane);
 //        pane.getChildren().add(panel);
 //        m_expansionBox = box;
@@ -472,8 +521,7 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                     if (popSizes.size() == migModel.getNTypes()) {
                         fileLoadInProgress = true;
 
-                        for (int i=0; i<popSizes.size(); i++)
-                            popSize.set(i, popSizes.get(i));
+                        fillinPopSizeTextFields();// TODO wrong
 
                         fileLoadInProgress = false;
 
@@ -519,26 +567,26 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                     if (diagonalsPresent || migRates.size() == migModel.getNTypes()*(migModel.getNTypes()-1)) {
 
                         fileLoadInProgress = true;
-
-                        for (int i=0; i<migModel.getNTypes(); i++) {
-                            double[] tmp = rateMatrix.get(0);
-                            for (int j=0; j<migModel.getNTypes(); j++) {
-                                if (i==j)
-                                    continue;
-
-                                int offset;
-                                if (diagonalsPresent)
-                                    offset = i*migModel.getNTypes() + j;
-                                else {
-                                    offset = i * (migModel.getNTypes() - 1) + j;
-                                    if (j>i)
-                                        offset -= 1;
-                                }
-                                tmp[j] = migRates.get(offset);
-                            }
-
-                            rateMatrix.set(i, tmp);
-                        }
+//TODO
+//                        for (int i=0; i<migModel.getNTypes(); i++) {
+//                            double[] tmp = rateMatrix.get(0);
+//                            for (int j=0; j<migModel.getNTypes(); j++) {
+//                                if (i==j)
+//                                    continue;
+//
+//                                int offset;
+//                                if (diagonalsPresent)
+//                                    offset = i*migModel.getNTypes() + j;
+//                                else {
+//                                    offset = i * (migModel.getNTypes() - 1) + j;
+//                                    if (j>i)
+//                                        offset -= 1;
+//                                }
+//                                tmp[j] = migRates.get(offset);
+//                            }
+//
+//                            rateMatrix.set(i, tmp);
+//                        }
 
                         fileLoadInProgress = false;
 
@@ -590,21 +638,15 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
             rowNames.add(" (" + String.valueOf(i) + ") ");
         }
 
-        for (int i=0; i<migModel.getNTypes(); i++) {
-            popSize.set(i, migModel.getPopSize(i));
-            double[] tmp = rateMatrix.get(0);
-            for (int j=0; j<migModel.getNTypes(); j++) {
-                if (i == j)
-                    continue;
-                tmp[j] = migModel.getBackwardRate(i, j);
-//                rateMatrixModel.setValueAt(migModel.getBackwardRate(i, j), i, j);
-            }
-            rateMatrix.set(i, tmp);
-            //TODO
-//            rateMatrixModel.setValueAt(rowNames.get(i), i, migModel.getNTypes());
-        }
+        fillinPopSizeTextFields();
+        fillinRateMatrixTextFields();
 
-        popSizeEstCheckBox.setSelected(((RealParameter)migModel.popSizesInput.get()).isEstimatedInput.get());
+//        for (int i=0; i<migModel.getNTypes(); i++) {
+            //TODO add Label
+//            rateMatrixModel.setValueAt(rowNames.get(i), i, migModel.getNTypes());
+//        }
+
+        popSizeEstCheckBox.setSelected(((RealParameter) migModel.popSizesInput.get()).isEstimatedInput.get());
         rateMatrixEstCheckBox.setSelected(((RealParameter)migModel.rateMatrixInput.get()).isEstimatedInput.get());
         rateMatrixForwardTimeCheckBox.setSelected(migModel.useForwardMigrationRatesInput.get());
     }
@@ -628,9 +670,9 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
             if (i>0)
                 sbPopSize.append(" ");
 
-            if (i < popSize.size() && popSize.get(i) != null)
-                sbPopSize.append(popSize.get(i));
-            else
+            if (i < popSizeTFs.size() && popSizeTFs.get(i) != null) {
+                sbPopSize.append(popSizeTFs.get(i).getText());
+            } else
                 sbPopSize.append("1.0");
         }
         ((RealParameter)migModel.popSizesInput.get()).setDimension(migModel.getNTypes());
@@ -650,9 +692,10 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                 else
                     sbRateMatrix.append(" ");
 
-                // if (i<rateMatrixModel.getRowCount() && j<rateMatrixModel.getColumnCount()-1 && rateMatrixModel.getValueAt(i, j) != null)
-                if (i<rateMatrix.size() && rateMatrix.get(i) != null && j<rateMatrix.get(i).length-1 )
-                    sbRateMatrix.append(rateMatrix.get(i)[j]);
+//                if (i<rateMatrixModel.getRowCount() && j<rateMatrixModel.getColumnCount()-1 && rateMatrixModel.getValueAt(i, j) != null)
+                int idx = getRateMatrixIndex(i, j, migModel.getNTypes());
+                if (idx < rateMatrixTFs.size() && rateMatrixTFs.get(idx) != null)
+                    sbRateMatrix.append(rateMatrixTFs.get(idx).getText());
                 else
                     sbRateMatrix.append("1.0");
             }
@@ -683,6 +726,78 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
         }
 
         refreshPanel();
+    }
+
+    private void fillinPopSizeTextFields() {
+        RealParameter popSizesParam = (RealParameter) migModel.popSizesInput.get();
+
+        if (popSizeTFs == null)
+            popSizeTFs = new ArrayList<>();
+        else
+            popSizeTFs.clear();
+        for (int i = 0; i < migModel.getNTypes(); i++) {
+            // popSize dim == getNTypes()
+            TextField tf = createATextFieldFrom1DArray(popSizesParam, i, migModel.getPopSize(i), "");
+            popSizeTFs.add(tf);
+        }
+    }
+
+    private int getRateMatrixIndex(int i, int j, int nTypes) {
+        if (i == j) throw new IllegalArgumentException("i != j, but i = " + i + ", j = " + j);
+        return (i * nTypes - 1) + j;
+    }
+
+    private void fillinRateMatrixTextFields() {
+        RealParameter rateMatrixParam = (RealParameter) migModel.rateMatrixInput.get();
+
+        if (rateMatrixTFs == null)
+            rateMatrixTFs = new ArrayList<>();
+        else
+            rateMatrixTFs.clear();
+
+        for (int i=0; i < migModel.getNTypes(); i++) {
+            for (int j=0; j < migModel.getNTypes(); j++) {
+                if (i == j)
+                    continue;
+                // work out index for flattened array
+                int idx = getRateMatrixIndex(i, j, migModel.getNTypes());
+                TextField tf = createATextFieldFrom1DArray(rateMatrixParam, idx, migModel.getBackwardRate(i, j), "");
+                rateMatrixTFs.add(tf);
+            }
+            // move the line to add row names to diff place
+        }
+    }
+    private TextField createATextFieldFrom1DArray(RealParameter param, int index, double val, String toopTip) {
+
+        TextField tf = new TextField();
+        tf.setText("" + val);
+        tf.setTooltip(new Tooltip(toopTip));
+        tf.setPrefWidth(70);
+
+        tf.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!oldValue.equals(newValue)) {
+                //System.out.println("textfield changed from " + oldValue + " to " + newValue);
+                try {
+                    double x = Double.parseDouble(newValue);
+                    param.setValue(index, x);
+                }catch(Exception e) {
+
+                }
+                //saveToBDMM();
+            }
+        });
+
+        return tf;
+    }
+
+    private double getDouble(String val) {
+        double x;
+        try {
+            x = Double.parseDouble(val);
+        }catch(NumberFormatException e) {
+            x = 0;
+        }
+        return x;
     }
 
 //    private void registerAsListener(Node node) {
