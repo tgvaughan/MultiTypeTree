@@ -21,6 +21,7 @@ import beast.base.core.Input;
 import beast.base.inference.parameter.RealParameter;
 import beastfx.app.inputeditor.BEASTObjectInputEditor;
 import beastfx.app.inputeditor.BeautiDoc;
+import beastfx.app.inputeditor.InputEditor;
 import beastfx.app.util.Alert;
 import beastfx.app.util.FXUtils;
 import javafx.collections.FXCollections;
@@ -43,7 +44,7 @@ import java.util.List;
  *
  * @author Tim Vaughan (tgvaughan@gmail.com)
  */
-public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extends InputEditor.Base {
+public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extends InputEditor.Base
 
     private List<TextField> popSizeTFs, rateMatrixTFs;
     private ListView<String> listAllTypes, listAdditional;
@@ -74,16 +75,17 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
     @Override
     public void init(Input<?> input, BEASTInterface beastObject, int itemNr,
         ExpandOption isExpandOption, boolean addButtons) {
-        // TODO too much works to do if not call super
+        //TODO the arrow not appear in Mac, if not call super
         super.init(input, beastObject, itemNr, ExpandOption.TRUE, addButtons);
-
-        pane = FXUtils.newHBox();
 
         // Set up fields
 //        m_bAddButtons = addButtons;
 //        m_input = input;
 //        m_beastObject = beastObject;
 //		this.itemNr = itemNr;
+
+        pane.getChildren().clear();
+        pane = FXUtils.newHBox();
 
         // Adds label to left of input editor
         addInputLabel();
@@ -459,6 +461,7 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
                     listAdditional.getItems().add(listAdditional.getItems().size(), newTypeName);
                     saveToMigrationModel();
                     loadFromMigrationModel();
+                    //TODO not refresh?
                     rateMatrixBox = drawRateMatrixBox();
                     refreshPanel();
                 }
@@ -491,14 +494,20 @@ public class MigrationModelInputEditor extends BEASTObjectInputEditor { //extend
 
 
         remTypeButton.setOnAction(e -> {
-            List selectedItems = listAdditional.getSelectionModel().getSelectedItems().sorted();
+            final ObservableList<String> selectedItems = listAdditional.getSelectionModel().getSelectedItems();
             listAdditional.getItems().removeAll(selectedItems);
             //TODO why not working?
-            listAllTypes.getItems().removeAll(selectedItems);
+//            listAllTypes.getItems().removeAll(selectedItems);
 
             listAdditional.getSelectionModel().clearSelection();
 
             saveToMigrationModel();
+
+            List<String> typeNames = migModel.getTypeSet().getTypesAsList();
+            listAllTypes.getItems().clear();
+            for (String typeName : typeNames)
+                listAllTypes.getItems().add(listAllTypes.getItems().size(), typeName);
+
         });
 
         loadPopSizesFromFileButton.setOnAction(e -> {
