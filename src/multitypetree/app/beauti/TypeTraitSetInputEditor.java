@@ -94,27 +94,8 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
                 t -> t.getTableView().getItems().
                         get(t.getTablePosition().getRow()).
                         setLocation(t.getNewValue())
-                        
-                
-                //TODO cannot edit?
         );
-        /*
-        column2.setOnEditCommit(
-                new EventHandler<CellEditEvent<Location, String>>() {
-					@Override
-					public void handle(CellEditEvent<Location, String> event) {
-						String newValue = event.getNewValue();
-						Location loc = event.getRowValue();
-						loc.setLocation(newValue);
-						//taxonMap.setTaxon2(newValue);
-						//modelToTaxonset();
-						traitSetToLocations();
-			            table.refresh();
-			            refreshPanel();
-					}
-				}                
-            );
-        */
+
         
         m_table.getColumns().add(column1);
         m_table.getColumns().add(column2);
