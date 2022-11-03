@@ -18,23 +18,18 @@ package multitypetree.app.beauti;
 
 import beast.base.core.BEASTInterface;
 import beast.base.core.Input;
-import beast.base.core.Log;
 import beast.base.evolution.alignment.TaxonSet;
 import beast.base.evolution.tree.TraitSet;
 import beastfx.app.inputeditor.BeautiDoc;
 import beastfx.app.inputeditor.GuessPatternDialog;
 import beastfx.app.inputeditor.InputEditor;
-import beastfx.app.inputeditor.TaxonSetInputEditor.TaxonMap;
 import beastfx.app.util.FXUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
@@ -44,14 +39,16 @@ import javafx.scene.layout.VBox;
  * BEAUti input editor for MultiTypeTree type traits.
  *
  * @author Tim Vaughan (tgvaughan@gmail.com)
+ * @author Walter Xie
+ * @author Jordan Douglas
  */
 public class TypeTraitSetInputEditor extends InputEditor.Base {
 
 //    TypeTraitTableModel tableModel;
     private ObservableList<Location> locations;
-    TraitSet traitSet; // TODO seem to duplicate with ObservableList<Location>
+    TraitSet traitSet;
     TaxonSet taxonSet;
-    TableView<Location> m_table;
+    TableView<Location> table;
 
     public TypeTraitSetInputEditor(BeautiDoc doc) {
         super(doc);
@@ -73,11 +70,11 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
         traitSet = (TraitSet)input.get();
         taxonSet = traitSet.taxaInput.get();
 //        tableModel = new TypeTraitTableModel(traitSet);
-        m_table = new TableView<>();
-        m_table.setEditable(true);
-        m_table.setPrefWidth(1024);
-        m_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        m_table.setItems(locations);
+        table = new TableView<>();
+        table.setEditable(true);
+        table.setPrefWidth(1024);
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        table.setItems(locations);
         
         TableColumn<Location, String> column1 = new TableColumn<>("Name");
         column1.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -97,8 +94,8 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
         );
 
         
-        m_table.getColumns().add(column1);
-        m_table.getColumns().add(column2);
+        table.getColumns().add(column1);
+        table.getColumns().add(column2);
 
         traitSetToLocations();
 
@@ -168,7 +165,7 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
         boxHoriz.getChildren().add(clearButton);
 
         boxVert.getChildren().add(boxHoriz);
-        boxVert.getChildren().add(m_table);
+        boxVert.getChildren().add(table);
         
         this.pane = FXUtils.newHBox();
         getChildren().add(pane);
@@ -206,7 +203,7 @@ public class TypeTraitSetInputEditor extends InputEditor.Base {
             locations.add(new Location(taxonName, loc));
         }
         
-        m_table.refresh();
+        table.refresh();
         refreshPanel();
     }
 
