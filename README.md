@@ -10,7 +10,7 @@ operators contained in this package can also be used as the basis for
 structured population inference under other models.
 
 For further information, please refer to the MultiTypeTree [web
-page](http://tgvaughan.github.com/MultiTypeTree).
+page](http://tgvaughan.github.io/MultiTypeTree).
 
 [![Build Status](https://github.com/tgvaughan/MultiTypeTree/workflows/Unit%2Fintegration%20tests/badge.svg)](https://github.com/tgvaughan/MultiTypeTree/actions?query=workflow%3A%22Unit%2Fintegration+tests%22)
 
