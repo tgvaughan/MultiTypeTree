@@ -26,6 +26,8 @@
          a Github peculiarity) -->
     <property name="beast-branch" value="master"/>
     <property name="beast-version" value="master"/>
+    <property name="beastfx-branch" value="master"/>
+    <property name="beastfx-version" value="master"/>
 
     <!-- Names of temporary build/test directories -->
     <property name="build" location="build"/>
@@ -57,7 +59,6 @@
         <mkdir dir="${build}"/>
         <mkdir dir="${dist}"/>
 
-        
     </target>
 
     <!-- Get beast -->
@@ -98,6 +99,7 @@
             destdir="${build-beast}"
             source="${sourceVersion}"
             target="${targetVersion}"
+            encoding="UTF-8"
             includeantruntime="false"
             fork="yes">
             <classpath>
@@ -126,12 +128,12 @@
 
         <mkdir dir="beastfx-archive"/>
 
-        <get src="https://github.com/CompEvol/BeastFX/archive/${beastfx-branch}.zip"
-             dest="beastrx-archive/beast.zip"/>
+        <get src="https://github.com/CompEvol/BeastFX/archive/refs/heads/${beastfx-branch}.zip"
+             dest="beastfx-archive/beast.zip"/>
         <unzip src="beastfx-archive/beast.zip" dest="beastfx-archive"/>
 
         <copy todir="${beastfx-source-root}">
-              <fileset dir="BeastFX-archive/BeastFX-${beastfx-version}" includes="**/*.*"/>
+              <fileset dir="beastfx-archive/BeastFX-${beastfx-version}" includes="**/*.*"/>
         </copy>
 
         <delete dir="beastfx-archive"/>
@@ -205,7 +207,7 @@
 
     <!-- Run unit tests -->
     <target name="test" depends="compile-test">
-        <junit printsummary="yes" failureproperty="testFailed" showoutput="true">
+      <junit printsummary="yes" failureproperty="testFailed" showoutput="true" maxmemory="4G">
             <classpath>
                 <pathelement path="${classpath}"/>
                 <pathelement path="${build}" />
