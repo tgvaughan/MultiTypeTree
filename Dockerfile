@@ -11,7 +11,7 @@ WORKDIR /root
 
 ADD . ./
 
-RUN rm lib/jblas-1.2.4.jar
+RUN rm lib/jblas-*.jar
 RUN ln -s /usr/share/java/jblas.jar lib/jblas.jar
 
 ENTRYPOINT JAVA_FX_HOME=/usr/share/java/ ant test
