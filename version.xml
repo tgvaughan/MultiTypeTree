@@ -1,4 +1,4 @@
-<addon name="MultiTypeTree" version="8.0.0">
+<addon name="MultiTypeTree" version="8.1.0">
   <depends on='BEAST.base' atleast='2.7.2'/>
   <depends on='BEAST.app' atleast='2.7.2'/>
 
