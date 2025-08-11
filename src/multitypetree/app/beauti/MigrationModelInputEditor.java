@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2025 ETH Zürich
  * Copyright (C) 2015 Tim Vaughan (tgvaughan@gmail.com)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -44,6 +45,7 @@ import java.util.List;
  * A BEAUti input editor for MigrationModels.
  *
  * @author Tim Vaughan (tgvaughan@gmail.com)
+ * @author Ugne Stolz
  */
 public class MigrationModelInputEditor extends BEASTObjectInputEditor {
 
