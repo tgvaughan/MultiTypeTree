@@ -11,7 +11,7 @@
     <property name="local-beast-source-root" location="../beast2"/>
     <property name="local-beastfx-source-root" location="../BeastFX"/>
 
-    <!-- BEAST 2 now uses advanced Java 17+ language features -->
+    <!-- BEAST 2 currently uses Java 17 language features -->
     <property name="releaseVersion" value="17"/>
 
     <!-- Directories necessary for all BEAST 2 packages -->
@@ -52,8 +52,8 @@
 
         <!-- Read package name and version from xml file -->
         <xmlproperty file="version.xml" prefix="fromVersionFile" />
-        <property name="projName" value="${fromVersionFile.addon(name)}" />
-        <property name="projVersion" value="${fromVersionFile.addon(version)}" />
+        <property name="projName" value="${fromVersionFile.package(name)}" />
+        <property name="projVersion" value="${fromVersionFile.package(version)}" />
 
         <mkdir dir="${build}"/>
         <mkdir dir="${dist}"/>
@@ -93,18 +93,31 @@
 
     <target name="build-beast" depends="get-local-beast,get-remote-beast">
       <mkdir dir="${build-beast}"/>
-        <javac 
-            srcdir="${beast-source-root}/src"
-            destdir="${build-beast}"
-            release="${releaseVersion}"
-            encoding="UTF-8"
-            includeantruntime="false"
-            fork="yes">
-            <classpath>
-                <pathelement path="${classpath}"/>
-                <fileset dir="${beast-source-root}/lib" includes="**/*.jar"/>
-            </classpath>
-        </javac>
+      <javac 
+          srcdir="${beast-source-root}/src"
+          destdir="${build-beast}"
+          release="${releaseVersion}"
+          encoding="UTF-8"
+          includeantruntime="false"
+          fork="yes">
+        <classpath>
+          <pathelement path="${classpath}"/>
+          <fileset dir="${beast-source-root}/lib" includes="**/*.jar"/>
+        </classpath>
+      </javac>
+      <javac 
+          srcdir="${beast-source-root}/test"
+          destdir="${build-beast}"
+          release="${releaseVersion}"
+          encoding="UTF-8"
+          includeantruntime="false"
+          fork="yes">
+        <classpath>
+          <pathelement path="${classpath}"/>
+          <fileset dir="${beast-source-root}/lib" includes="**/*.jar"/>
+        </classpath>
+      </javac>
+
     </target>
 
 
@@ -155,15 +168,16 @@
         </javac>
     </target>
 
-
     <!-- Compile -->
     <target name="compile" depends="build-beast,build-beastfx">
       <javac release="${releaseVersion}"
              srcdir="${src}" destdir="${build}"
-             includeantruntime="false" fork="yes">
+             includeantruntime="false"
+             encoding="UTF-8"
+             fork="yes">
             <classpath>
                 <pathelement path="${classpath}"/>
-                <fileset dir="${lib}" includes="**/*.jar"/>
+                <fileset dir="${lib}" includes="**/*.jar" erroronmissingdir="false"/>
                 <fileset dir="${beast-source-root}/lib" includes="**/*.jar"/>
                 <pathelement path="${build-beast}"/>
                 <fileset dir="${beastfx-source-root}/locallib" includes="**/*.jar"/>
@@ -190,11 +204,13 @@
     <target name="compile-test" depends="init-test,compile,copy-resources">
       <javac release="${releaseVersion}"
              srcdir="${test}" destdir="${build-test}"
-             includeantruntime="false" fork="yes">
+             includeantruntime="false"
+             encoding="UTF-8"
+             fork="yes">
             <classpath>
                 <pathelement path="${classpath}"/>
                 <pathelement path="${build}" />
-                <fileset dir="${lib}" includes="**/*.jar"/>
+                <fileset dir="${lib}" includes="**/*.jar" erroronmissingdir="false"/>
                 <fileset dir="${beast-source-root}/lib" includes="**/*.jar"/>
                 <pathelement path="${build-beast}"/>
             </classpath>
@@ -204,21 +220,23 @@
 
     <!-- Run unit tests -->
     <target name="test" depends="compile-test">
-      <junit printsummary="yes" failureproperty="testFailed" showoutput="true" maxmemory="4G">
+      <junit printsummary="yes" failureproperty="testFailed" showoutput="true"
+             maxmemory="4G">
             <classpath>
                 <pathelement path="${classpath}"/>
                 <pathelement path="${build}" />
                 <pathelement path="${build-test}" />
-                <fileset dir="${lib}" includes="**/*.jar"/>
+                <fileset dir="${lib}" includes="**/*.jar" erroronmissingdir="false"/>
                 <fileset dir="${beast-source-root}/lib" includes="**/*.jar"/>
                 <pathelement path="${build-beast}" />
+                <pathelement path="${build-beastfx}" />
             </classpath>
-            <batchtest fork="yes" todir="${test-reports}">
+            <batchtest fork="true" todir="${test-reports}">
                 <fileset dir="${test}">
                     <include name="**/*Test.java"/>
                 </fileset>
                 <formatter type="plain"/>
-                <formatter type="plain" usefile="false"/> <!-- to screen -->
+                <!-- <formatter type="plain" usefile="false"/> <!-\- to screen -\-> -->
             </batchtest>
         </junit>
 
@@ -298,6 +316,8 @@
         <delete dir="${dist}" />
         <delete dir="${build-test}" />
         <delete dir="${test-reports}" />
+        <delete dir="deps" />
+        <delete dir="gen" />
     </target>
 
 

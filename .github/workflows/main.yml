@@ -1,16 +1,10 @@
 name: Unit/integration tests
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: tgvaughan/MultiTypeTree@master
+      - run: docker build -t tests .
+      - run: docker run tests
