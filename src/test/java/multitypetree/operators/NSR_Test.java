@@ -21,30 +21,26 @@ import multitypetree.evolution.tree.MultiTypeTree;
 import multitypetree.evolution.tree.SCMigrationModel;
 import multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree;
 import multitypetree.evolution.tree.TypeSet;
-import multitypetree.operators.MultiTypeTreeScale;
-import multitypetree.operators.MultiTypeUniform;
-import multitypetree.operators.NodeRetypeRandom;
-import multitypetree.operators.TypedSubtreeExchangeRandom;
-import junit.framework.TestCase;
 import multitypetree.util.MultiTypeTreeStatLogger;
-import org.junit.Assert;
-import org.junit.Test;
 
 import beast.base.inference.MCMC;
 import beast.base.inference.Operator;
 import beast.base.inference.State;
 import beast.base.inference.parameter.RealParameter;
 import beast.base.util.Randomizer;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class STXR_NRR_MTU_TS_Test extends TestCase {
+public class NSR_Test {
  
     @Test
     public void test() throws Exception {
-        System.out.println("STXR_NRR_MTU_TS test");
+        System.out.println("NSR test");
         
         // Fix seed.
         Randomizer.setSeed(42);
@@ -57,13 +53,13 @@ public class STXR_NRR_MTU_TS_Test extends TestCase {
                 "rateMatrix", rateMatrix,
                 "popSizes", popSizes,
                 "typeSet", new TypeSet("A", "B"));
-
+        
         // Assemble initial MultiTypeTree
         MultiTypeTree mtTree = new StructuredCoalescentMultiTypeTree();
         mtTree.initByName(
                 "typeLabel", "deme",
                 "migrationModel", migModel,
-                "leafTypes","1 1 0 0");
+                "leafTypes","1 0");
 
         // Set up state:
         State state = new State();
@@ -76,53 +72,27 @@ public class STXR_NRR_MTU_TS_Test extends TestCase {
                 "migrationModel", migModel,
                 "multiTypeTree", mtTree);
 
-        
         // Set up operators:
-        Operator operatorSTXR = new TypedSubtreeExchangeRandom();
-        operatorSTXR.initByName(
+        Operator operatorNSR = new NodeShiftRetype();
+        operatorNSR.initByName(
                 "weight", 1.0,
                 "multiTypeTree", mtTree,
-                "migrationModel", migModel,
-                "mu", 0.2);
-        
-        Operator operatorNRR = new NodeRetypeRandom();
-        operatorNRR.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "migrationModel", migModel,
-                "mu", 0.2);
-        
-        Operator operatorMTU = new MultiTypeUniform();
-        operatorMTU.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "migrationModel", migModel);
-        
-        Operator operatorMTTS = new MultiTypeTreeScale();
-        operatorMTTS.initByName(
-                "weight", 1.0,
-                "multiTypeTree", mtTree,
-                "migrationModel", migModel,
-                "scaleFactor", 1.5,
-                "useOldTreeScaler", false);
+                "migrationModel", migModel);        
         
         // Set up stat analysis logger:
         MultiTypeTreeStatLogger logger = new MultiTypeTreeStatLogger();
         logger.initByName(
                 "multiTypeTree", mtTree,
                 "burninFrac", 0.1,
-                "logEvery", 1000);
+                "logEvery", 100);
         
         // Set up MCMC:
         MCMC mcmc = new MCMC();
         mcmc.initByName(
-                "chainLength", "10000000",
+                "chainLength", "1000000",
                 "state", state,
                 "distribution", distribution,
-                "operator", operatorSTXR,
-                "operator", operatorNRR,
-                "operator", operatorMTU,
-                "operator", operatorMTTS,
+                "operator", operatorNSR,
                 "logger", logger);
         
         // Run MCMC:
@@ -134,9 +104,9 @@ public class STXR_NRR_MTU_TS_Test extends TestCase {
         
         // Compare analysis results with truth:        
         boolean withinTol = (logger.getHeightESS()>2000)
-                && (Math.abs(logger.getHeightMean()-25.8)<0.5)
-                && (Math.abs(logger.getHeightVar()-320)<30);
+                && (Math.abs(logger.getHeightMean()-19.0)<0.5)
+                && (Math.abs(logger.getHeightVar()-291)<30);
         
-        Assert.assertTrue(withinTol);
+        assertTrue(withinTol);
     }
 }

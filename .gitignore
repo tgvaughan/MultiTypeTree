@@ -3,6 +3,7 @@
 /build
 /build-lib
 /out
+/target
 
 # netbeans cruft
 /nbbuild.xml
@@ -23,3 +24,5 @@
 .localrc
 .localrcbye
 /examples/h3n2
+/state.backup.xml
+.DS_Store

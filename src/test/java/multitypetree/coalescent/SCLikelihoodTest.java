@@ -16,21 +16,22 @@
  */
 package multitypetree.coalescent;
 
-import org.junit.Test;
 
 import beast.base.inference.parameter.RealParameter;
-import junit.framework.TestCase;
 import multitypetree.distributions.StructuredCoalescentTreeDensity;
 import multitypetree.evolution.tree.MultiTypeTreeFromNewick;
 import multitypetree.evolution.tree.SCMigrationModel;
 import multitypetree.evolution.tree.TypeSet;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for StructuredCoalescentLikelihood class methods.
  *
  * @author Tim Vaughan
  */
-public class SCLikelihoodTest extends TestCase {
+public class SCLikelihoodTest {
 
 	/**
 	 * Test of calculateLogP method, of class StructuredCoalescentLikelihood.
@@ -71,8 +72,6 @@ public class SCLikelihoodTest extends TestCase {
 
 		System.out.println(result);
 		assertEquals(expResult, result, 1e-5);
-		
-		
 		
 	}
 

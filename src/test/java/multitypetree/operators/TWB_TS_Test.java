@@ -21,12 +21,7 @@ import multitypetree.distributions.StructuredCoalescentTreeDensity;
 import multitypetree.evolution.tree.MultiTypeTreeFromNewick;
 import multitypetree.evolution.tree.SCMigrationModel;
 import multitypetree.evolution.tree.TypeSet;
-import multitypetree.operators.MultiTypeTreeScale;
-import multitypetree.operators.TypedWilsonBalding;
-import junit.framework.TestCase;
 import multitypetree.util.MultiTypeTreeStatLogger;
-import org.junit.Assert;
-import org.junit.Test;
 
 import beast.base.inference.MCMC;
 import beast.base.inference.Operator;
@@ -35,12 +30,15 @@ import beast.base.inference.parameter.IntegerParameter;
 import beast.base.inference.parameter.RealParameter;
 import beast.base.util.DiscreteStatistics;
 import beast.base.util.Randomizer;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class TWB_TS_Test extends TestCase {
+public class TWB_TS_Test {
     
     @Test
     public void test1() throws Exception {
@@ -133,7 +131,7 @@ public class TWB_TS_Test extends TestCase {
                 && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
                 && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
-        Assert.assertTrue(withinTol);
+        assertTrue(withinTol);
     }
     
     @Test
@@ -226,6 +224,6 @@ public class TWB_TS_Test extends TestCase {
                 && (Math.abs(logger.getHeightMean()-simHeightMean)<1.0)
                 && (Math.abs(logger.getHeightVar()-simHeightVar)<30);
         
-        Assert.assertTrue(withinTol);
+        assertTrue(withinTol);
     }
 }

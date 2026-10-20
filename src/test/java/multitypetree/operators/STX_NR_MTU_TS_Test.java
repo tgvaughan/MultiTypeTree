@@ -22,14 +22,7 @@ import multitypetree.evolution.tree.MultiTypeTree;
 import multitypetree.evolution.tree.SCMigrationModel;
 import multitypetree.evolution.tree.StructuredCoalescentMultiTypeTree;
 import multitypetree.evolution.tree.TypeSet;
-import multitypetree.operators.MultiTypeTreeScale;
-import multitypetree.operators.MultiTypeUniform;
-import multitypetree.operators.NodeRetype;
-import multitypetree.operators.TypedSubtreeExchange;
-import junit.framework.TestCase;
 import multitypetree.util.MultiTypeTreeStatLogger;
-import org.junit.Assert;
-import org.junit.Test;
 
 import beast.base.inference.MCMC;
 import beast.base.inference.Operator;
@@ -38,12 +31,15 @@ import beast.base.inference.parameter.IntegerParameter;
 import beast.base.inference.parameter.RealParameter;
 import beast.base.util.DiscreteStatistics;
 import beast.base.util.Randomizer;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
  * @author Tim Vaughan <tgvaughan@gmail.com>
  */
-public class STX_NR_MTU_TS_Test extends TestCase {
+public class STX_NR_MTU_TS_Test {
  
     @Test
     public void test() throws Exception {
@@ -149,6 +145,6 @@ public class STX_NR_MTU_TS_Test extends TestCase {
                 && (Math.abs(logger.getHeightMean()-simHeightMean)<2.0)
                 && (Math.abs(logger.getHeightVar()-simHeightVar)<50);
         
-        Assert.assertTrue(withinTol);
+        assertTrue(withinTol);
     }
 }
