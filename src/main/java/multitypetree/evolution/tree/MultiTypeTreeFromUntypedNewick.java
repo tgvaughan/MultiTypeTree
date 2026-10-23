@@ -10,7 +10,6 @@ import beast.base.util.Randomizer;
 import beast.base.evolution.tree.Node;
 import beast.base.evolution.tree.Tree;
 import beast.base.evolution.tree.TreeParser;
-import org.jblas.MatrixFunctions;
 
 import java.util.Arrays;
 import java.util.List;
@@ -241,7 +240,7 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
 
         do {
             //double offset = acc + nVirt*log_muL - Gamma.logGamma(nVirt+1);
-            P_low_given_ab += Math.exp(Math.log(migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd)) + acc);
+            P_low_given_ab += Math.exp(Math.log(migrationModel.getRpowN(nVirt, sym).getEntry(typeStart, typeEnd)) + acc);
 
             if (P_low_given_ab>u)
                 return nVirt;
@@ -277,7 +276,7 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
 
         double Pba = MatrixFunctions.expm(
                 migrationModel.getQ(false)
-                        .mul(L)).get(startType,endType);
+                        .scalarMultiply(L)).getEntry(startType,endType);
 
         // Abort if transition is impossible.
         if (Pba == 0.0)
@@ -309,12 +308,12 @@ public class MultiTypeTreeFromUntypedNewick extends MultiTypeTree implements Sta
         for (int i = 1; i<=nVirt; i++) {
 
             double u2 = Randomizer.nextDouble()
-                    *migrationModel.getRpowN(nVirt-i+1, false).get(prevType, endType);
+                    *migrationModel.getRpowN(nVirt-i+1, false).getEntry(prevType, endType);
             int c;
             boolean fellThrough = true;
             for (c = 0; c<migrationModel.getNTypes(); c++) {
-                u2 -= migrationModel.getR(false).get(prevType,c)
-                        *migrationModel.getRpowN(nVirt-i, false).get(c,endType);
+                u2 -= migrationModel.getR(false).getEntry(prevType,c)
+                        *migrationModel.getRpowN(nVirt-i, false).getEntry(c,endType);
                 if (u2<0.0) {
                     fellThrough = false;
                     break;

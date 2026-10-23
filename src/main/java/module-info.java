@@ -6,7 +6,6 @@ open module multitypetree {
     requires javafx.base;
     requires javafx.controls;
     requires javafx.graphics;
-    requires jblas;
     requires java.xml;
-
+    requires commons.math3;
 }

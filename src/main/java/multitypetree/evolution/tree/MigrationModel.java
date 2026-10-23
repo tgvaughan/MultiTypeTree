@@ -1,7 +1,7 @@
 package multitypetree.evolution.tree;
 
 import beast.base.core.BEASTInterface;
-import org.jblas.DoubleMatrix;
+import org.apache.commons.math3.linear.RealMatrix;
 
 /**
  * @author Tim Vaughan <tgvaughan@gmail.com>
@@ -17,11 +17,11 @@ public interface MigrationModel extends BEASTInterface {
 
     double getMu(boolean symmetric);
 
-    DoubleMatrix getR(boolean symmetric);
+    RealMatrix getR(boolean symmetric);
 
-    DoubleMatrix getQ(boolean symmetric);
+    RealMatrix getQ(boolean symmetric);
 
-    DoubleMatrix getRpowN(int n, boolean symmetric);
+    RealMatrix getRpowN(int n, boolean symmetric);
 
     int RpowSteadyN(boolean symmetric);
 

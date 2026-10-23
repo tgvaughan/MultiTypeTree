@@ -7,10 +7,9 @@ import beast.base.evolution.tree.Tree;
 import beast.base.evolution.tree.TreeDistribution;
 import beast.base.inference.parameter.IntegerParameter;
 import beast.base.util.Randomizer;
+import multitypetree.evolution.tree.MatrixFunctions;
 import multitypetree.evolution.tree.MigrationModel;
 import multitypetree.evolution.tree.SCMigrationModel;
-
-import org.jblas.MatrixFunctions;
 
 import java.util.*;
 
@@ -354,7 +353,7 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
 
         do {
             //double offset = acc + nVirt*log_muL - Gamma.logGamma(nVirt+1);
-            P_low_given_ab += Math.exp(Math.log(migrationModel.getRpowN(nVirt, sym).get(typeStart, typeEnd)) + acc);
+            P_low_given_ab += Math.exp(Math.log(migrationModel.getRpowN(nVirt, sym).getEntry(typeStart, typeEnd)) + acc);
 
             if (P_low_given_ab>u)
                 return nVirt;
@@ -381,7 +380,6 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
      * to condition on both the beginning and end states.
      *
      * @return Probability of new state.
-     * @throws multitypetree.operators.UniformizationRetypeOperator.NoValidPathException
      */
     protected double addTypeChanges(int startType, int endType, double startTime, double endTime, Node startNode) throws NoValidPathException {
         double L = endTime - startTime;
@@ -391,7 +389,7 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
 
         double Pba = MatrixFunctions.expm(
                 migrationModel.getQ(false)
-                        .mul(L)).get(startType,endType);
+                        .scalarMultiply(L)).getEntry(startType,endType);
 
         // Abort if transition is impossible.
         if (Pba == 0.0)
@@ -423,12 +421,12 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
         for (int i = 1; i<=nVirt; i++) {
 
             double u2 = Randomizer.nextDouble()
-                    *migrationModel.getRpowN(nVirt-i+1, false).get(prevType, endType);
+                    *migrationModel.getRpowN(nVirt-i+1, false).getEntry(prevType, endType);
             int c;
             boolean fellThrough = true;
             for (c = 0; c<migrationModel.getNTypes(); c++) {
-                u2 -= migrationModel.getR(false).get(prevType,c)
-                        *migrationModel.getRpowN(nVirt-i, false).get(c,endType);
+                u2 -= migrationModel.getR(false).getEntry(prevType,c)
+                        *migrationModel.getRpowN(nVirt-i, false).getEntry(c,endType);
                 if (u2<0.0) {
                     fellThrough = false;
                     break;
@@ -480,14 +478,14 @@ public class StructuredCoalescentUntypedTreeDensity extends TreeDistribution {
                 }
 
                 // Add probability contribution:
-                logProb += migrationModel.getQ(false).get(prevType, prevType)*(times[i]-prevTime)
-                        +Math.log(migrationModel.getQ(false).get(prevType, types[i]));
+                logProb += migrationModel.getQ(false).getEntry(prevType, prevType)*(times[i]-prevTime)
+                        +Math.log(migrationModel.getQ(false).getEntry(prevType, types[i]));
 
                 prevType = types[i];
                 prevTime = times[i];
             }
         }
-        logProb += migrationModel.getQ(false).get(prevType, prevType)*(endTime-prevTime);
+        logProb += migrationModel.getQ(false).getEntry(prevType, prevType)*(endTime-prevTime);
 
         // Colour any internal nodes between last migration time and end time
         while (prevNode.getHeight() < endTime) {

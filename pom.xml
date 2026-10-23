@@ -59,12 +59,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jblas</groupId>
-            <artifactId>jblas</artifactId>
-            <version>1.2.5</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
@@ -81,13 +75,6 @@
             <groupId>colt</groupId>
             <artifactId>colt</artifactId>
             <version>1.2.0</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hipparchus</groupId>
-            <artifactId>hipparchus-core</artifactId>
-            <version>4.0.3</version>
             <scope>compile</scope>
         </dependency>
 

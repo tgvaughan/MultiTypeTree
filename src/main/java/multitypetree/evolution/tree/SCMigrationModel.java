@@ -23,11 +23,12 @@ import beast.base.core.Input;
 import beast.base.core.Input.Validate;
 import beast.base.inference.parameter.BooleanParameter;
 import beast.base.inference.parameter.RealParameter;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.jblas.DoubleMatrix;
-import org.jblas.MatrixFunctions;
 
 /**
  * @author Tim Vaughan
@@ -72,10 +73,10 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
     protected BooleanParameter rateMatrixFlags;
     protected double mu, muSym;
     protected int nTypes;
-    protected DoubleMatrix Q, R;
-    protected DoubleMatrix Qsym, Rsym;
-    protected List<DoubleMatrix> RpowN, RsymPowN;
-    protected DoubleMatrix RpowMax, RsymPowMax;
+    protected RealMatrix Q, R;
+    protected RealMatrix Qsym, Rsym;
+    protected List<RealMatrix> RpowN, RsymPowN;
+    protected RealMatrix RpowMax, RsymPowMax;
     protected boolean RpowSteady, RsymPowSteady;
     
     protected boolean rateMatrixIsSquare, symmetricRateMatrix;
@@ -154,34 +155,35 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
 
         mu = 0.0;
         muSym = 0.0;
-        Q = new DoubleMatrix(nTypes, nTypes);
-        Qsym = new DoubleMatrix(nTypes, nTypes);
+        Q = new Array2DRowRealMatrix(nTypes, nTypes);
+        Qsym = new Array2DRowRealMatrix(nTypes, nTypes);
 
         // Set up backward transition rate matrix Q and symmetrized backward
         // transition rate matrix Qsym:
         for (int i = 0; i < nTypes; i++) {
-            Q.put(i,i, 0.0);
-            Qsym.put(i,i, 0.0);
+            Q.setEntry(i,i, 0.0);
+            Qsym.setEntry(i,i, 0.0);
             for (int j = 0; j < nTypes; j++) {
                 if (i != j) {
-                    Q.put(i, j, getBackwardRate(i, j));
-                    Q.put(i, i, Q.get(i, i) - Q.get(i, j));
+                    Q.setEntry(i, j, getBackwardRate(i, j));
+                    Q.setEntry(i, i, Q.getEntry(i, i) - Q.getEntry(i, j));
                     
-                    Qsym.put(i, j, 0.5*(getBackwardRate(i, j) + getBackwardRate(j, i)));
-                    Qsym.put(i, i, Qsym.get(i, i) - Qsym.get(i, j));
+                    Qsym.setEntry(i, j, 0.5*(getBackwardRate(i, j) + getBackwardRate(j, i)));
+                    Qsym.setEntry(i, i, Qsym.getEntry(i, i) - Qsym.getEntry(i, j));
                 }
             }
 
-            if (-Q.get(i, i) > mu)
-                mu = -Q.get(i, i);
+            if (-Q.getEntry(i, i) > mu)
+                mu = -Q.getEntry(i, i);
             
-            if (-Qsym.get(i,i) > muSym)
-                muSym = -Qsym.get(i, i);
+            if (-Qsym.getEntry(i,i) > muSym)
+                muSym = -Qsym.getEntry(i, i);
         }
 
         // Set up uniformized backward transition rate matrices R and Rsym:
-        R = Q.mul(1.0/mu).add(DoubleMatrix.eye(nTypes));
-        Rsym = Qsym.mul(1.0/muSym).add(DoubleMatrix.eye(nTypes));
+        MatrixUtils.createRealIdentityMatrix(nTypes);
+        R = (Q.scalarMultiply(1.0/mu)).add(MatrixUtils.createRealIdentityMatrix(nTypes));
+        Rsym = Qsym.scalarMultiply(1.0/muSym).add(MatrixUtils.createRealIdentityMatrix(nTypes));
         
         // Clear cached powers of R and Rsym and steady state flag:
         RpowN.clear();
@@ -191,11 +193,11 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
         RsymPowSteady = false;
         
         // Power sequences initially contain R^0 = I
-        RpowN.add(DoubleMatrix.eye(nTypes));
-        RsymPowN.add(DoubleMatrix.eye(nTypes));
+        RpowN.add(MatrixUtils.createRealIdentityMatrix(nTypes));
+        RsymPowN.add(MatrixUtils.createRealIdentityMatrix(nTypes));
         
-        RpowMax = DoubleMatrix.eye(nTypes);
-        RsymPowMax = DoubleMatrix.eye(nTypes);
+        RpowMax = MatrixUtils.createRealIdentityMatrix(nTypes);
+        RsymPowMax = MatrixUtils.createRealIdentityMatrix(nTypes);
 
         dirty = false;
     }
@@ -384,7 +386,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
     }
     
     @Override
-    public DoubleMatrix getR(boolean symmetric) {
+    public RealMatrix getR(boolean symmetric) {
         updateMatrices();
         if (symmetric)
             return Rsym;
@@ -393,7 +395,7 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
     }
     
     @Override
-    public DoubleMatrix getQ(boolean symmetric) {
+    public RealMatrix getQ(boolean symmetric) {
         updateMatrices();
         if (symmetric)
             return Qsym;
@@ -402,11 +404,14 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
     }
     
     @Override
-    public DoubleMatrix getRpowN(int n, boolean symmetric) {
+    public RealMatrix getRpowN(int n, boolean symmetric) {
         updateMatrices();
-        
-        List <DoubleMatrix> matPowerList;
-        DoubleMatrix mat, matPowerMax;
+
+        if (n>1000)
+            System.out.println(n);
+
+        List <RealMatrix> matPowerList;
+        RealMatrix mat, matPowerMax;
         if (symmetric) {
             matPowerList = RsymPowN;
             mat = Rsym;
@@ -427,15 +432,23 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
                 
             int startN = matPowerList.size();
             for (int i=startN; i<=n; i++) {
-                matPowerList.add(matPowerList.get(i-1).mmul(mat));
+                matPowerList.add(matPowerList.get(i-1).multiply(mat));
                 
-                matPowerMax.maxi(matPowerList.get(i));
+//                matPowerMax.maxi(matPowerList.get(i));
+                for (int rowIdx=0; rowIdx<matPowerMax.getRowDimension(); rowIdx++) {
+                    for (int colIdx=0; colIdx<matPowerMax.getColumnDimension(); colIdx++) {
+                        matPowerMax.setEntry(rowIdx, colIdx, Math.max(matPowerMax.getEntry(rowIdx, colIdx),
+                                matPowerList.get(i).getEntry(rowIdx, colIdx)));
+                    }
+                }
                     
                 // Occasionally check whether matrix iteration has reached steady state
                 if (i%10 == 0) {
                     double maxDiff = 0.0;
-                    for (double el : matPowerList.get(i).sub(matPowerList.get(i-1)).toArray())
-                        maxDiff = Math.max(maxDiff, Math.abs(el));
+                    for (double[] row : matPowerList.get(i).subtract(matPowerList.get(i-1)).getData()) {
+                        for (double el : row)
+                            maxDiff = Math.max(maxDiff, Math.abs(el));
+                    }
                         
                     if (!(maxDiff>0)) {
                         if (symmetric)
@@ -496,15 +509,15 @@ public class SCMigrationModel extends CalculationNode implements MigrationModel 
      */
     public static void main (String [] args) {
         
-        int n=10;
-        DoubleMatrix Q = new DoubleMatrix(n, n);
+        int n=4;
+        RealMatrix Q = new Array2DRowRealMatrix(n, n);
         for (int i=0; i<n; i++) {
             for (int j=0; j<n; j++) {
-                Q.put(i, j, i*n+j);
+                Q.setEntry(i, j, i*n+j);
             }
         }
-        MatrixFunctions.expm(Q.mul(0.001)).print();
-        Q.print();
+        System.out.println(MatrixFunctions.expm(Q.scalarMultiply(0.001)));
+        System.out.println(Q);
         
     }
 }
